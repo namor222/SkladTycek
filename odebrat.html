@@ -1,0 +1,288 @@
+```html
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Odebrat ze skladu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        h1 {
+            margin-bottom: 35px;
+        }
+
+        .obsah {
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .polozka {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        a {
+            display: block;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>➖ Odebrat ze skladu</h1>
+
+    <div class="obsah">
+
+        <div id="seznam">
+            Načítám sklad...
+        </div>
+
+        <a href="index.html">← Zpět na hlavní stránku</a>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let ulozenySklad = [];
+
+
+        async function nactiSklad() {
+
+            const seznam =
+                document.getElementById("seznam");
+
+            const { data, error } =
+                await supabaseClient
+                    .from("sklad")
+                    .select("*")
+                    .order("material")
+                    .order("druh")
+                    .order("rozmer")
+                    .order("delka")
+                    .order("atest");
+
+
+            if (error) {
+
+                seznam.innerHTML =
+                    "<p>Chyba při načítání skladu:<br>" +
+                    error.message +
+                    "</p>";
+
+                return;
+            }
+
+
+            ulozenySklad = data || [];
+
+
+            if (ulozenySklad.length === 0) {
+
+                seznam.innerHTML =
+                    "<p>Sklad je prázdný.</p>";
+
+                return;
+            }
+
+
+            seznam.innerHTML = "";
+
+
+            ulozenySklad.forEach((polozka, index) => {
+
+                seznam.innerHTML += `
+
+                    <div class="polozka">
+
+                        <h2>
+                            ${polozka.material}
+                        </h2>
+
+                        <p>
+                            ${polozka.druh} |
+                            ${polozka.rozmer} |
+                            ${polozka.delka}
+                        </p>
+
+                        <p>
+                            Atest:
+                            <strong>${polozka.atest}</strong>
+                        </p>
+
+                        <p>
+                            Na skladě:
+                            <strong>${polozka.pocet} ks</strong>
+                        </p>
+
+                        <label>
+                            Kolik kusů odebrat?
+                        </label>
+
+                        <br><br>
+
+                        <input
+                            type="number"
+                            id="odebrat${index}"
+                            min="1"
+                            max="${polozka.pocet}"
+                            placeholder="např. 10"
+                        >
+
+                        <button onclick="odebrat(${index})">
+                            ➖ ODEBRAT
+                        </button>
+
+                    </div>
+                `;
+            });
+        }
+
+
+        async function odebrat(index) {
+
+            const input =
+                document.getElementById("odebrat" + index);
+
+            const pocetOdebrat =
+                Number(input.value);
+
+            const polozka =
+                ulozenySklad[index];
+
+
+            if (pocetOdebrat <= 0) {
+
+                alert("Zadej počet kusů.");
+
+                return;
+            }
+
+
+            if (pocetOdebrat > polozka.pocet) {
+
+                alert(
+                    "Nelze odebrat více kusů, než je na skladě."
+                );
+
+                return;
+            }
+
+
+            const novyPocet =
+                polozka.pocet - pocetOdebrat;
+
+
+            if (novyPocet === 0) {
+
+                const { error } =
+                    await supabaseClient
+                        .from("sklad")
+                        .delete()
+                        .eq("material", polozka.material)
+                        .eq("druh", polozka.druh)
+                        .eq("rozmer", polozka.rozmer)
+                        .eq("delka", polozka.delka)
+                        .eq("atest", polozka.atest);
+
+
+                if (error) {
+
+                    alert(
+                        "Chyba při odebírání ze skladu: " +
+                        error.message
+                    );
+
+                    return;
+                }
+
+            } else {
+
+                const { error } =
+                    await supabaseClient
+                        .from("sklad")
+                        .update({
+                            pocet: novyPocet
+                        })
+                        .eq("material", polozka.material)
+                        .eq("druh", polozka.druh)
+                        .eq("rozmer", polozka.rozmer)
+                        .eq("delka", polozka.delka)
+                        .eq("atest", polozka.atest);
+
+
+                if (error) {
+
+                    alert(
+                        "Chyba při odebírání ze skladu: " +
+                        error.message
+                    );
+
+                    return;
+                }
+            }
+
+
+            alert(
+                "Odebráno " +
+                pocetOdebrat +
+                " ks."
+            );
+
+
+            location.reload();
+        }
+
+
+        nactiSklad();
+
+    </script>
+
+</body>
+</html>
+```

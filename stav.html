@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Stav skladu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .polozka {
+            background: white;
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .celkem {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        a {
+            display: block;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📊 Stav skladu</h1>
+
+    <div id="seznam">
+        Načítám sklad...
+    </div>
+
+    <a href="index.html">← Zpět na hlavní stránku</a>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        async function nactiSklad() {
+
+            const seznam =
+                document.getElementById("seznam");
+
+            const { data, error } =
+                await supabaseClient
+                    .from("sklad")
+                    .select("*")
+                    .order("material")
+                    .order("druh")
+                    .order("rozmer")
+                    .order("delka")
+                    .order("atest");
+
+
+            if (error) {
+
+                seznam.innerHTML =
+                    "<p>Chyba při načítání skladu:<br>" +
+                    error.message +
+                    "</p>";
+
+                return;
+            }
+
+
+            if (!data || data.length === 0) {
+
+                seznam.innerHTML =
+                    "<p>Sklad je prázdný.</p>";
+
+                return;
+            }
+
+
+            seznam.innerHTML = "";
+
+
+            const skupiny = {};
+
+
+            data.forEach(polozka => {
+
+                const klic =
+                    polozka.material + "|" +
+                    polozka.druh + "|" +
+                    polozka.rozmer + "|" +
+                    polozka.delka;
+
+
+                if (!skupiny[klic]) {
+
+                    skupiny[klic] = {
+                        material: polozka.material,
+                        druh: polozka.druh,
+                        rozmer: polozka.rozmer,
+                        delka: polozka.delka,
+                        atesty: [],
+                        celkem: 0
+                    };
+
+                }
+
+
+                skupiny[klic].atesty.push({
+
+                    atest: polozka.atest,
+                    pocet: polozka.pocet
+
+                });
+
+
+                skupiny[klic].celkem +=
+                    polozka.pocet;
+
+            });
+
+
+            let celkemVsechno = 0;
+
+
+            Object.values(skupiny).forEach(skupina => {
+
+                celkemVsechno +=
+                    skupina.celkem;
+
+
+                let atestyHTML = "";
+
+
+                skupina.atesty.forEach(atest => {
+
+                    atestyHTML += `
+
+                        <p>
+                            Atest / tavba:
+                            <strong>${atest.atest}</strong>
+                            —
+                            ${atest.pocet} ks
+                        </p>
+
+                    `;
+
+                });
+
+
+                seznam.innerHTML += `
+
+                    <div class="polozka">
+
+                        <h2>
+                            ${skupina.material}
+                        </h2>
+
+                        <h3>
+                            ${skupina.druh}
+                            |
+                            ${skupina.rozmer}
+                            |
+                            ${skupina.delka}
+                        </h3>
+
+                        ${atestyHTML}
+
+                        <hr>
+
+                        <p>
+                            Celkem:
+                            <strong>
+                                ${skupina.celkem} ks
+                            </strong>
+                        </p>
+
+                    </div>
+
+                `;
+
+            });
+
+
+            seznam.innerHTML += `
+
+                <div class="celkem">
+
+                    Celkem všech tyček:
+                    ${celkemVsechno} ks
+
+                </div>
+
+            `;
+
+        }
+
+
+        nactiSklad();
+
+    </script>
+
+</body>
+</html>

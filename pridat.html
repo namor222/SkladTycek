@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+
+```
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Přidat do skladu</title>
+
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f2f2f2;
+        margin: 0;
+        padding: 30px 15px;
+    }
+
+    h1 {
+        margin-bottom: 35px;
+    }
+
+    .obsah {
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .skryte {
+        display: none;
+    }
+
+    button {
+        width: 100%;
+        padding: 20px;
+        margin-bottom: 15px;
+        font-size: 22px;
+        font-weight: bold;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    input {
+        width: 90%;
+        padding: 14px;
+        margin: 8px 0 15px 0;
+        font-size: 20px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 10px;
+    }
+
+    .polozka {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    a {
+        display: block;
+        margin-top: 25px;
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<h1>➕ Přidat do skladu</h1>
+
+<div class="obsah">
+
+    <!-- MATERIÁL -->
+
+    <div id="materialBox">
+
+        <h2>1. Materiál</h2>
+
+        <button onclick="vyberMaterial('Ocel')">
+            Ocel
+        </button>
+
+        <button onclick="vyberMaterial('Nerez')">
+            Nerez
+        </button>
+
+        <button onclick="vyberMaterial('Hliník')">
+            Hliník
+        </button>
+
+        <button onclick="vyberMaterial('Mosaz')">
+            Mosaz
+        </button>
+
+    </div>
+
+
+    <!-- DRUH -->
+
+    <div id="druhBox" class="skryte">
+
+        <h2>2. Druh</h2>
+
+        <button onclick="vyberDruh('Kulatina')">
+            Kulatina
+        </button>
+
+        <button onclick="vyberDruh('Šestihran')">
+            Šestihran
+        </button>
+
+    </div>
+
+
+    <!-- ÚDAJE -->
+
+    <div id="udajeBox" class="skryte">
+
+        <div class="polozka">
+
+            <h2>3. Údaje o materiálu</h2>
+
+            <label>Rozměr</label>
+
+            <input
+                type="number"
+                id="rozmer"
+                placeholder="např. 20"
+                min="0"
+            >
+
+
+            <label>Délka (mm)</label>
+
+            <input
+                type="number"
+                id="delka"
+                placeholder="např. 3000"
+                min="0"
+            >
+
+
+            <label>Atest / tavba</label>
+
+            <input
+                type="number"
+                id="atest"
+                placeholder="např. 11112"
+                min="0"
+            >
+
+
+            <label>Počet kusů</label>
+
+            <input
+                type="number"
+                id="pocet"
+                placeholder="např. 50"
+                min="1"
+            >
+
+
+            <button onclick="pridatDoSkladu()">
+                ➕ PŘIDAT DO SKLADU
+            </button>
+
+            <p id="zprava"></p>
+
+        </div>
+
+    </div>
+
+
+    <a href="index.html">
+        ← Zpět na hlavní stránku
+    </a>
+
+</div>
+
+
+<!-- SUPABASE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<script>
+
+    const SUPABASE_URL =
+        "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+    const SUPABASE_KEY =
+        "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+    let vybranyMaterial = "";
+    let vybranyDruh = "";
+
+
+    function vyberMaterial(material) {
+
+        vybranyMaterial = material;
+
+        document.getElementById("materialBox")
+            .classList.add("skryte");
+
+        document.getElementById("druhBox")
+            .classList.remove("skryte");
+
+    }
+
+
+    function vyberDruh(druh) {
+
+        vybranyDruh = druh;
+
+        document.getElementById("druhBox")
+            .classList.add("skryte");
+
+        document.getElementById("udajeBox")
+            .classList.remove("skryte");
+
+    }
+
+
+    async function pridatDoSkladu() {
+
+        const rozmer =
+            document.getElementById("rozmer").value;
+
+        const delka =
+            document.getElementById("delka").value;
+
+        const atest =
+            document.getElementById("atest").value;
+
+        const pocet =
+            document.getElementById("pocet").value;
+
+
+        if (
+            rozmer === "" ||
+            delka === "" ||
+            atest === "" ||
+            pocet === ""
+        ) {
+
+            alert("Vyplň všechna pole.");
+
+            return;
+        }
+
+
+        const novaPolozka = {
+
+            material: vybranyMaterial,
+
+            druh: vybranyDruh,
+
+            rozmer: rozmer + " mm",
+
+            delka: delka + " mm",
+
+            atest: atest,
+
+            pocet: Number(pocet)
+
+        };
+
+
+        const { data, error } =
+            await supabaseClient
+                .from("sklad")
+                .insert([novaPolozka]);
+
+
+        if (error) {
+
+            document.getElementById("zprava").innerText =
+                "Chyba při ukládání do skladu: " +
+                error.message;
+
+            return;
+        }
+
+
+        document.getElementById("zprava").innerText =
+            "✅ Uloženo do společného skladu";
+
+    }
+
+</script>
+```
+
+</body>
+</html>
