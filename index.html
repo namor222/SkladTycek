@@ -3,19 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sklad tyček</title>
+
+    <title>KOVOHLADIL</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
             background: #f2f2f2;
             margin: 0;
             padding: 30px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            position: relative;
         }
 
         h1 {
-            margin-bottom: 40px;
+            margin: 0;
+            font-size: 38px;
+        }
+
+        .podnadpis {
+            margin-top: 8px;
+            color: #666;
+            font-size: 17px;
+        }
+
+        .odhlasit {
+            position: absolute;
+            top: -5px;
+            right: 0;
+        }
+
+        .odhlasit button {
+            background: #555;
+            color: white;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
         .menu {
@@ -30,36 +64,133 @@
 
         .menu button {
             width: 100%;
-            padding: 25px;
+            padding: 27px;
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: 23px;
             font-weight: bold;
             border: none;
             border-radius: 12px;
             cursor: pointer;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        @media (max-width: 500px) {
+
+            h1 {
+                font-size: 30px;
+                margin-top: 35px;
+            }
+
+            .odhlasit {
+                top: -25px;
+                right: 0;
+            }
+
+            .menu button {
+                font-size: 20px;
+                padding: 23px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>📦 Sklad tyček</h1>
+    <div class="hlavicka">
+
+        <div class="odhlasit">
+            <button onclick="odhlasit()">
+                🚪 ODHLÁSIT
+            </button>
+        </div>
+
+        <h1>KOVOHLADIL</h1>
+
+        <div class="podnadpis">
+            Firemní systém
+        </div>
+
+    </div>
+
 
     <div class="menu">
 
-        <a href="stav.html">
-            <button>📊 STAV</button>
+        <a href="material.html">
+            <button>
+                📦 SKLAD MATERIÁLU
+            </button>
         </a>
 
-        <a href="pridat.html">
-            <button>➕ PŘIDAT</button>
+        <a href="vyrobky.html">
+            <button>
+                🏭 SKLAD VÝROBKŮ
+            </button>
         </a>
 
-        <a href="odebrat.html">
-            <button>➖ ODEBRAT</button>
+        <a href="hala.html">
+            <button>
+                🏗️ VÝROBNÍ HALA
+            </button>
         </a>
 
     </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+            document.body.style.display =
+                "block";
+        }
+
+
+        async function odhlasit() {
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+            window.location.replace(
+                "login.html"
+            );
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
 
 </body>
 </html>

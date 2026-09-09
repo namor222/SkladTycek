@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="cs">
 <head>
 
-```
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -16,11 +14,35 @@
         text-align: center;
         background: #f2f2f2;
         margin: 0;
-        padding: 30px 15px;
+        padding: 20px 15px 30px 15px;
+        display: none;
     }
 
-    h1 {
-        margin-bottom: 35px;
+    .hlavicka {
+        max-width: 500px;
+        margin: 0 auto 25px auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .hlavicka h1 {
+        margin: 0;
+        font-size: 28px;
+        text-align: left;
+    }
+
+    .zpet {
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+        color: #1976d2;
+        white-space: nowrap;
+    }
+
+    .zpet:hover {
+        text-decoration: underline;
     }
 
     .obsah {
@@ -65,24 +87,41 @@
         border-radius: 12px;
     }
 
-    a {
-        display: block;
-        margin-top: 25px;
+    #zprava {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+
+    @media (max-width: 500px) {
+
+        .hlavicka h1 {
+            font-size: 22px;
+        }
+
+        .zpet {
+            font-size: 16px;
+        }
     }
 
 </style>
-```
 
 </head>
 
 <body>
 
-```
-<h1>➕ Přidat do skladu</h1>
+<div class="hlavicka">
+
+    <h1>➕ Přidat do skladu</h1>
+
+    <a class="zpet" href="material.html">
+        ← ZPĚT
+    </a>
+
+</div>
+
 
 <div class="obsah">
-
-    <!-- MATERIÁL -->
 
     <div id="materialBox">
 
@@ -107,8 +146,6 @@
     </div>
 
 
-    <!-- DRUH -->
-
     <div id="druhBox" class="skryte">
 
         <h2>2. Druh</h2>
@@ -123,8 +160,6 @@
 
     </div>
 
-
-    <!-- ÚDAJE -->
 
     <div id="udajeBox" class="skryte">
 
@@ -152,7 +187,7 @@
             >
 
 
-            <label>Atest / tavba</label>
+            <label>Tavba</label>
 
             <input
                 type="number"
@@ -182,15 +217,8 @@
 
     </div>
 
-
-    <a href="index.html">
-        ← Zpět na hlavní stránku
-    </a>
-
 </div>
 
-
-<!-- SUPABASE -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -213,6 +241,54 @@
 
     let vybranyMaterial = "";
     let vybranyDruh = "";
+    let osobniCisloPrihlaseneho = null;
+
+
+    async function zkontrolujPrihlaseni() {
+
+        const { data, error } =
+            await supabaseClient
+                .auth
+                .getSession();
+
+
+        if (
+            error ||
+            !data.session
+        ) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+        }
+
+
+        const email =
+            data.session.user.email || "";
+
+
+        osobniCisloPrihlaseneho =
+            email.split("@")[0];
+
+
+        if (!osobniCisloPrihlaseneho) {
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+            window.location.href =
+                "login.html";
+
+            return;
+        }
+
+
+        document.body.style.display =
+            "block";
+
+    }
 
 
     function vyberMaterial(material) {
@@ -253,62 +329,255 @@
             document.getElementById("atest").value;
 
         const pocet =
-            document.getElementById("pocet").value;
+            Number(
+                document.getElementById("pocet").value
+            );
+
+
+        const osobniCislo =
+            osobniCisloPrihlaseneho;
 
 
         if (
             rozmer === "" ||
             delka === "" ||
             atest === "" ||
-            pocet === ""
+            !pocet
         ) {
 
-            alert("Vyplň všechna pole.");
+            alert(
+                "Vyplň všechna pole."
+            );
 
             return;
         }
 
 
-        const novaPolozka = {
+        if (!osobniCislo) {
 
-            material: vybranyMaterial,
+            alert(
+                "Nepodařilo se zjistit přihlášeného pracovníka."
+            );
 
-            druh: vybranyDruh,
+            return;
+        }
 
-            rozmer: rozmer + " mm",
 
-            delka: delka + " mm",
+        const rozmerText =
+            rozmer + " mm";
 
-            atest: atest,
+        const delkaText =
+            delka + " mm";
 
-            pocet: Number(pocet)
+
+        const datum =
+            new Date().toLocaleDateString(
+                "sv-SE"
+            );
+
+
+        const {
+            data: existujici,
+            error: chybaNacteni
+        } =
+            await supabaseClient
+                .from("sklad")
+                .select("*")
+                .eq("material", vybranyMaterial)
+                .eq("druh", vybranyDruh)
+                .eq("rozmer", rozmerText)
+                .eq("delka", delkaText)
+                .eq("atest", atest);
+
+
+        if (chybaNacteni) {
+
+            document.getElementById("zprava")
+                .innerText =
+                "Chyba při kontrole skladu: " +
+                chybaNacteni.message;
+
+            return;
+        }
+
+
+        if (
+            existujici &&
+            existujici.length > 0
+        ) {
+
+            const staraPolozka =
+                existujici[0];
+
+            const novyPocet =
+                Number(staraPolozka.pocet) +
+                pocet;
+
+
+            const {
+                error: chybaUpdate
+            } =
+                await supabaseClient
+                    .from("sklad")
+                    .update({
+                        pocet: novyPocet
+                    })
+                    .eq(
+                        "material",
+                        vybranyMaterial
+                    )
+                    .eq(
+                        "druh",
+                        vybranyDruh
+                    )
+                    .eq(
+                        "rozmer",
+                        rozmerText
+                    )
+                    .eq(
+                        "delka",
+                        delkaText
+                    )
+                    .eq(
+                        "atest",
+                        atest
+                    );
+
+
+            if (chybaUpdate) {
+
+                document.getElementById("zprava")
+                    .innerText =
+                    "Chyba při navyšování počtu: " +
+                    chybaUpdate.message;
+
+                return;
+            }
+
+        } else {
+
+            const novaPolozka = {
+
+                material:
+                    vybranyMaterial,
+
+                druh:
+                    vybranyDruh,
+
+                rozmer:
+                    rozmerText,
+
+                delka:
+                    delkaText,
+
+                atest:
+                    atest,
+
+                pocet:
+                    pocet
+
+            };
+
+
+            const {
+                error: chybaInsert
+            } =
+                await supabaseClient
+                    .from("sklad")
+                    .insert([
+                        novaPolozka
+                    ]);
+
+
+            if (chybaInsert) {
+
+                document.getElementById("zprava")
+                    .innerText =
+                    "Chyba při ukládání do skladu: " +
+                    chybaInsert.message;
+
+                return;
+            }
+
+        }
+
+
+        const zaznamHistorie = {
+
+            datum:
+                datum,
+
+            osobni_cislo:
+                osobniCislo,
+
+            akce:
+                "PŘIDÁNO",
+
+            material:
+                vybranyMaterial,
+
+            druh:
+                vybranyDruh,
+
+            rozmer:
+                rozmerText,
+
+            delka:
+                delkaText,
+
+            atest:
+                atest,
+
+            pocet:
+                pocet
 
         };
 
 
-        const { data, error } =
+        const {
+            error: chybaHistorie
+        } =
             await supabaseClient
-                .from("sklad")
-                .insert([novaPolozka]);
+                .from("historie")
+                .insert([
+                    zaznamHistorie
+                ]);
 
 
-        if (error) {
+        if (chybaHistorie) {
 
-            document.getElementById("zprava").innerText =
-                "Chyba při ukládání do skladu: " +
-                error.message;
+            document.getElementById("zprava")
+                .innerText =
+                "Materiál byl přidán, ale nepodařilo se zapsat historii: " +
+                chybaHistorie.message;
 
             return;
         }
 
 
-        document.getElementById("zprava").innerText =
-            "✅ Uloženo do společného skladu";
+        document.getElementById("zprava")
+            .innerText =
+            "✅ Materiál přidán a pohyb zapsán do historie.";
+
+
+        document.getElementById("rozmer")
+            .value = "";
+
+        document.getElementById("delka")
+            .value = "";
+
+        document.getElementById("atest")
+            .value = "";
+
+        document.getElementById("pocet")
+            .value = "";
 
     }
 
+
+    zkontrolujPrihlaseni();
+
 </script>
-```
 
 </body>
 </html>

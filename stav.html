@@ -13,12 +13,52 @@
             font-family: Arial, sans-serif;
             background: #f2f2f2;
             margin: 0;
-            padding: 20px;
+            padding: 20px 15px 30px 15px;
             text-align: center;
+            display: none;
         }
 
-        h1 {
-            margin-bottom: 30px;
+        .hlavicka {
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .zpet:hover {
+            text-decoration: underline;
+        }
+
+        .hledani {
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+        }
+
+        .hledani input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 18px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            background: white;
         }
 
         .polozka {
@@ -30,29 +70,75 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
+        .cislo-tavby {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .pocet-malo {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .pocet-stred {
+            color: #f57c00;
+            font-weight: bold;
+        }
+
+        .pocet-ok {
+            color: #1b8f3a;
+            font-weight: bold;
+        }
+
         .celkem {
             font-size: 22px;
             font-weight: bold;
             margin-top: 30px;
         }
 
-        a {
-            display: block;
-            margin-top: 30px;
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 16px;
+            }
+
+            .hledani input {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>📊 Stav skladu</h1>
+    <div class="hlavicka">
+
+        <h1>📊 Stav skladu</h1>
+
+        <a class="zpet" href="material.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+    <div class="hledani">
+
+        <input
+            type="text"
+            id="hledatTavbu"
+            placeholder="🔎 Hledat podle tavby..."
+            oninput="zobrazSklad()"
+        >
+
+    </div>
 
     <div id="seznam">
         Načítám sklad...
     </div>
-
-    <a href="index.html">← Zpět na hlavní stránku</a>
-
 
     <script>
 
@@ -67,6 +153,33 @@
                 SUPABASE_URL,
                 SUPABASE_KEY
             );
+
+        let skladData = [];
+
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.href =
+                    "login.html";
+
+                return;
+            }
+
+            document.body.style.display =
+                "block";
+
+            nactiSklad();
+        }
 
 
         async function nactiSklad() {
@@ -84,7 +197,6 @@
                     .order("delka")
                     .order("atest");
 
-
             if (error) {
 
                 seznam.innerHTML =
@@ -95,30 +207,78 @@
                 return;
             }
 
+            skladData =
+                (data || []).filter(
+                    polozka => Number(polozka.pocet) > 0
+                );
 
-            if (!data || data.length === 0) {
+            zobrazSklad();
+        }
+
+
+        function tridaPoctu(pocet) {
+
+            const cislo =
+                Number(pocet);
+
+            if (cislo < 10) {
+                return "pocet-malo";
+            }
+
+            if (cislo <= 20) {
+                return "pocet-stred";
+            }
+
+            return "pocet-ok";
+        }
+
+
+        function zobrazSklad() {
+
+            const seznam =
+                document.getElementById("seznam");
+
+            const hledanaTavba =
+                document
+                    .getElementById("hledatTavbu")
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+            let filtrovanaData =
+                skladData;
+
+            if (hledanaTavba !== "") {
+
+                filtrovanaData =
+                    skladData.filter(polozka =>
+
+                        String(polozka.atest)
+                            .toLowerCase()
+                            .includes(hledanaTavba)
+
+                    );
+            }
+
+            if (filtrovanaData.length === 0) {
 
                 seznam.innerHTML =
-                    "<p>Sklad je prázdný.</p>";
+                    "<p>Žádná tavba nebyla nalezena.</p>";
 
                 return;
             }
 
-
             seznam.innerHTML = "";
-
 
             const skupiny = {};
 
-
-            data.forEach(polozka => {
+            filtrovanaData.forEach(polozka => {
 
                 const klic =
                     polozka.material + "|" +
                     polozka.druh + "|" +
                     polozka.rozmer + "|" +
                     polozka.delka;
-
 
                 if (!skupiny[klic]) {
 
@@ -133,48 +293,53 @@
 
                 }
 
-
                 skupiny[klic].atesty.push({
-
                     atest: polozka.atest,
-                    pocet: polozka.pocet
-
+                    pocet: Number(polozka.pocet)
                 });
 
-
                 skupiny[klic].celkem +=
-                    polozka.pocet;
+                    Number(polozka.pocet);
 
             });
 
-
             let celkemVsechno = 0;
-
 
             Object.values(skupiny).forEach(skupina => {
 
                 celkemVsechno +=
                     skupina.celkem;
 
-
                 let atestyHTML = "";
 
+                skupina.atesty.sort(
+                    (a, b) => a.pocet - b.pocet
+                );
 
                 skupina.atesty.forEach(atest => {
+
+                    const trida =
+                        tridaPoctu(atest.pocet);
 
                     atestyHTML += `
 
                         <p>
-                            Atest / tavba:
-                            <strong>${atest.atest}</strong>
+                            Tavba:
+                            <span class="cislo-tavby">
+                                ${atest.atest}
+                            </span>
                             —
-                            ${atest.pocet} ks
+                            <span class="${trida}">
+                                ${atest.pocet} ks
+                            </span>
                         </p>
 
                     `;
 
                 });
 
+                const tridaCelkem =
+                    tridaPoctu(skupina.celkem);
 
                 seznam.innerHTML += `
 
@@ -198,9 +363,9 @@
 
                         <p>
                             Celkem:
-                            <strong>
+                            <span class="${tridaCelkem}">
                                 ${skupina.celkem} ks
-                            </strong>
+                            </span>
                         </p>
 
                     </div>
@@ -209,12 +374,11 @@
 
             });
 
-
             seznam.innerHTML += `
 
                 <div class="celkem">
 
-                    Celkem všech tyček:
+                    Celkem zobrazených tyček:
                     ${celkemVsechno} ks
 
                 </div>
@@ -224,7 +388,7 @@
         }
 
 
-        nactiSklad();
+        zkontrolujPrihlaseni();
 
     </script>
 

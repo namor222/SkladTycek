@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KOVOHLADIL - Přihlášení</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .firma {
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .podnadpis {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 17px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin: 18px auto 8px auto;
+            max-width: 320px;
+        }
+
+        input {
+            width: 100%;
+            max-width: 320px;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 19px;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            max-width: 320px;
+            padding: 16px;
+            margin-top: 25px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            background: #1976d2;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        .chyba {
+            color: #d32f2f;
+            font-weight: bold;
+            margin-top: 18px;
+            min-height: 24px;
+        }
+
+        .info {
+            margin-top: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        @media (max-width: 500px) {
+            .firma {
+                font-size: 29px;
+            }
+
+            .login-box {
+                padding: 30px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+
+        <div class="firma">
+            KOVOHLADIL
+        </div>
+
+        <div class="podnadpis">
+            Interní systém
+        </div>
+
+
+        <label for="osobniCislo">
+            Osobní číslo
+        </label>
+
+        <input
+            type="text"
+            id="osobniCislo"
+            inputmode="numeric"
+            autocomplete="username"
+            placeholder="např. 1"
+        >
+
+
+        <label for="heslo">
+            Heslo
+        </label>
+
+        <input
+            type="password"
+            id="heslo"
+            autocomplete="current-password"
+            placeholder="Zadej heslo"
+        >
+
+
+        <button
+            id="prihlasitButton"
+            onclick="prihlasit()"
+        >
+            PŘIHLÁSIT
+        </button>
+
+
+        <div
+            id="chyba"
+            class="chyba"
+        ></div>
+
+
+        <div class="info">
+            Přístup pouze pro oprávněné pracovníky.
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        async function prihlasit() {
+
+            const osobniCislo =
+                document
+                    .getElementById("osobniCislo")
+                    .value
+                    .trim();
+
+            const heslo =
+                document
+                    .getElementById("heslo")
+                    .value;
+
+            const chyba =
+                document.getElementById("chyba");
+
+            const button =
+                document.getElementById(
+                    "prihlasitButton"
+                );
+
+
+            chyba.innerText = "";
+
+
+            if (
+                osobniCislo === "" ||
+                heslo === ""
+            ) {
+
+                chyba.innerText =
+                    "Vyplň osobní číslo a heslo.";
+
+                return;
+            }
+
+
+            const email =
+                osobniCislo +
+                "@kovohladil.local";
+
+
+            button.disabled = true;
+            button.innerText = "PŘIHLAŠUJI...";
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .signInWithPassword({
+                        email: email,
+                        password: heslo
+                    });
+
+
+            if (error) {
+
+                chyba.innerText =
+                    "Nesprávné osobní číslo nebo heslo.";
+
+                button.disabled = false;
+                button.innerText = "PŘIHLÁSIT";
+
+                return;
+            }
+
+
+            if (data.session) {
+
+                window.location.href =
+                    "index.html";
+
+            } else {
+
+                chyba.innerText =
+                    "Přihlášení se nepodařilo.";
+
+                button.disabled = false;
+                button.innerText = "PŘIHLÁSIT";
+            }
+
+        }
+
+
+        /*
+            ENTER = PŘIHLÁSIT
+        */
+
+        document
+            .getElementById("heslo")
+            .addEventListener(
+                "keydown",
+                function(event) {
+
+                    if (event.key === "Enter") {
+                        prihlasit();
+                    }
+
+                }
+            );
+
+
+        /*
+            KDYŽ UŽ JE UŽIVATEL PŘIHLÁŠENÝ,
+            POŠLEME HO ROVNOU DÁL
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const {
+                data
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (data.session) {
+
+                window.location.href =
+                    "index.html";
+
+            }
+
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

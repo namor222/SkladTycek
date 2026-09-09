@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sklad materiálu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 30px 15px;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .menu {
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .menu a {
+            display: block;
+            text-decoration: none;
+        }
+
+        .menu button {
+            width: 100%;
+            padding: 25px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .upozorneni {
+            max-width: 500px;
+            margin: 20px auto 0 auto;
+            display: none;
+        }
+
+        .upozorneni h2 {
+            color: #d32f2f;
+            margin-bottom: 15px;
+        }
+
+        .dochazi-polozka {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            border-left: 7px solid #d32f2f;
+        }
+
+        .dochazi-material {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .dochazi-detail {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .dochazi-pocet {
+            color: #d32f2f;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>📦 Sklad materiálu</h1>
+
+        <a class="zpet" href="index.html">
+            ← HLAVNÍ MENU
+        </a>
+
+    </div>
+
+
+    <div class="menu">
+
+        <a href="stav.html">
+            <button>📊 STAV</button>
+        </a>
+
+        <a href="pridat.html">
+            <button>➕ PŘIDAT</button>
+        </a>
+
+        <a href="odebrat.html">
+            <button>➖ ODEBRAT</button>
+        </a>
+
+        <a href="historie.html">
+            <button>🕘 HISTORIE</button>
+        </a>
+
+    </div>
+
+
+    <div id="upozorneni" class="upozorneni">
+
+        <h2>⚠️ DOCHÁZÍ MATERIÁL</h2>
+
+        <div id="dochaziSeznam"></div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+            document.body.style.display =
+                "block";
+
+            nactiDochazejiciMaterial();
+        }
+
+
+        async function nactiDochazejiciMaterial() {
+
+            const { data, error } =
+                await supabaseClient
+                    .from("sklad")
+                    .select("*");
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            const skupiny = {};
+
+            (data || []).forEach(polozka => {
+
+                const material =
+                    String(polozka.material);
+
+                if (
+                    material !== "Ocel" &&
+                    material !== "Nerez"
+                ) {
+                    return;
+                }
+
+                const klic =
+                    polozka.material + "|" +
+                    polozka.druh + "|" +
+                    polozka.rozmer + "|" +
+                    polozka.delka;
+
+                if (!skupiny[klic]) {
+
+                    skupiny[klic] = {
+                        material: polozka.material,
+                        druh: polozka.druh,
+                        rozmer: polozka.rozmer,
+                        delka: polozka.delka,
+                        celkem: 0
+                    };
+                }
+
+                skupiny[klic].celkem +=
+                    Number(polozka.pocet);
+            });
+
+
+            const dochazi =
+                Object.values(skupiny)
+                    .filter(skupina =>
+                        skupina.celkem > 0 &&
+                        skupina.celkem < 10
+                    )
+                    .sort(
+                        (a, b) =>
+                            a.celkem - b.celkem
+                    );
+
+
+            if (dochazi.length === 0) {
+
+                document
+                    .getElementById("upozorneni")
+                    .style.display = "none";
+
+                return;
+            }
+
+
+            const dochaziSeznam =
+                document.getElementById(
+                    "dochaziSeznam"
+                );
+
+            dochaziSeznam.innerHTML = "";
+
+
+            dochazi.forEach(skupina => {
+
+                dochaziSeznam.innerHTML += `
+
+                    <div class="dochazi-polozka">
+
+                        <div class="dochazi-material">
+                            ${skupina.material}
+                        </div>
+
+                        <div class="dochazi-detail">
+                            ${skupina.druh}
+                            |
+                            ${skupina.rozmer}
+                            |
+                            ${skupina.delka}
+                        </div>
+
+                        <div class="dochazi-pocet">
+                            ${skupina.celkem} ks
+                        </div>
+
+                    </div>
+
+                `;
+            });
+
+
+            document
+                .getElementById("upozorneni")
+                .style.display = "block";
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

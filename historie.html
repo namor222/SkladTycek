@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Historie skladu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 30px 15px;
+            text-align: center;
+
+            /* STRÁNKA SE UKÁŽE AŽ PO OVĚŘENÍ LOGINU */
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .zpet:hover {
+            text-decoration: underline;
+        }
+
+        .filtry {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .filtry input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            font-size: 17px;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .obsah {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .zaznam {
+            background: white;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            text-align: left;
+            border-left: 8px solid #999;
+        }
+
+        .zaznam.pridano {
+            border-left-color: #28a745;
+        }
+
+        .zaznam.odebrano {
+            border-left-color: #dc3545;
+        }
+
+        .akce {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+
+        .akce.pridano {
+            color: #28a745;
+        }
+
+        .akce.odebrano {
+            color: #dc3545;
+        }
+
+        .datum {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .detail {
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .cislo-tavby {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .objednavka {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .cislo-objednavky {
+            color: #f57c00;
+            font-weight: bold;
+        }
+
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 16px;
+            }
+
+            .filtry {
+                grid-template-columns: 1fr;
+            }
+
+            .filtry input {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>🕘 Historie skladu</h1>
+
+        <a class="zpet" href="material.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="filtry">
+
+        <input
+            type="text"
+            id="hledatTavbu"
+            placeholder="🔎 Hledat tavbu..."
+            oninput="zobrazHistorii()"
+        >
+
+        <input
+            type="text"
+            id="hledatObjednavku"
+            placeholder="🔎 Hledat objednávku..."
+            oninput="zobrazHistorii()"
+        >
+
+    </div>
+
+
+    <div class="obsah">
+
+        <div id="seznam">
+            Načítám historii...
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let historieData = [];
+
+
+        /*
+            KONTROLA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.href =
+                    "login.html";
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            nactiHistorii();
+        }
+
+
+        /*
+            NAČTENÍ HISTORIE
+        */
+
+        async function nactiHistorii() {
+
+            const seznam =
+                document.getElementById("seznam");
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from("historie")
+                    .select("*")
+                    .order("datum", { ascending: false })
+                    .order("id", { ascending: false });
+
+
+            if (error) {
+
+                seznam.innerHTML =
+                    "<p>Chyba při načítání historie:<br>" +
+                    error.message +
+                    "</p>";
+
+                return;
+            }
+
+
+            historieData = data || [];
+
+
+            zobrazHistorii();
+        }
+
+
+        /*
+            ZOBRAZENÍ HISTORIE
+        */
+
+        function zobrazHistorii() {
+
+            const seznam =
+                document.getElementById("seznam");
+
+
+            const hledanaTavba =
+                document
+                    .getElementById("hledatTavbu")
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            const hledanaObjednavka =
+                document
+                    .getElementById("hledatObjednavku")
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            let filtrovanaData =
+                historieData;
+
+
+            /*
+                HLEDÁNÍ PODLE TAVBY
+            */
+
+            if (hledanaTavba !== "") {
+
+                filtrovanaData =
+                    filtrovanaData.filter(zaznam =>
+
+                        String(zaznam.atest || "")
+                            .toLowerCase()
+                            .includes(hledanaTavba)
+
+                    );
+            }
+
+
+            /*
+                HLEDÁNÍ PODLE OBJEDNÁVKY
+            */
+
+            if (hledanaObjednavka !== "") {
+
+                filtrovanaData =
+                    filtrovanaData.filter(zaznam =>
+
+                        String(zaznam.objednavka || "")
+                            .toLowerCase()
+                            .includes(hledanaObjednavka)
+
+                    );
+            }
+
+
+            /*
+                NIC NENALEZENO
+            */
+
+            if (filtrovanaData.length === 0) {
+
+                seznam.innerHTML =
+                    "<p>Žádné záznamy nebyly nalezeny.</p>";
+
+                return;
+            }
+
+
+            seznam.innerHTML = "";
+
+
+            /*
+                VYKRESLENÍ HISTORIE
+            */
+
+            filtrovanaData.forEach(zaznam => {
+
+                let znaminko = "";
+                let trida = "";
+
+
+                if (zaznam.akce === "PŘIDÁNO") {
+
+                    znaminko = "+";
+                    trida = "pridano";
+
+                }
+
+
+                if (zaznam.akce === "ODEBRÁNO") {
+
+                    znaminko = "-";
+                    trida = "odebrano";
+
+                }
+
+
+                /*
+                    OBJEDNÁVKA SE UKÁŽE JEN,
+                    KDYŽ JE VYPLNĚNÁ
+                */
+
+                let objednavkaHTML = "";
+
+
+                if (
+                    zaznam.objednavka &&
+                    String(zaznam.objednavka).trim() !== ""
+                ) {
+
+                    objednavkaHTML = `
+
+                        <div class="objednavka">
+
+                            Objednávka:
+
+                            <span class="cislo-objednavky">
+                                ${zaznam.objednavka}
+                            </span>
+
+                        </div>
+
+                    `;
+                }
+
+
+                seznam.innerHTML += `
+
+                    <div class="zaznam ${trida}">
+
+                        <div class="datum">
+
+                            ${formatDatum(zaznam.datum)}
+                            |
+                            Os. č. ${zaznam.osobni_cislo}
+
+                        </div>
+
+
+                        <div class="akce ${trida}">
+                            ${zaznam.akce}
+                        </div>
+
+
+                        <div class="detail">
+
+                            ${zaznam.material}
+                            |
+                            ${zaznam.druh}
+                            |
+                            ${zaznam.rozmer}
+                            |
+                            ${zaznam.delka}
+
+                            <br>
+
+
+                            Tavba:
+
+                            <span class="cislo-tavby">
+                                ${zaznam.atest}
+                            </span>
+
+                            |
+
+                            <strong>
+                                ${znaminko}${zaznam.pocet} ks
+                            </strong>
+
+
+                            ${objednavkaHTML}
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            });
+        }
+
+
+        /*
+            FORMÁT DATA
+        */
+
+        function formatDatum(datum) {
+
+            if (!datum) {
+                return "";
+            }
+
+
+            const casti =
+                datum.split("-");
+
+
+            if (casti.length !== 3) {
+                return datum;
+            }
+
+
+            return (
+                Number(casti[2]) +
+                ". " +
+                Number(casti[1]) +
+                ". " +
+                casti[0]
+            );
+        }
+
+
+        /*
+            SPUŠTĚNÍ STRÁNKY
+        */
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>
