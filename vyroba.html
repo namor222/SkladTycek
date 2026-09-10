@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Výroba</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 40px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 850px;
+            margin: 0 auto 25px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+            white-space: nowrap;
+            font-size: 17px;
+        }
+
+        .hledani {
+            max-width: 850px;
+            margin: 0 auto 20px auto;
+        }
+
+        .hledani input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 17px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .obsah {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .karta {
+            background: white;
+            border-left: 8px solid #1976d2;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .horni-radek {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .zakazka {
+            font-size: 23px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .stroj {
+            background: #eeeeee;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .objednavka {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .cislo-objednavky {
+            color: #f57c00;
+            font-weight: bold;
+        }
+
+        .material {
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .tavba {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        .progress-procenta {
+            color: #1976d2;
+        }
+
+        .progress-obal {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #1b8f3a;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .statistiky {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            background: #f5f5f5;
+            border-radius: 9px;
+            padding: 11px;
+            text-align: center;
+        }
+
+        .stat-nazev {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-hodnota {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dobre {
+            color: #1b8f3a;
+        }
+
+        .spatne {
+            color: #d32f2f;
+        }
+
+        .zbyva {
+            color: #1976d2;
+        }
+
+        .odhad {
+            margin-top: 17px;
+            padding: 15px;
+            background: #f3f7fb;
+            border-radius: 10px;
+        }
+
+        .odhad-nadpis {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .odhad-datum {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .odhad-zdroj {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .spodni {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .otevrit {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+        }
+
+        .otevrit:hover {
+            background: #1565c0;
+        }
+
+        .prazdne {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+            .zakazka {
+                font-size: 20px;
+            }
+
+            .horni-radek {
+                align-items: center;
+            }
+
+            .statistiky {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .stat {
+                padding: 9px 4px;
+            }
+
+            .stat-nazev {
+                font-size: 10px;
+            }
+
+            .stat-hodnota {
+                font-size: 15px;
+            }
+
+            .progress-info {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>🔵 Výroba</h1>
+
+        <a class="zpet" href="hala.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="hledani">
+
+        <input
+            type="text"
+            id="hledat"
+            placeholder="🔎 Hledat zakázku, objednávku nebo tavbu..."
+            oninput="zobrazVyrobu()"
+        >
+
+    </div>
+
+
+    <div class="obsah">
+
+        <div id="seznam">
+            Načítám výrobu...
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let vyrobaData = [];
+        let vykonyData = [];
+
+
+        /*
+            OCHRANA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            await nactiVyrobu();
+        }
+
+
+        /*
+            NAČTENÍ ZAKÁZEK VE VÝROBĚ
+        */
+
+        async function nactiVyrobu() {
+
+            const seznam =
+                document.getElementById(
+                    "seznam"
+                );
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .select("*")
+                    .eq(
+                        "stav",
+                        "vyroba"
+                    )
+                    .order(
+                        "zahajeno_at",
+                        {
+                            ascending: false
+                        }
+                    );
+
+
+            if (error) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+
+                        Chyba při načítání výroby:<br>
+                        ${escapeHtml(error.message)}
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            vyrobaData =
+                data || [];
+
+
+            await nactiVykony();
+        }
+
+
+        /*
+            NAČTENÍ VÝKONŮ
+        */
+
+        async function nactiVykony() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("vykony_vyroby")
+                    .select("*");
+
+
+            if (error) {
+
+                document.getElementById(
+                    "seznam"
+                ).innerHTML = `
+
+                    <div class="prazdne">
+
+                        Chyba při načítání výkonů:<br>
+                        ${escapeHtml(error.message)}
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            vykonyData =
+                data || [];
+
+
+            zobrazVyrobu();
+        }
+
+
+        /*
+            STATISTIKY JEDNÉ ZAKÁZKY
+        */
+
+        function spocitejStatistiky(
+            polozka
+        ) {
+
+            const vykony =
+                vykonyData.filter(
+                    vykon =>
+                        Number(
+                            vykon.rozpracovane_id
+                        ) ===
+                        Number(
+                            polozka.id
+                        )
+                );
+
+
+            let dobre =
+                0;
+
+
+            let spatne =
+                0;
+
+
+            let hodiny =
+                0;
+
+
+            vykony.forEach(
+                vykon => {
+
+                    dobre +=
+                        Number(
+                            vykon.shodne_ks
+                        ) || 0;
+
+
+                    spatne +=
+                        Number(
+                            vykon.neshodne_ks
+                        ) || 0;
+
+
+                    hodiny +=
+                        Number(
+                            vykon.odpracovano_hodin
+                        ) || 0;
+
+                }
+            );
+
+
+            const pozadovano =
+                Number(
+                    polozka.pozadovany_pocet_kusu
+                ) || 0;
+
+
+            const zbyva =
+                Math.max(
+                    0,
+                    pozadovano -
+                    dobre
+                );
+
+
+            let procenta =
+                0;
+
+
+            if (
+                pozadovano > 0
+            ) {
+
+                procenta =
+                    (
+                        dobre /
+                        pozadovano
+                    ) *
+                    100;
+            }
+
+
+            procenta =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        procenta
+                    )
+                );
+
+
+            /*
+                VÝKON ZA HODINU
+
+                1. skutečný výkon
+                2. když není, plán Ks / 7,5 h
+            */
+
+            let vykonZaHodinu =
+                0;
+
+
+            let zdroj =
+                "";
+
+
+            if (
+                dobre > 0 &&
+                hodiny > 0
+            ) {
+
+                vykonZaHodinu =
+                    dobre /
+                    hodiny;
+
+
+                zdroj =
+                    "skutečného výkonu";
+            }
+
+            else {
+
+                /*
+                    SPRÁVNÝ NÁZEV SLOUPCE
+                */
+
+                const planKs =
+                    Number(
+                        polozka.ks_za_7_5_hod
+                    ) || 0;
+
+
+                if (
+                    planKs > 0
+                ) {
+
+                    vykonZaHodinu =
+                        planKs /
+                        7.5;
+
+
+                    zdroj =
+                        "plánovaného výkonu";
+                }
+            }
+
+
+            return {
+
+                dobre,
+                spatne,
+                hodiny,
+                pozadovano,
+                zbyva,
+                procenta,
+                vykonZaHodinu,
+                zdroj
+
+            };
+        }
+
+
+        /*
+            TERMÍN DOKONČENÍ
+
+            Po-Pá = 24 h denně
+            So-Ne = nepočítat
+        */
+
+        function spocitejTermin(
+            zbyva,
+            vykonZaHodinu
+        ) {
+
+            if (
+                zbyva <= 0
+            ) {
+
+                return {
+                    hotovo: true,
+                    datum: null
+                };
+            }
+
+
+            if (
+                vykonZaHodinu <= 0
+            ) {
+
+                return {
+                    hotovo: false,
+                    datum: null
+                };
+            }
+
+
+            let zbyvajiciHodiny =
+                zbyva /
+                vykonZaHodinu;
+
+
+            let datum =
+                preskocVikend(
+                    new Date()
+                );
+
+
+            /*
+                Počítáme po 15 minutách.
+            */
+
+            while (
+                zbyvajiciHodiny > 0
+            ) {
+
+                const krok =
+                    Math.min(
+                        0.25,
+                        zbyvajiciHodiny
+                    );
+
+
+                datum.setMinutes(
+                    datum.getMinutes() +
+                    krok * 60
+                );
+
+
+                datum =
+                    preskocVikend(
+                        datum
+                    );
+
+
+                zbyvajiciHodiny -=
+                    krok;
+            }
+
+
+            return {
+                hotovo: false,
+                datum: datum
+            };
+        }
+
+
+        function preskocVikend(
+            datum
+        ) {
+
+            const vysledek =
+                new Date(
+                    datum
+                );
+
+
+            /*
+                Sobota
+            */
+
+            if (
+                vysledek.getDay() === 6
+            ) {
+
+                vysledek.setDate(
+                    vysledek.getDate() + 2
+                );
+
+
+                vysledek.setHours(
+                    0,
+                    0,
+                    0,
+                    0
+                );
+            }
+
+
+            /*
+                Neděle
+            */
+
+            if (
+                vysledek.getDay() === 0
+            ) {
+
+                vysledek.setDate(
+                    vysledek.getDate() + 1
+                );
+
+
+                vysledek.setHours(
+                    0,
+                    0,
+                    0,
+                    0
+                );
+            }
+
+
+            return vysledek;
+        }
+
+
+        /*
+            ZOBRAZENÍ
+        */
+
+        function zobrazVyrobu() {
+
+            const seznam =
+                document.getElementById(
+                    "seznam"
+                );
+
+
+            const hledat =
+                document
+                    .getElementById(
+                        "hledat"
+                    )
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            let data =
+                vyrobaData;
+
+
+            if (
+                hledat !== ""
+            ) {
+
+                data =
+                    vyrobaData.filter(
+                        polozka => {
+
+                            const zakazka =
+                                String(
+                                    polozka.cislo_zakazky || ""
+                                )
+                                .toLowerCase();
+
+
+                            const objednavka =
+                                String(
+                                    polozka.objednavka || ""
+                                )
+                                .toLowerCase();
+
+
+                            const atest =
+                                String(
+                                    polozka.atest || ""
+                                )
+                                .toLowerCase();
+
+
+                            return (
+                                zakazka.includes(hledat) ||
+                                objednavka.includes(hledat) ||
+                                atest.includes(hledat)
+                            );
+                        }
+                    );
+            }
+
+
+            if (
+                data.length === 0
+            ) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+
+                        Momentálně není žádná
+                        zakázka ve výrobě.
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML =
+                "";
+
+
+            data.forEach(
+                polozka => {
+
+                    const stat =
+                        spocitejStatistiky(
+                            polozka
+                        );
+
+
+                    const termin =
+                        spocitejTermin(
+                            stat.zbyva,
+                            stat.vykonZaHodinu
+                        );
+
+
+                    let terminHTML =
+                        "";
+
+
+                    if (
+                        stat.zbyva <= 0
+                    ) {
+
+                        terminHTML = `
+
+                            <div class="odhad">
+
+                                <div class="odhad-nadpis">
+                                    STAV ZAKÁZKY
+                                </div>
+
+                                <div class="odhad-datum dobre">
+                                    ✅ POŽADOVANÝ POČET JE HOTOVÝ
+                                </div>
+
+                            </div>
+
+                        `;
+                    }
+
+                    else if (
+                        termin.datum
+                    ) {
+
+                        terminHTML = `
+
+                            <div class="odhad">
+
+                                <div class="odhad-nadpis">
+                                    ⏱ PŘEDPOKLÁDANÉ DOKONČENÍ
+                                </div>
+
+                                <div class="odhad-datum">
+
+                                    ${formatTermin(
+                                        termin.datum
+                                    )}
+
+                                </div>
+
+                                <div class="odhad-zdroj">
+
+                                    Výpočet podle
+                                    ${escapeHtml(
+                                        stat.zdroj
+                                    )}
+
+                                    —
+
+                                    ${formatCislo(
+                                        stat.vykonZaHodinu
+                                    )}
+                                    dobrých ks/h
+
+                                </div>
+
+                            </div>
+
+                        `;
+                    }
+
+                    else {
+
+                        terminHTML = `
+
+                            <div class="odhad">
+
+                                <div class="odhad-nadpis">
+                                    ⏱ PŘEDPOKLÁDANÉ DOKONČENÍ
+                                </div>
+
+                                <div class="odhad-zdroj">
+
+                                    Zatím nelze vypočítat.
+                                    Chybí údaj o výkonu.
+
+                                </div>
+
+                            </div>
+
+                        `;
+                    }
+
+
+                    seznam.innerHTML += `
+
+                        <div class="karta">
+
+                            <div class="horni-radek">
+
+                                <div class="zakazka">
+
+                                    Zakázka:
+                                    ${escapeHtml(
+                                        polozka.cislo_zakazky ||
+                                        "neuvedena"
+                                    )}
+
+                                </div>
+
+
+                                <div class="stroj">
+
+                                    STROJ
+                                    ${escapeHtml(
+                                        polozka.stroj ||
+                                        "—"
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="objednavka">
+
+                                Objednávka:
+
+                                <span class="cislo-objednavky">
+
+                                    ${escapeHtml(
+                                        polozka.objednavka ||
+                                        "neuvedena"
+                                    )}
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="material">
+
+                                <strong>
+                                    ${escapeHtml(
+                                        polozka.material
+                                    )}
+                                </strong>
+
+                                |
+
+                                ${escapeHtml(
+                                    polozka.druh
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    polozka.rozmer
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    polozka.delka
+                                )}
+
+                                <br>
+
+
+                                Tavba:
+
+                                <span class="tavba">
+
+                                    ${escapeHtml(
+                                        polozka.atest
+                                    )}
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="progress-info">
+
+                                <span>
+
+                                    Hotovo:
+
+                                    ${formatCeleCislo(
+                                        stat.dobre
+                                    )}
+
+                                    /
+
+                                    ${formatCeleCislo(
+                                        stat.pozadovano
+                                    )}
+
+                                    ks
+
+                                </span>
+
+
+                                <span class="progress-procenta">
+
+                                    ${formatProcenta(
+                                        stat.procenta
+                                    )} %
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="progress-obal">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${stat.procenta}%"
+                                ></div>
+
+                            </div>
+
+
+                            <div class="statistiky">
+
+                                <div class="stat">
+
+                                    <div class="stat-nazev">
+                                        DOBRÉ
+                                    </div>
+
+                                    <div class="stat-hodnota dobre">
+
+                                        ${formatCeleCislo(
+                                            stat.dobre
+                                        )} ks
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="stat">
+
+                                    <div class="stat-nazev">
+                                        ŠPATNÉ
+                                    </div>
+
+                                    <div class="stat-hodnota spatne">
+
+                                        ${formatCeleCislo(
+                                            stat.spatne
+                                        )} ks
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="stat">
+
+                                    <div class="stat-nazev">
+                                        ZBÝVÁ
+                                    </div>
+
+                                    <div class="stat-hodnota zbyva">
+
+                                        ${formatCeleCislo(
+                                            stat.zbyva
+                                        )} ks
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            ${terminHTML}
+
+
+                            <div class="spodni">
+
+                                Zahájeno:
+                                ${formatDatumCas(
+                                    polozka.zahajeno_at
+                                )}
+
+                                |
+
+                                Zahájil Os. č.
+                                ${escapeHtml(
+                                    polozka.zahajil_osobni_cislo ||
+                                    ""
+                                )}
+
+                            </div>
+
+
+                            <button
+                                class="otevrit"
+                                onclick="otevritZakazku(${Number(
+                                    polozka.id
+                                )})"
+                            >
+                                🏭 OTEVŘÍT VÝROBU
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        function otevritZakazku(
+            id
+        ) {
+
+            window.location.href =
+                "vyroba-detail.html?id=" +
+                encodeURIComponent(
+                    id
+                );
+        }
+
+
+        function formatTermin(
+            datum
+        ) {
+
+            return datum.toLocaleString(
+                "cs-CZ",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+
+        function formatDatumCas(
+            datum
+        ) {
+
+            if (!datum) {
+
+                return "neuvedeno";
+            }
+
+
+            const d =
+                new Date(
+                    datum
+                );
+
+
+            return d.toLocaleString(
+                "cs-CZ",
+                {
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+
+        function formatCeleCislo(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    maximumFractionDigits: 0
+                }
+            );
+        }
+
+
+        function formatCislo(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    maximumFractionDigits: 1
+                }
+            );
+        }
+
+
+        function formatProcenta(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                }
+            );
+        }
+
+
+        function escapeHtml(
+            hodnota
+        ) {
+
+            return String(
+                hodnota ?? ""
+            )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

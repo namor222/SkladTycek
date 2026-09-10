@@ -12,32 +12,88 @@
         body {
             font-family: Arial, sans-serif;
             background: #f2f2f2;
-            text-align: center;
             margin: 0;
             padding: 30px 15px;
+            text-align: center;
             display: none;
         }
 
         .hlavicka {
             max-width: 600px;
-            margin: auto;
+            margin: 0 auto 35px auto;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 30px;
+            text-align: left;
         }
 
         .zpet {
-            color: #1976d2;
+            text-decoration: none;
+            font-size: 17px;
             font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .zpet:hover {
+            text-decoration: underline;
+        }
+
+        .menu {
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .menu a {
+            display: block;
             text-decoration: none;
         }
 
-        .box {
-            max-width: 600px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
+        .menu button {
+            width: 100%;
+            padding: 27px 20px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
             border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .rozpracovane {
+            border-left: 8px solid #f57c00 !important;
+        }
+
+        .vyroba {
+            border-left: 8px solid #1976d2 !important;
+        }
+
+        .vyrobeno {
+            border-left: 8px solid #28a745 !important;
+        }
+
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 23px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+            .menu button {
+                font-size: 20px;
+                padding: 23px 15px;
+            }
         }
     </style>
 </head>
@@ -49,13 +105,32 @@
         <h1>🏗️ Výrobní hala</h1>
 
         <a class="zpet" href="index.html">
-            ← ZPĚT
+            ← HLAVNÍ MENU
         </a>
 
     </div>
 
-    <div class="box">
-        Tato sekce se připravuje.
+
+    <div class="menu">
+
+        <a href="rozpracovane.html">
+            <button class="rozpracovane">
+                🟠 ROZPRACOVANÉ
+            </button>
+        </a>
+
+        <a href="vyroba.html">
+            <button class="vyroba">
+                🔵 VÝROBA
+            </button>
+        </a>
+
+        <a href="vyrobeno.html">
+            <button class="vyrobeno">
+                🟢 VYROBENO
+            </button>
+        </a>
+
     </div>
 
 
@@ -81,6 +156,7 @@
                     .auth
                     .getSession();
 
+
             if (
                 error ||
                 !data.session
@@ -92,6 +168,7 @@
 
                 return;
             }
+
 
             document.body.style.display =
                 "block";

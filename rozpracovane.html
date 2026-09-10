@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rozpracované</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 30px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 750px;
+            margin: 0 auto 25px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .hledani {
+            max-width: 750px;
+            margin: 0 auto 25px auto;
+        }
+
+        .hledani input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 17px;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+        }
+
+        .obsah {
+            max-width: 750px;
+            margin: auto;
+        }
+
+        .sekce {
+            margin-bottom: 40px;
+        }
+
+        .sekce-nadpis {
+            text-align: left;
+            font-size: 21px;
+            margin-bottom: 15px;
+        }
+
+        .pocitadlo {
+            display: inline-block;
+            background: #ddd;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .karta {
+            background: white;
+            margin-bottom: 18px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .karta-ceka {
+            border-left: 8px solid #f57c00;
+        }
+
+        .karta-hotova {
+            border-left: 8px solid #28a745;
+        }
+
+        .objednavka {
+            font-size: 21px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .cislo-objednavky {
+            color: #f57c00;
+        }
+
+        .zakazka {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .material {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .detail {
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .tavba {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .pocet {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .spodni {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 14px;
+            color: #555;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .vytvorit {
+            background: #1976d2;
+            color: white;
+        }
+
+        .upravit {
+            background: #e0e0e0;
+            color: #222;
+        }
+
+        .do-vyroby {
+            background: #1976d2;
+            color: white;
+            font-size: 18px;
+        }
+
+        .prazdne {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            color: #777;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+            .objednavka {
+                font-size: 19px;
+            }
+
+            .sekce-nadpis {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>🟠 Rozpracované</h1>
+
+        <a class="zpet" href="hala.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="hledani">
+
+        <input
+            type="text"
+            id="hledat"
+            placeholder="🔎 Hledat objednávku, zakázku nebo tavbu..."
+            oninput="zobrazRozpracovane()"
+        >
+
+    </div>
+
+
+    <div class="obsah">
+
+        <div class="sekce">
+
+            <h2 class="sekce-nadpis">
+
+                🟠 ČEKÁ NA PRŮVODKU
+
+                <span
+                    id="pocetCeka"
+                    class="pocitadlo"
+                >
+                    0
+                </span>
+
+            </h2>
+
+            <div id="seznamCeka"></div>
+
+        </div>
+
+
+        <div class="sekce">
+
+            <h2 class="sekce-nadpis">
+
+                🟢 PRŮVODKA VYTVOŘENA
+
+                <span
+                    id="pocetHotove"
+                    class="pocitadlo"
+                >
+                    0
+                </span>
+
+            </h2>
+
+            <div id="seznamHotove"></div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let rozpracovaneData = [];
+
+
+        /*
+            OCHRANA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            await nactiRozpracovane();
+        }
+
+
+        /*
+            NAČTENÍ
+        */
+
+        async function nactiRozpracovane() {
+
+            const { data, error } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .select("*")
+                    .in(
+                        "stav",
+                        [
+                            "ceka_na_pruvodku",
+                            "pruvodka_vytvorena"
+                        ]
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending: false
+                        }
+                    );
+
+
+            if (error) {
+
+                document.getElementById(
+                    "seznamCeka"
+                ).innerHTML =
+                    "<div class='prazdne'>" +
+                    escapeHtml(error.message) +
+                    "</div>";
+
+                return;
+            }
+
+
+            rozpracovaneData =
+                data || [];
+
+
+            zobrazRozpracovane();
+        }
+
+
+        /*
+            ZOBRAZENÍ
+        */
+
+        function zobrazRozpracovane() {
+
+            const hledat =
+                document
+                    .getElementById("hledat")
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            let data =
+                rozpracovaneData;
+
+
+            if (hledat !== "") {
+
+                data =
+                    data.filter(
+                        polozka => {
+
+                            return (
+
+                                String(
+                                    polozka.objednavka || ""
+                                )
+                                .toLowerCase()
+                                .includes(hledat)
+
+                                ||
+
+                                String(
+                                    polozka.atest || ""
+                                )
+                                .toLowerCase()
+                                .includes(hledat)
+
+                                ||
+
+                                String(
+                                    polozka.cislo_zakazky || ""
+                                )
+                                .toLowerCase()
+                                .includes(hledat)
+
+                            );
+
+                        }
+                    );
+            }
+
+
+            const ceka =
+                data.filter(
+                    p =>
+                        p.stav ===
+                        "ceka_na_pruvodku"
+                );
+
+
+            const hotove =
+                data.filter(
+                    p =>
+                        p.stav ===
+                        "pruvodka_vytvorena"
+                );
+
+
+            document.getElementById(
+                "pocetCeka"
+            ).innerText =
+                ceka.length;
+
+
+            document.getElementById(
+                "pocetHotove"
+            ).innerText =
+                hotove.length;
+
+
+            vykresliCekajici(
+                ceka
+            );
+
+
+            vykresliHotove(
+                hotove
+            );
+
+        }
+
+
+        /*
+            ČEKÁ
+        */
+
+        function vykresliCekajici(data) {
+
+            const seznam =
+                document.getElementById(
+                    "seznamCeka"
+                );
+
+
+            if (data.length === 0) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+                        Nic nečeká na průvodku.
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML = "";
+
+
+            data.forEach(
+                polozka => {
+
+                    seznam.innerHTML += `
+
+                        <div class="karta karta-ceka">
+
+                            ${obsahKarty(
+                                polozka
+                            )}
+
+                            <button
+                                class="vytvorit"
+                                onclick="otevritPruvodku(${Number(
+                                    polozka.id
+                                )})"
+                            >
+                                📋 VYTVOŘIT PRŮVODKU
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        /*
+            HOTOVÉ PRŮVODKY
+        */
+
+        function vykresliHotove(data) {
+
+            const seznam =
+                document.getElementById(
+                    "seznamHotove"
+                );
+
+
+            if (data.length === 0) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+                        Žádná hotová průvodka.
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML = "";
+
+
+            data.forEach(
+                polozka => {
+
+                    seznam.innerHTML += `
+
+                        <div class="karta karta-hotova">
+
+                            ${obsahKarty(
+                                polozka
+                            )}
+
+
+                            <button
+                                class="upravit"
+                                onclick="otevritPruvodku(${Number(
+                                    polozka.id
+                                )})"
+                            >
+                                ✏️ OTEVŘÍT / UPRAVIT PRŮVODKU
+                            </button>
+
+
+                            <button
+                                id="vyroba${Number(
+                                    polozka.id
+                                )}"
+                                class="do-vyroby"
+                                onclick="presunoutDoVyroby(${Number(
+                                    polozka.id
+                                )})"
+                            >
+                                ▶ PŘESUNOUT DO VÝROBY
+                            </button>
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        /*
+            OBSAH KARTY
+        */
+
+        function obsahKarty(
+            polozka
+        ) {
+
+            const objednavka =
+                escapeHtml(
+                    polozka.objednavka ||
+                    "neuvedena"
+                );
+
+
+            const zakazka =
+                polozka.cislo_zakazky
+                ? `
+
+                    <br>
+
+                    Zakázka:
+
+                    <span class="zakazka">
+                        ${escapeHtml(
+                            polozka.cislo_zakazky
+                        )}
+                    </span>
+
+                `
+                : "";
+
+
+            return `
+
+                <div class="objednavka">
+
+                    Objednávka:
+
+                    <span class="cislo-objednavky">
+                        ${objednavka}
+                    </span>
+
+                </div>
+
+
+                <div class="material">
+
+                    ${escapeHtml(
+                        polozka.material
+                    )}
+
+                </div>
+
+
+                <div class="detail">
+
+                    ${escapeHtml(
+                        polozka.druh
+                    )}
+
+                    |
+
+                    ${escapeHtml(
+                        polozka.rozmer
+                    )}
+
+                    |
+
+                    ${escapeHtml(
+                        polozka.delka
+                    )}
+
+                    <br>
+
+
+                    Tavba:
+
+                    <span class="tavba">
+
+                        ${escapeHtml(
+                            polozka.atest
+                        )}
+
+                    </span>
+
+                    <br>
+
+
+                    Počet tyčí:
+
+                    <span class="pocet">
+
+                        ${Number(
+                            polozka.pocet_tyci
+                        )} ks
+
+                    </span>
+
+
+                    ${zakazka}
+
+                </div>
+
+
+                <div class="spodni">
+
+                    Datum vydání:
+                    ${formatDatum(
+                        polozka.datum
+                    )}
+
+                    |
+
+                    Vydal Os. č.
+                    ${escapeHtml(
+                        polozka.osobni_cislo
+                    )}
+
+                </div>
+
+            `;
+
+        }
+
+
+        /*
+            OTEVŘENÍ PRŮVODKY
+        */
+
+        function otevritPruvodku(id) {
+
+            window.location.href =
+                "pruvodka.html?id=" +
+                encodeURIComponent(id);
+        }
+
+
+        /*
+            PŘESUN DO VÝROBY
+        */
+
+        async function presunoutDoVyroby(id) {
+
+            const button =
+                document.getElementById(
+                    "vyroba" + id
+                );
+
+
+            button.disabled =
+                true;
+
+            button.innerText =
+                "PŘESOUVÁM...";
+
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "presunout_do_vyroby",
+                        {
+                            p_rozpracovane_id:
+                                id
+                        }
+                    );
+
+
+            if (error) {
+
+                alert(
+                    "Přesun do výroby se nepodařil:\n" +
+                    error.message
+                );
+
+
+                button.disabled =
+                    false;
+
+                button.innerText =
+                    "▶ PŘESUNOUT DO VÝROBY";
+
+
+                return;
+            }
+
+
+            /*
+                ŽÁDNÉ POTVRZOVACÍ OKNO.
+
+                Položka jen zmizí
+                z Rozpracovaných.
+            */
+
+            await nactiRozpracovane();
+        }
+
+
+        /*
+            DATUM
+        */
+
+        function formatDatum(datum) {
+
+            if (!datum) {
+                return "";
+            }
+
+
+            const pouzeDatum =
+                String(datum)
+                    .split("T")[0];
+
+
+            const casti =
+                pouzeDatum
+                    .split("-");
+
+
+            if (
+                casti.length !== 3
+            ) {
+
+                return escapeHtml(
+                    datum
+                );
+            }
+
+
+            return (
+                Number(casti[2]) +
+                ". " +
+                Number(casti[1]) +
+                ". " +
+                casti[0]
+            );
+        }
+
+
+        /*
+            OCHRANA TEXTŮ
+        */
+
+        function escapeHtml(hodnota) {
+
+            return String(
+                hodnota ?? ""
+            )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>
