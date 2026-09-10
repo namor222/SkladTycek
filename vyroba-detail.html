@@ -59,6 +59,10 @@
             border-left: 8px solid #1976d2;
         }
 
+        .material-box {
+            border-left: 8px solid #f57c00;
+        }
+
         .vykon-box {
             border-left: 8px solid #28a745;
         }
@@ -83,13 +87,32 @@
             font-weight: bold;
         }
 
+        .detail {
+            line-height: 1.8;
+        }
+
+        .material-karta {
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 12px;
+            border-left: 6px solid #f57c00;
+        }
+
+        .material-nazev {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
         .tavba {
             color: #1976d2;
             font-weight: bold;
         }
 
-        .detail {
-            line-height: 1.8;
+        .pocet {
+            color: #d32f2f;
+            font-weight: bold;
         }
 
         .progress-info {
@@ -328,16 +351,17 @@
 <body>
 
     <div class="hlavicka">
+
         <h1>🏭 Výroba zakázky</h1>
 
         <a class="zpet" href="vyroba.html">
             ← ZPĚT
         </a>
+
     </div>
 
-    <div class="obsah">
 
-        <!-- ZAKÁZKA -->
+    <div class="obsah">
 
         <div class="box zakazka-box">
 
@@ -348,6 +372,7 @@
             <div id="detailZakazky" class="detail"></div>
 
             <div class="progress-info">
+
                 <span id="progressText">
                     Hotovo: 0 / 0 ks
                 </span>
@@ -358,18 +383,22 @@
                 >
                     0 %
                 </span>
+
             </div>
 
             <div class="progress-obal">
+
                 <div
                     id="progressBar"
                     class="progress-bar"
                 ></div>
+
             </div>
 
             <div class="prehled">
 
                 <div class="prehled-polozka">
+
                     <div class="prehled-nadpis">
                         POŽADOVÁNO
                     </div>
@@ -380,9 +409,11 @@
                     >
                         0 ks
                     </div>
+
                 </div>
 
                 <div class="prehled-polozka">
+
                     <div class="prehled-nadpis">
                         DOBRÉ KUSY
                     </div>
@@ -393,9 +424,11 @@
                     >
                         0 ks
                     </div>
+
                 </div>
 
                 <div class="prehled-polozka">
+
                     <div class="prehled-nadpis">
                         ŠPATNÉ KUSY
                     </div>
@@ -406,9 +439,11 @@
                     >
                         0 ks
                     </div>
+
                 </div>
 
                 <div class="prehled-polozka">
+
                     <div class="prehled-nadpis">
                         CELKEM VYROBENO
                     </div>
@@ -419,9 +454,11 @@
                     >
                         0 ks
                     </div>
+
                 </div>
 
                 <div class="prehled-polozka">
+
                     <div class="prehled-nadpis">
                         ZBÝVÁ
                     </div>
@@ -432,11 +469,12 @@
                     >
                         0 ks
                     </div>
+
                 </div>
 
             </div>
 
-            <div id="odhadBox" class="odhad">
+            <div class="odhad">
 
                 <div class="odhad-nadpis">
                     ⏱ PŘEDPOKLÁDANÉ DOKONČENÍ
@@ -454,6 +492,19 @@
                     class="odhad-zdroj"
                 ></div>
 
+            </div>
+
+        </div>
+
+
+        <!-- VŠECHEN VYDANÝ MATERIÁL -->
+
+        <div class="box material-box">
+
+            <h2>📦 Vydaný materiál</h2>
+
+            <div id="materialy">
+                Načítám materiál...
             </div>
 
         </div>
@@ -536,15 +587,14 @@
         </div>
 
 
-        <!-- LÍSTKY DO BEDNY -->
+        <!-- TISK LÍSTKŮ -->
 
         <div class="box tisk-box">
 
             <h2>🖨️ Lístky do bedny</h2>
 
             <p>
-                Zakázka, výkres, objednávka a atest
-                se na lístek doplní automaticky.
+                Zakázka, výkres, objednávka a všechny použité atesty se doplní automaticky.
             </p>
 
             <div class="radek">
@@ -584,7 +634,7 @@
         </div>
 
 
-        <!-- HISTORIE VÝROBY -->
+        <!-- HISTORIE -->
 
         <div class="box historie-box">
 
@@ -607,6 +657,7 @@
         const SUPABASE_KEY =
             "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
 
+
         const supabaseClient =
             window.supabase.createClient(
                 SUPABASE_URL,
@@ -617,13 +668,8 @@
         let zakazkaId = null;
         let zakazka = null;
         let vykonyData = [];
+        let vydejeData = [];
 
-
-        /*
-            ============================
-            OCHRANA PŘIHLÁŠENÍ
-            ============================
-        */
 
         async function zkontrolujPrihlaseni() {
 
@@ -631,6 +677,7 @@
                 await supabaseClient
                     .auth
                     .getSession();
+
 
             if (
                 error ||
@@ -649,6 +696,7 @@
                 new URLSearchParams(
                     window.location.search
                 );
+
 
             zakazkaId =
                 Number(
@@ -672,21 +720,20 @@
 
             nastavDnesniDatum();
 
+
             await nactiZakazku();
         }
 
-
-        /*
-            DNES
-        */
 
         function nastavDnesniDatum() {
 
             const dnes =
                 new Date();
 
+
             const rok =
                 dnes.getFullYear();
+
 
             const mesic =
                 String(
@@ -697,6 +744,7 @@
                     "0"
                 );
 
+
             const den =
                 String(
                     dnes.getDate()
@@ -705,6 +753,7 @@
                     2,
                     "0"
                 );
+
 
             document.getElementById(
                 "datum"
@@ -716,12 +765,6 @@
                 den;
         }
 
-
-        /*
-            ============================
-            NAČTENÍ ZAKÁZKY
-            ============================
-        */
 
         async function nactiZakazku() {
 
@@ -766,15 +809,13 @@
 
             zobrazZakazku();
 
-            await nactiVykony();
+
+            await Promise.all([
+                nactiVykony(),
+                nactiVydejeMaterialu()
+            ]);
         }
 
-
-        /*
-            ============================
-            ZOBRAZENÍ ZAKÁZKY
-            ============================
-        */
 
         function zobrazZakazku() {
 
@@ -795,10 +836,12 @@
                 Objednávka:
 
                 <span class="objednavka">
+
                     ${escapeHtml(
                         zakazka.objednavka ||
                         "neuvedena"
                     )}
+
                 </span>
 
                 <br>
@@ -806,10 +849,12 @@
                 Výkres zákazníka:
 
                 <strong>
+
                     ${escapeHtml(
                         zakazka.vykres_zakaznika ||
                         "neuveden"
                     )}
+
                 </strong>
 
                 <br>
@@ -817,10 +862,12 @@
                 Výkres dodavatele:
 
                 <strong>
+
                     ${escapeHtml(
                         zakazka.vykres_dodavatele ||
                         "neuveden"
                     )}
+
                 </strong>
 
                 <br>
@@ -828,10 +875,12 @@
                 Stroj:
 
                 <strong>
+
                     ${escapeHtml(
                         zakazka.stroj ||
                         "neuveden"
                     )}
+
                 </strong>
 
                 <br>
@@ -839,58 +888,12 @@
                 Položka:
 
                 <strong>
+
                     ${escapeHtml(
                         zakazka.polozka ||
                         "neuvedena"
                     )}
-                </strong>
 
-                <br><br>
-
-                Materiál:
-
-                <strong>
-                    ${escapeHtml(
-                        zakazka.material
-                    )}
-                </strong>
-
-                |
-
-                ${escapeHtml(
-                    zakazka.druh
-                )}
-
-                |
-
-                ${escapeHtml(
-                    zakazka.rozmer
-                )}
-
-                |
-
-                ${escapeHtml(
-                    zakazka.delka
-                )}
-
-                <br>
-
-                Tavba:
-
-                <span class="tavba">
-                    ${escapeHtml(
-                        zakazka.atest
-                    )}
-                </span>
-
-                <br>
-
-                Použito tyčí:
-
-                <strong>
-                    ${formatCeleCislo(
-                        zakazka.pocet_tyci
-                    )} ks
                 </strong>
 
                 <br>
@@ -898,10 +901,12 @@
                 Ks / 7,5 h:
 
                 <strong>
+
                     ${formatCeleCislo(
                         zakazka.ks_za_7_5_hod ||
                         0
                     )}
+
                 </strong>
 
                 <br>
@@ -909,9 +914,11 @@
                 Termín zakázky:
 
                 <strong>
+
                     ${formatDatum(
                         zakazka.termin
                     )}
+
                 </strong>
 
             `;
@@ -928,9 +935,252 @@
 
 
         /*
-            ============================
+            VŠECHNY VÝDEJE MATERIÁLU
+        */
+
+        async function nactiVydejeMaterialu() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("vydeje_materialu")
+                    .select("*")
+                    .eq(
+                        "rozpracovane_id",
+                        zakazkaId
+                    )
+                    .order(
+                        "id",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            if (error) {
+
+                document.getElementById(
+                    "materialy"
+                ).innerHTML =
+                    "<div class='prazdne'>" +
+                    escapeHtml(
+                        error.message
+                    ) +
+                    "</div>";
+
+                return;
+            }
+
+
+            vydejeData =
+                data || [];
+
+
+            zobrazMaterialy();
+        }
+
+
+        function zobrazMaterialy() {
+
+            const seznam =
+                document.getElementById(
+                    "materialy"
+                );
+
+
+            /*
+                Starší zakázky nemusí mít
+                záznam v vydeje_materialu.
+            */
+
+            if (
+                vydejeData.length === 0
+            ) {
+
+                if (
+                    zakazka.material
+                ) {
+
+                    seznam.innerHTML = `
+
+                        <div class="material-karta">
+
+                            <div class="material-nazev">
+
+                                ${escapeHtml(
+                                    zakazka.material
+                                )}
+
+                            </div>
+
+                            <div class="detail">
+
+                                ${escapeHtml(
+                                    zakazka.druh ||
+                                    ""
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    zakazka.rozmer ||
+                                    ""
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    zakazka.delka ||
+                                    ""
+                                )}
+
+                                <br>
+
+                                Tavba:
+
+                                <span class="tavba">
+
+                                    ${escapeHtml(
+                                        zakazka.atest ||
+                                        ""
+                                    )}
+
+                                </span>
+
+                                <br>
+
+                                Vydáno:
+
+                                <span class="pocet">
+
+                                    ${formatCeleCislo(
+                                        zakazka.pocet_tyci
+                                    )} ks
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                } else {
+
+                    seznam.innerHTML = `
+
+                        <div class="prazdne">
+
+                            K zakázce není evidován materiál.
+
+                        </div>
+
+                    `;
+                }
+
+
+                return;
+            }
+
+
+            seznam.innerHTML =
+                "";
+
+
+            vydejeData.forEach(
+                vydej => {
+
+                    seznam.innerHTML += `
+
+                        <div class="material-karta">
+
+                            <div class="material-nazev">
+
+                                ${escapeHtml(
+                                    vydej.material
+                                )}
+
+                            </div>
+
+
+                            <div class="detail">
+
+                                ${escapeHtml(
+                                    vydej.druh
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    vydej.rozmer
+                                )}
+
+                                |
+
+                                ${escapeHtml(
+                                    vydej.delka
+                                )}
+
+                                <br>
+
+
+                                Tavba:
+
+                                <span class="tavba">
+
+                                    ${escapeHtml(
+                                        vydej.atest
+                                    )}
+
+                                </span>
+
+                                <br>
+
+
+                                Vydáno:
+
+                                <span class="pocet">
+
+                                    ${formatCeleCislo(
+                                        vydej.pocet_tyci
+                                    )} ks
+
+                                </span>
+
+                                <br>
+
+
+                                Vydal Os. č.
+
+                                ${escapeHtml(
+                                    vydej.vydal_osobni_cislo ||
+                                    ""
+                                )}
+
+                                <br>
+
+
+                                Vydáno:
+
+                                ${formatDatumCas(
+                                    vydej.vydano_at
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        /*
             VÝKONY
-            ============================
         */
 
         async function nactiVykony() {
@@ -981,12 +1231,6 @@
             zobrazVykony();
         }
 
-
-        /*
-            ============================
-            SOUČTY + PROGRESS + TERMÍN
-            ============================
-        */
 
         function zobrazSoucty() {
 
@@ -1129,12 +1373,9 @@
                 "%";
 
 
-            /*
-                VÝKON ZA HODINU
-            */
-
             let vykonZaHodinu =
                 0;
+
 
             let zdroj =
                 "";
@@ -1149,11 +1390,11 @@
                     dobreCelkem /
                     hodinyCelkem;
 
+
                 zdroj =
                     "skutečného výkonu";
-            }
 
-            else {
+            } else {
 
                 const planKs =
                     Number(
@@ -1169,6 +1410,7 @@
                         planKs /
                         7.5;
 
+
                     zdroj =
                         "plánovaného výkonu";
                 }
@@ -1183,12 +1425,6 @@
         }
 
 
-        /*
-            ============================
-            ODHAD DOKONČENÍ
-            ============================
-        */
-
         function zobrazOdhad(
             zbyva,
             vykonZaHodinu,
@@ -1199,6 +1435,7 @@
                 document.getElementById(
                     "odhadDatum"
                 );
+
 
             const zdrojEl =
                 document.getElementById(
@@ -1213,8 +1450,6 @@
                 datumEl.innerText =
                     "✅ POŽADOVANÝ POČET JE HOTOVÝ";
 
-                datumEl.className =
-                    "odhad-datum dobre";
 
                 zdrojEl.innerText =
                     "";
@@ -1230,8 +1465,6 @@
                 datumEl.innerText =
                     "Zatím nelze vypočítat";
 
-                datumEl.className =
-                    "odhad-datum";
 
                 zdrojEl.innerText =
                     "Chybí údaj o výkonu.";
@@ -1245,22 +1478,6 @@
                     zbyva,
                     vykonZaHodinu
                 );
-
-
-            if (!termin) {
-
-                datumEl.innerText =
-                    "Zatím nelze vypočítat";
-
-                zdrojEl.innerText =
-                    "";
-
-                return;
-            }
-
-
-            datumEl.className =
-                "odhad-datum";
 
 
             datumEl.innerText =
@@ -1280,24 +1497,10 @@
         }
 
 
-        /*
-            Po–Pá = 24 hodin
-            So–Ne = nepočítat
-        */
-
         function spocitejTermin(
             zbyva,
             vykonZaHodinu
         ) {
-
-            if (
-                zbyva <= 0 ||
-                vykonZaHodinu <= 0
-            ) {
-
-                return null;
-            }
-
 
             let zbyvajiciHodiny =
                 zbyva /
@@ -1346,21 +1549,21 @@
             datum
         ) {
 
-            const vysledek =
+            const d =
                 new Date(
                     datum
                 );
 
 
             if (
-                vysledek.getDay() === 6
+                d.getDay() === 6
             ) {
 
-                vysledek.setDate(
-                    vysledek.getDate() + 2
+                d.setDate(
+                    d.getDate() + 2
                 );
 
-                vysledek.setHours(
+                d.setHours(
                     0,
                     0,
                     0,
@@ -1370,14 +1573,14 @@
 
 
             if (
-                vysledek.getDay() === 0
+                d.getDay() === 0
             ) {
 
-                vysledek.setDate(
-                    vysledek.getDate() + 1
+                d.setDate(
+                    d.getDate() + 1
                 );
 
-                vysledek.setHours(
+                d.setHours(
                     0,
                     0,
                     0,
@@ -1386,15 +1589,9 @@
             }
 
 
-            return vysledek;
+            return d;
         }
 
-
-        /*
-            ============================
-            HISTORIE VÝKONŮ
-            ============================
-        */
 
         function zobrazVykony() {
 
@@ -1411,10 +1608,7 @@
                 seznam.innerHTML = `
 
                     <div class="prazdne">
-
-                        Zatím není zapsán
-                        žádný výkon.
-
+                        Zatím není zapsán žádný výkon.
                     </div>
 
                 `;
@@ -1435,36 +1629,16 @@
                             vykon.shodne_ks
                         ) || 0;
 
+
                     const spatne =
                         Number(
                             vykon.neshodne_ks
                         ) || 0;
 
+
                     const celkem =
                         dobre +
                         spatne;
-
-
-                    let poznamkaHTML =
-                        "";
-
-
-                    if (
-                        vykon.poznamka
-                    ) {
-
-                        poznamkaHTML = `
-
-                            <div class="poznamka">
-
-                                ${escapeHtml(
-                                    vykon.poznamka
-                                )}
-
-                            </div>
-
-                        `;
-                    }
 
 
                     seznam.innerHTML += `
@@ -1501,6 +1675,7 @@
 
                                 <br>
 
+
                                 Dobré kusy:
 
                                 <span class="vykon-dobre">
@@ -1510,6 +1685,7 @@
                                 </span>
 
                                 <br>
+
 
                                 Špatné kusy:
 
@@ -1521,6 +1697,7 @@
 
                                 <br>
 
+
                                 Celkem vyrobeno:
 
                                 <span class="vykon-celkem">
@@ -1528,8 +1705,6 @@
                                         celkem
                                     )} ks
                                 </span>
-
-                                ${poznamkaHTML}
 
                             </div>
 
@@ -1541,12 +1716,6 @@
             );
         }
 
-
-        /*
-            ============================
-            ZÁPIS VÝKONU
-            ============================
-        */
 
         async function zapsatVykon() {
 
@@ -1608,19 +1777,6 @@
 
 
             if (
-                hodiny < 0 ||
-                dobre < 0 ||
-                spatne < 0
-            ) {
-
-                zprava.innerText =
-                    "Hodnoty nemohou být záporné.";
-
-                return;
-            }
-
-
-            if (
                 hodiny === 0 &&
                 dobre === 0 &&
                 spatne === 0
@@ -1642,6 +1798,7 @@
             button.disabled =
                 true;
 
+
             button.innerText =
                 "UKLÁDÁM...";
 
@@ -1653,6 +1810,7 @@
                     .rpc(
                         "zapsat_vykon_vyroby",
                         {
+
                             p_rozpracovane_id:
                                 zakazkaId,
 
@@ -1670,6 +1828,7 @@
 
                             p_poznamka:
                                 poznamka || null
+
                         }
                     );
 
@@ -1680,11 +1839,14 @@
                     "Výkon se nepodařilo uložit: " +
                     error.message;
 
+
                 button.disabled =
                     false;
 
+
                 button.innerText =
                     "💾 ZAPSAT VÝKON";
+
 
                 return;
             }
@@ -1695,15 +1857,18 @@
             ).value =
                 "";
 
+
             document.getElementById(
                 "dobre"
             ).value =
                 "";
 
+
             document.getElementById(
                 "spatne"
             ).value =
                 "";
+
 
             document.getElementById(
                 "poznamka"
@@ -1714,6 +1879,7 @@
             button.disabled =
                 false;
 
+
             button.innerText =
                 "💾 ZAPSAT VÝKON";
 
@@ -1721,12 +1887,6 @@
             await nactiVykony();
         }
 
-
-        /*
-            ============================
-            LÍSTKY DO BEDNY
-            ============================
-        */
 
         function vytisknoutListky() {
 
@@ -1759,20 +1919,6 @@
             }
 
 
-            if (
-                !pocetListku ||
-                pocetListku < 1 ||
-                pocetListku > 10
-            ) {
-
-                alert(
-                    "Počet lístků musí být 1 až 10."
-                );
-
-                return;
-            }
-
-
             window.location.href =
                 "listek.html?id=" +
                 encodeURIComponent(
@@ -1788,12 +1934,6 @@
                 );
         }
 
-
-        /*
-            ============================
-            FORMÁTOVÁNÍ
-            ============================
-        */
 
         function formatTermin(
             datum
@@ -1818,18 +1958,16 @@
         ) {
 
             if (!datum) {
-                return "neuveden";
+                return "neuvedeno";
             }
 
 
-            const pouzeDatum =
-                String(datum)
-                    .split("T")[0];
-
-
             const casti =
-                pouzeDatum
-                    .split("-");
+                String(
+                    datum
+                )
+                .split("T")[0]
+                .split("-");
 
 
             if (
@@ -1843,11 +1981,40 @@
 
 
             return (
-                Number(casti[2]) +
+                Number(
+                    casti[2]
+                ) +
                 ". " +
-                Number(casti[1]) +
+                Number(
+                    casti[1]
+                ) +
                 ". " +
                 casti[0]
+            );
+        }
+
+
+        function formatDatumCas(
+            datum
+        ) {
+
+            if (!datum) {
+                return "";
+            }
+
+
+            return new Date(
+                datum
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
             );
         }
 
@@ -1930,10 +2097,6 @@
             );
         }
 
-
-        /*
-            START
-        */
 
         zkontrolujPrihlaseni();
 

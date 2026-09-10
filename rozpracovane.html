@@ -9,17 +9,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+
         body {
             font-family: Arial, sans-serif;
             background: #f2f2f2;
             margin: 0;
-            padding: 20px 15px 30px 15px;
+            padding: 20px 15px 40px 15px;
             text-align: center;
             display: none;
         }
 
+
         .hlavicka {
-            max-width: 750px;
+            max-width: 800px;
             margin: 0 auto 25px auto;
             display: flex;
             align-items: center;
@@ -27,11 +29,13 @@
             gap: 15px;
         }
 
+
         .hlavicka h1 {
             margin: 0;
             font-size: 28px;
             text-align: left;
         }
+
 
         .zpet {
             text-decoration: none;
@@ -41,10 +45,54 @@
             white-space: nowrap;
         }
 
-        .hledani {
-            max-width: 750px;
-            margin: 0 auto 25px auto;
+
+        .zpet:hover {
+            text-decoration: underline;
         }
+
+
+        /*
+            NOVÁ ZAKÁZKA
+        */
+
+        .nova-zakazka-box {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+        }
+
+
+        .nova-zakazka-box a {
+            text-decoration: none;
+        }
+
+
+        .nova-zakazka {
+            width: 100%;
+            padding: 17px;
+            border: none;
+            border-radius: 11px;
+            background: #1976d2;
+            color: white;
+            font-size: 19px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+        .nova-zakazka:hover {
+            background: #1565c0;
+        }
+
+
+        /*
+            HLEDÁNÍ
+        */
+
+        .hledani {
+            max-width: 800px;
+            margin: 0 auto 28px auto;
+        }
+
 
         .hledani input {
             width: 100%;
@@ -57,20 +105,28 @@
             background: white;
         }
 
+
         .obsah {
-            max-width: 750px;
+            max-width: 800px;
             margin: auto;
         }
 
+
+        /*
+            SEKCE
+        */
+
         .sekce {
-            margin-bottom: 40px;
+            margin-bottom: 42px;
         }
+
 
         .sekce-nadpis {
             text-align: left;
-            font-size: 21px;
+            font-size: 20px;
             margin-bottom: 15px;
         }
+
 
         .pocitadlo {
             display: inline-block;
@@ -78,8 +134,13 @@
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 14px;
-            margin-left: 5px;
+            margin-left: 6px;
         }
+
+
+        /*
+            KARTY
+        */
 
         .karta {
             background: white;
@@ -90,49 +151,103 @@
             text-align: left;
         }
 
+
+        /*
+            NOVÁ ZAKÁZKA
+            JEŠTĚ BEZ MATERIÁLU
+        */
+
+        .karta-nova {
+            border-left: 8px solid #1976d2;
+        }
+
+
+        /*
+            MATERIÁL ODEBRÁN
+            ČEKÁ NA PRŮVODKU
+        */
+
         .karta-ceka {
             border-left: 8px solid #f57c00;
         }
+
+
+        /*
+            PRŮVODKA HOTOVÁ
+        */
 
         .karta-hotova {
             border-left: 8px solid #28a745;
         }
 
-        .objednavka {
-            font-size: 21px;
+
+        .zakazka {
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 15px;
+            color: #1976d2;
+            margin-bottom: 10px;
         }
+
+
+        .objednavka {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
 
         .cislo-objednavky {
             color: #f57c00;
         }
 
-        .zakazka {
-            color: #1976d2;
-            font-weight: bold;
-        }
 
         .material {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: bold;
+            margin-top: 12px;
             margin-bottom: 7px;
         }
+
 
         .detail {
             line-height: 1.7;
             font-size: 16px;
         }
 
+
         .tavba {
             color: #1976d2;
             font-weight: bold;
         }
 
+
         .pocet {
             color: #d32f2f;
             font-weight: bold;
         }
+
+
+        .termin {
+            font-weight: bold;
+        }
+
+
+        .stroj {
+            font-weight: bold;
+        }
+
+
+        .stav-bez-materialu {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 7px 11px;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
 
         .spodni {
             margin-top: 15px;
@@ -142,7 +257,12 @@
             color: #555;
         }
 
-        button {
+
+        /*
+            TLAČÍTKA
+        */
+
+        .tlacitko {
             width: 100%;
             padding: 15px;
             margin-top: 12px;
@@ -153,26 +273,60 @@
             cursor: pointer;
         }
 
-        button:disabled {
+
+        .vydat-material {
+            background: #1976d2;
+            color: white;
+        }
+
+
+        .vydat-material:hover {
+            background: #1565c0;
+        }
+
+
+        .vytvorit {
+            background: #f57c00;
+            color: white;
+        }
+
+
+        .vytvorit:hover {
+            background: #e66f00;
+        }
+
+
+        .upravit {
+            background: #eeeeee;
+            color: #222;
+        }
+
+
+        .upravit:hover {
+            background: #dddddd;
+        }
+
+
+        .do-vyroby {
+            background: #28a745;
+            color: white;
+        }
+
+
+        .do-vyroby:hover {
+            background: #218838;
+        }
+
+
+        .tlacitko:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
 
-        .vytvorit {
-            background: #1976d2;
-            color: white;
-        }
 
-        .upravit {
-            background: #e0e0e0;
-            color: #222;
-        }
-
-        .do-vyroby {
-            background: #1976d2;
-            color: white;
-            font-size: 18px;
-        }
+        /*
+            PRÁZDNÁ SEKCE
+        */
 
         .prazdne {
             background: white;
@@ -182,7 +336,8 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
 
-        @media (max-width: 500px) {
+
+        @media (max-width: 600px) {
 
             .hlavicka h1 {
                 font-size: 22px;
@@ -192,43 +347,112 @@
                 font-size: 15px;
             }
 
-            .objednavka {
+            .zakazka {
                 font-size: 19px;
             }
 
             .sekce-nadpis {
-                font-size: 18px;
+                font-size: 17px;
+            }
+
+            .nova-zakazka {
+                font-size: 17px;
             }
         }
+
     </style>
 </head>
 
+
 <body>
+
+
+    <!-- HLAVIČKA -->
 
     <div class="hlavicka">
 
-        <h1>🟠 Rozpracované</h1>
+        <h1>🛠️ Rozpracované</h1>
 
-        <a class="zpet" href="hala.html">
+        <a
+            class="zpet"
+            href="hala.html"
+        >
             ← ZPĚT
         </a>
 
     </div>
 
 
+
+    <!-- NOVÁ ZAKÁZKA -->
+
+    <div class="nova-zakazka-box">
+
+        <a href="nova-zakazka.html">
+
+            <button class="nova-zakazka">
+
+                ➕ NOVÁ ZAKÁZKA
+
+            </button>
+
+        </a>
+
+    </div>
+
+
+
+    <!-- HLEDÁNÍ -->
+
     <div class="hledani">
 
         <input
             type="text"
             id="hledat"
-            placeholder="🔎 Hledat objednávku, zakázku nebo tavbu..."
+            placeholder="🔎 Hledat zakázku, objednávku, tavbu nebo stroj..."
             oninput="zobrazRozpracovane()"
         >
 
     </div>
 
 
+
     <div class="obsah">
+
+
+        <!--
+            ====================================
+            ZAKÁZKY BEZ MATERIÁLU
+            ====================================
+        -->
+
+        <div class="sekce">
+
+            <h2 class="sekce-nadpis">
+
+                🔵 ZAKÁZKA ČEKÁ NA MATERIÁL
+
+                <span
+                    id="pocetNove"
+                    class="pocitadlo"
+                >
+                    0
+                </span>
+
+            </h2>
+
+
+            <div id="seznamNove"></div>
+
+        </div>
+
+
+
+        <!--
+            ====================================
+            ČEKÁ NA PRŮVODKU
+            ====================================
+        -->
 
         <div class="sekce">
 
@@ -245,10 +469,18 @@
 
             </h2>
 
+
             <div id="seznamCeka"></div>
 
         </div>
 
+
+
+        <!--
+            ====================================
+            PRŮVODKA VYTVOŘENA
+            ====================================
+        -->
 
         <div class="sekce">
 
@@ -265,17 +497,21 @@
 
             </h2>
 
+
             <div id="seznamHotove"></div>
 
         </div>
 
+
     </div>
+
 
 
     <script>
 
         const SUPABASE_URL =
             "https://gmawlmsizglrnjmjegmx.supabase.co";
+
 
         const SUPABASE_KEY =
             "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
@@ -288,16 +524,22 @@
             );
 
 
-        let rozpracovaneData = [];
+        let rozpracovaneData =
+            [];
 
 
         /*
+            ======================================
             OCHRANA PŘIHLÁŠENÍ
+            ======================================
         */
 
         async function zkontrolujPrihlaseni() {
 
-            const { data, error } =
+            const {
+                data,
+                error
+            } =
                 await supabaseClient
                     .auth
                     .getSession();
@@ -316,6 +558,11 @@
             }
 
 
+            /*
+                STRÁNKU ZOBRAZÍME
+                AŽ PŘIHLÁŠENÉMU UŽIVATELI
+            */
+
             document.body.style.display =
                 "block";
 
@@ -324,19 +571,56 @@
         }
 
 
+
         /*
-            NAČTENÍ
+            ======================================
+            NAČTENÍ DAT
+            ======================================
         */
 
         async function nactiRozpracovane() {
 
-            const { data, error } =
+            const seznamNove =
+                document.getElementById(
+                    "seznamNove"
+                );
+
+
+            const seznamCeka =
+                document.getElementById(
+                    "seznamCeka"
+                );
+
+
+            const seznamHotove =
+                document.getElementById(
+                    "seznamHotove"
+                );
+
+
+            seznamNove.innerHTML =
+                "Načítám...";
+
+
+            seznamCeka.innerHTML =
+                "Načítám...";
+
+
+            seznamHotove.innerHTML =
+                "Načítám...";
+
+
+            const {
+                data,
+                error
+            } =
                 await supabaseClient
                     .from("rozpracovane")
                     .select("*")
                     .in(
                         "stav",
                         [
+                            "nova_zakazka",
                             "ceka_na_pruvodku",
                             "pruvodka_vytvorena"
                         ]
@@ -351,12 +635,27 @@
 
             if (error) {
 
-                document.getElementById(
-                    "seznamCeka"
-                ).innerHTML =
-                    "<div class='prazdne'>" +
-                    escapeHtml(error.message) +
-                    "</div>";
+                seznamNove.innerHTML = `
+
+                    <div class="prazdne">
+
+                        Chyba při načítání:<br>
+                        ${escapeHtml(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+
+
+                seznamCeka.innerHTML =
+                    "";
+
+
+                seznamHotove.innerHTML =
+                    "";
+
 
                 return;
             }
@@ -370,15 +669,20 @@
         }
 
 
+
         /*
-            ZOBRAZENÍ
+            ======================================
+            FILTR + ROZDĚLENÍ
+            ======================================
         */
 
         function zobrazRozpracovane() {
 
             const hledat =
                 document
-                    .getElementById("hledat")
+                    .getElementById(
+                        "hledat"
+                    )
                     .value
                     .trim()
                     .toLowerCase();
@@ -388,35 +692,97 @@
                 rozpracovaneData;
 
 
-            if (hledat !== "") {
+            if (
+                hledat !== ""
+            ) {
 
                 data =
-                    data.filter(
+                    rozpracovaneData.filter(
                         polozka => {
+
+                            const zakazka =
+                                String(
+                                    polozka.cislo_zakazky ||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const objednavka =
+                                String(
+                                    polozka.objednavka ||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const atest =
+                                String(
+                                    polozka.atest ||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const stroj =
+                                String(
+                                    polozka.stroj ||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const material =
+                                String(
+                                    polozka.material ||
+                                    ""
+                                )
+                                .toLowerCase();
+
+
+                            const polozkaText =
+                                String(
+                                    polozka.polozka ||
+                                    ""
+                                )
+                                .toLowerCase();
+
 
                             return (
 
-                                String(
-                                    polozka.objednavka || ""
+                                zakazka.includes(
+                                    hledat
                                 )
-                                .toLowerCase()
-                                .includes(hledat)
 
                                 ||
 
-                                String(
-                                    polozka.atest || ""
+                                objednavka.includes(
+                                    hledat
                                 )
-                                .toLowerCase()
-                                .includes(hledat)
 
                                 ||
 
-                                String(
-                                    polozka.cislo_zakazky || ""
+                                atest.includes(
+                                    hledat
                                 )
-                                .toLowerCase()
-                                .includes(hledat)
+
+                                ||
+
+                                stroj.includes(
+                                    hledat
+                                )
+
+                                ||
+
+                                material.includes(
+                                    hledat
+                                )
+
+                                ||
+
+                                polozkaText.includes(
+                                    hledat
+                                )
 
                             );
 
@@ -425,20 +791,48 @@
             }
 
 
+
+            /*
+                NOVÁ ZAKÁZKA
+            */
+
+            const nove =
+                data.filter(
+                    polozka =>
+                        polozka.stav ===
+                        "nova_zakazka"
+                );
+
+
+            /*
+                ČEKÁ NA PRŮVODKU
+            */
+
             const ceka =
                 data.filter(
-                    p =>
-                        p.stav ===
+                    polozka =>
+                        polozka.stav ===
                         "ceka_na_pruvodku"
                 );
 
 
+            /*
+                PRŮVODKA HOTOVÁ
+            */
+
             const hotove =
                 data.filter(
-                    p =>
-                        p.stav ===
+                    polozka =>
+                        polozka.stav ===
                         "pruvodka_vytvorena"
                 );
+
+
+
+            document.getElementById(
+                "pocetNove"
+            ).innerText =
+                nove.length;
 
 
             document.getElementById(
@@ -453,6 +847,12 @@
                 hotove.length;
 
 
+
+            vykresliNove(
+                nove
+            );
+
+
             vykresliCekajici(
                 ceka
             );
@@ -465,24 +865,34 @@
         }
 
 
+
         /*
-            ČEKÁ
+            ======================================
+            NOVÉ ZAKÁZKY BEZ MATERIÁLU
+            ======================================
         */
 
-        function vykresliCekajici(data) {
+        function vykresliNove(
+            data
+        ) {
 
             const seznam =
                 document.getElementById(
-                    "seznamCeka"
+                    "seznamNove"
                 );
 
 
-            if (data.length === 0) {
+            if (
+                data.length === 0
+            ) {
 
                 seznam.innerHTML = `
 
                     <div class="prazdne">
-                        Nic nečeká na průvodku.
+
+                        Žádná zakázka momentálně
+                        nečeká na vydání materiálu.
+
                     </div>
 
                 `;
@@ -491,7 +901,228 @@
             }
 
 
-            seznam.innerHTML = "";
+            seznam.innerHTML =
+                "";
+
+
+            data.forEach(
+                polozka => {
+
+                    seznam.innerHTML += `
+
+                        <div class="karta karta-nova">
+
+
+                            <div class="zakazka">
+
+                                Zakázka:
+                                ${escapeHtml(
+                                    polozka.cislo_zakazky ||
+                                    "neuvedena"
+                                )}
+
+                            </div>
+
+
+                            <div class="objednavka">
+
+                                Objednávka:
+
+                                <span class="cislo-objednavky">
+
+                                    ${escapeHtml(
+                                        polozka.objednavka ||
+                                        "neuvedena"
+                                    )}
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="detail">
+
+                                Výkres zákazníka:
+
+                                <strong>
+
+                                    ${escapeHtml(
+                                        polozka.vykres_zakaznika ||
+                                        "neuveden"
+                                    )}
+
+                                </strong>
+
+                                <br>
+
+
+                                Výkres dodavatele:
+
+                                <strong>
+
+                                    ${escapeHtml(
+                                        polozka.vykres_dodavatele ||
+                                        "neuveden"
+                                    )}
+
+                                </strong>
+
+                                <br>
+
+
+                                Počet kusů:
+
+                                <strong>
+
+                                    ${formatCeleCislo(
+                                        polozka.pozadovany_pocet_kusu
+                                    )} ks
+
+                                </strong>
+
+                                <br>
+
+
+                                Termín:
+
+                                <span class="termin">
+
+                                    ${formatDatum(
+                                        polozka.termin
+                                    )}
+
+                                </span>
+
+                                <br>
+
+
+                                Stroj:
+
+                                <span class="stroj">
+
+                                    ${escapeHtml(
+                                        polozka.stroj ||
+                                        "neuveden"
+                                    )}
+
+                                </span>
+
+                                <br>
+
+
+                                Položka:
+
+                                <strong>
+
+                                    ${escapeHtml(
+                                        polozka.polozka ||
+                                        "neuvedena"
+                                    )}
+
+                                </strong>
+
+                                <br>
+
+
+                                Ks / 7,5 h:
+
+                                <strong>
+
+                                    ${formatCeleCislo(
+                                        polozka.ks_za_7_5_hod
+                                    )}
+
+                                </strong>
+
+
+                                <br>
+
+
+                                <span class="stav-bez-materialu">
+
+                                    📦 Materiál ještě nebyl vydán
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="spodni">
+
+                                Zakázku založil Os. č.
+
+                                ${escapeHtml(
+                                    polozka.osobni_cislo ||
+                                    ""
+                                )}
+
+                                |
+
+                                ${formatDatum(
+                                    polozka.datum
+                                )}
+
+                            </div>
+
+
+                            <button
+                                class="tlacitko vydat-material"
+                                onclick="vydatMaterial(${Number(
+                                    polozka.id
+                                )})"
+                            >
+
+                                📦 VYDAT MATERIÁL
+
+                            </button>
+
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+
+        /*
+            ======================================
+            ČEKÁ NA PRŮVODKU
+            ======================================
+        */
+
+        function vykresliCekajici(
+            data
+        ) {
+
+            const seznam =
+                document.getElementById(
+                    "seznamCeka"
+                );
+
+
+            if (
+                data.length === 0
+            ) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+
+                        Nic nečeká na vytvoření průvodky.
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML =
+                "";
 
 
             data.forEach(
@@ -501,17 +1132,20 @@
 
                         <div class="karta karta-ceka">
 
-                            ${obsahKarty(
+                            ${obsahMaterialoveKarty(
                                 polozka
                             )}
 
+
                             <button
-                                class="vytvorit"
+                                class="tlacitko vytvorit"
                                 onclick="otevritPruvodku(${Number(
                                     polozka.id
                                 )})"
                             >
+
                                 📋 VYTVOŘIT PRŮVODKU
+
                             </button>
 
                         </div>
@@ -523,11 +1157,16 @@
         }
 
 
+
         /*
-            HOTOVÉ PRŮVODKY
+            ======================================
+            PRŮVODKA HOTOVÁ
+            ======================================
         */
 
-        function vykresliHotove(data) {
+        function vykresliHotove(
+            data
+        ) {
 
             const seznam =
                 document.getElementById(
@@ -535,12 +1174,16 @@
                 );
 
 
-            if (data.length === 0) {
+            if (
+                data.length === 0
+            ) {
 
                 seznam.innerHTML = `
 
                     <div class="prazdne">
-                        Žádná hotová průvodka.
+
+                        Zatím není žádná hotová průvodka.
+
                     </div>
 
                 `;
@@ -549,7 +1192,8 @@
             }
 
 
-            seznam.innerHTML = "";
+            seznam.innerHTML =
+                "";
 
 
             data.forEach(
@@ -559,18 +1203,20 @@
 
                         <div class="karta karta-hotova">
 
-                            ${obsahKarty(
+                            ${obsahMaterialoveKarty(
                                 polozka
                             )}
 
 
                             <button
-                                class="upravit"
+                                class="tlacitko upravit"
                                 onclick="otevritPruvodku(${Number(
                                     polozka.id
                                 )})"
                             >
+
                                 ✏️ OTEVŘÍT / UPRAVIT PRŮVODKU
+
                             </button>
 
 
@@ -578,13 +1224,16 @@
                                 id="vyroba${Number(
                                     polozka.id
                                 )}"
-                                class="do-vyroby"
+                                class="tlacitko do-vyroby"
                                 onclick="presunoutDoVyroby(${Number(
                                     polozka.id
                                 )})"
                             >
+
                                 ▶ PŘESUNOUT DO VÝROBY
+
                             </button>
+
 
                         </div>
 
@@ -595,34 +1244,29 @@
         }
 
 
+
         /*
-            OBSAH KARTY
+            ======================================
+            KARTA S MATERIÁLEM
+            ======================================
         */
 
-        function obsahKarty(
+        function obsahMaterialoveKarty(
             polozka
         ) {
 
-            const objednavka =
-                escapeHtml(
-                    polozka.objednavka ||
-                    "neuvedena"
-                );
-
-
-            const zakazka =
+            const zakazkaHTML =
                 polozka.cislo_zakazky
                 ? `
 
-                    <br>
+                    <div class="zakazka">
 
-                    Zakázka:
-
-                    <span class="zakazka">
+                        Zakázka:
                         ${escapeHtml(
                             polozka.cislo_zakazky
                         )}
-                    </span>
+
+                    </div>
 
                 `
                 : "";
@@ -630,12 +1274,20 @@
 
             return `
 
+                ${zakazkaHTML}
+
+
                 <div class="objednavka">
 
                     Objednávka:
 
                     <span class="cislo-objednavky">
-                        ${objednavka}
+
+                        ${escapeHtml(
+                            polozka.objednavka ||
+                            "neuvedena"
+                        )}
+
                     </span>
 
                 </div>
@@ -644,7 +1296,8 @@
                 <div class="material">
 
                     ${escapeHtml(
-                        polozka.material
+                        polozka.material ||
+                        "Materiál neuveden"
                     )}
 
                 </div>
@@ -653,19 +1306,22 @@
                 <div class="detail">
 
                     ${escapeHtml(
-                        polozka.druh
+                        polozka.druh ||
+                        ""
                     )}
 
-                    |
+                    ${polozka.rozmer ? " | " : ""}
 
                     ${escapeHtml(
-                        polozka.rozmer
+                        polozka.rozmer ||
+                        ""
                     )}
 
-                    |
+                    ${polozka.delka ? " | " : ""}
 
                     ${escapeHtml(
-                        polozka.delka
+                        polozka.delka ||
+                        ""
                     )}
 
                     <br>
@@ -676,7 +1332,8 @@
                     <span class="tavba">
 
                         ${escapeHtml(
-                            polozka.atest
+                            polozka.atest ||
+                            "neuvedena"
                         )}
 
                     </span>
@@ -688,30 +1345,70 @@
 
                     <span class="pocet">
 
-                        ${Number(
+                        ${formatCeleCislo(
                             polozka.pocet_tyci
                         )} ks
 
                     </span>
 
 
-                    ${zakazka}
+                    ${
+                        polozka.pozadovany_pocet_kusu
+                        ? `
+
+                            <br>
+
+                            Požadováno:
+
+                            <strong>
+
+                                ${formatCeleCislo(
+                                    polozka.pozadovany_pocet_kusu
+                                )} ks
+
+                            </strong>
+
+                        `
+                        : ""
+                    }
+
+
+                    ${
+                        polozka.stroj
+                        ? `
+
+                            <br>
+
+                            Stroj:
+
+                            <strong>
+
+                                ${escapeHtml(
+                                    polozka.stroj
+                                )}
+
+                            </strong>
+
+                        `
+                        : ""
+                    }
 
                 </div>
 
 
                 <div class="spodni">
 
-                    Datum vydání:
+                    Datum:
                     ${formatDatum(
                         polozka.datum
                     )}
 
                     |
 
-                    Vydal Os. č.
+                    Os. č.
                     ${escapeHtml(
-                        polozka.osobni_cislo
+                        polozka.osobni_cislo ||
+                        ""
                     )}
 
                 </div>
@@ -721,23 +1418,57 @@
         }
 
 
+
         /*
-            OTEVŘENÍ PRŮVODKY
+            ======================================
+            VYDAT MATERIÁL
+            ======================================
+
+            V DALŠÍM KROKU VYTVOŘÍME
+            vydat-material.html
         */
 
-        function otevritPruvodku(id) {
+        function vydatMaterial(
+            id
+        ) {
 
             window.location.href =
-                "pruvodka.html?id=" +
-                encodeURIComponent(id);
+                "vydat-material.html?id=" +
+                encodeURIComponent(
+                    id
+                );
         }
 
 
+
         /*
-            PŘESUN DO VÝROBY
+            ======================================
+            OTEVŘÍT PRŮVODKU
+            ======================================
         */
 
-        async function presunoutDoVyroby(id) {
+        function otevritPruvodku(
+            id
+        ) {
+
+            window.location.href =
+                "pruvodka.html?id=" +
+                encodeURIComponent(
+                    id
+                );
+        }
+
+
+
+        /*
+            ======================================
+            PŘESUN DO VÝROBY
+            ======================================
+        */
+
+        async function presunoutDoVyroby(
+            id
+        ) {
 
             const button =
                 document.getElementById(
@@ -747,6 +1478,7 @@
 
             button.disabled =
                 true;
+
 
             button.innerText =
                 "PŘESOUVÁM...";
@@ -776,6 +1508,7 @@
                 button.disabled =
                     false;
 
+
                 button.innerText =
                     "▶ PŘESUNOUT DO VÝROBY";
 
@@ -785,30 +1518,38 @@
 
 
             /*
-                ŽÁDNÉ POTVRZOVACÍ OKNO.
+                BEZ POTVRZOVACÍHO OKNA
 
-                Položka jen zmizí
-                z Rozpracovaných.
+                POLOŽKA JEN ZMIZÍ
+                Z ROZPRACOVANÝCH
             */
 
             await nactiRozpracovane();
         }
 
 
+
         /*
-            DATUM
+            ======================================
+            FORMÁT DATA
+            ======================================
         */
 
-        function formatDatum(datum) {
+        function formatDatum(
+            datum
+        ) {
 
             if (!datum) {
-                return "";
+
+                return "neuvedeno";
             }
 
 
             const pouzeDatum =
-                String(datum)
-                    .split("T")[0];
+                String(
+                    datum
+                )
+                .split("T")[0];
 
 
             const casti =
@@ -827,20 +1568,67 @@
 
 
             return (
-                Number(casti[2]) +
+                Number(
+                    casti[2]
+                ) +
                 ". " +
-                Number(casti[1]) +
+                Number(
+                    casti[1]
+                ) +
                 ". " +
                 casti[0]
             );
         }
 
 
+
         /*
-            OCHRANA TEXTŮ
+            ======================================
+            FORMÁT CELÉHO ČÍSLA
+            ======================================
         */
 
-        function escapeHtml(hodnota) {
+        function formatCeleCislo(
+            cislo
+        ) {
+
+            const hodnota =
+                Number(
+                    cislo
+                );
+
+
+            if (
+                !Number.isFinite(
+                    hodnota
+                )
+            ) {
+
+                return "0";
+            }
+
+
+            return hodnota
+                .toLocaleString(
+                    "cs-CZ",
+                    {
+                        maximumFractionDigits:
+                            0
+                    }
+                );
+        }
+
+
+
+        /*
+            ======================================
+            OCHRANA TEXTŮ
+            ======================================
+        */
+
+        function escapeHtml(
+            hodnota
+        ) {
 
             return String(
                 hodnota ?? ""
@@ -867,6 +1655,13 @@
             );
         }
 
+
+
+        /*
+            ======================================
+            START
+            ======================================
+        */
 
         zkontrolujPrihlaseni();
 

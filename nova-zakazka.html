@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nová zakázka</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 40px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .obsah {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .box h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .radek {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            font-size: 17px;
+            border: 1px solid #aaa;
+            border-radius: 9px;
+            background: white;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .ulozit {
+            width: 100%;
+            padding: 17px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 10px;
+            background: #1976d2;
+            color: white;
+            font-size: 19px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .ulozit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #zprava {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        @media (max-width: 600px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+            .radek {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>➕ Nová zakázka</h1>
+
+        <a class="zpet" href="rozpracovane.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="obsah">
+
+        <div class="box">
+
+            <h2>Údaje zakázky</h2>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Číslo zakázky</label>
+
+                    <input
+                        type="text"
+                        id="cisloZakazky"
+                        placeholder="např. 26-179"
+                    >
+                </div>
+
+
+                <div>
+                    <label>Termín</label>
+
+                    <input
+                        type="date"
+                        id="termin"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Číslo výkresu zákazníka</label>
+
+                    <input
+                        type="text"
+                        id="vykresZakaznika"
+                    >
+                </div>
+
+
+                <div>
+                    <label>Číslo výkresu dodavatele</label>
+
+                    <input
+                        type="text"
+                        id="vykresDodavatele"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Počet kusů</label>
+
+                    <input
+                        type="number"
+                        id="pocetKusu"
+                        min="1"
+                    >
+                </div>
+
+
+                <div>
+                    <label>Objednávka</label>
+
+                    <input
+                        type="text"
+                        id="objednavka"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Ks / 7,5 h</label>
+
+                    <input
+                        type="number"
+                        id="ksZaSmenu"
+                        min="0"
+                    >
+                </div>
+
+
+                <div>
+                    <label>Stroj</label>
+
+                    <input
+                        type="text"
+                        id="stroj"
+                    >
+                </div>
+
+            </div>
+
+
+            <label>Položka</label>
+
+            <input
+                type="text"
+                id="polozka"
+            >
+
+
+            <h2 style="margin-top:30px;">
+                Přepravka
+            </h2>
+
+
+            <label>Přepravka</label>
+
+            <input
+                type="text"
+                id="prepravka"
+                placeholder="např. KIT-01"
+            >
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Počet kusů v přepravce</label>
+
+                    <input
+                        type="number"
+                        id="kusuVPrepravce"
+                        min="0"
+                    >
+                </div>
+
+
+                <div>
+                    <label>Hmotnost přepravky (kg)</label>
+
+                    <input
+                        type="number"
+                        id="hmotnostPrepravky"
+                        min="0"
+                        step="0.01"
+                    >
+                </div>
+
+            </div>
+
+
+            <label>Poznámka</label>
+
+            <textarea
+                id="poznamka"
+                placeholder="Doplňující informace..."
+            ></textarea>
+
+
+            <button
+                id="ulozitButton"
+                class="ulozit"
+                onclick="ulozitZakazku()"
+            >
+                💾 ULOŽIT ZAKÁZKU
+            </button>
+
+
+            <div id="zprava"></div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        /*
+            OCHRANA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+        }
+
+
+        async function ulozitZakazku() {
+
+            const cisloZakazky =
+                document.getElementById(
+                    "cisloZakazky"
+                ).value.trim();
+
+
+            const termin =
+                document.getElementById(
+                    "termin"
+                ).value;
+
+
+            const vykresZakaznika =
+                document.getElementById(
+                    "vykresZakaznika"
+                ).value.trim();
+
+
+            const vykresDodavatele =
+                document.getElementById(
+                    "vykresDodavatele"
+                ).value.trim();
+
+
+            const pocetKusu =
+                Number(
+                    document.getElementById(
+                        "pocetKusu"
+                    ).value
+                );
+
+
+            const objednavka =
+                document.getElementById(
+                    "objednavka"
+                ).value.trim();
+
+
+            const ksZaSmenu =
+                document.getElementById(
+                    "ksZaSmenu"
+                ).value;
+
+
+            const stroj =
+                document.getElementById(
+                    "stroj"
+                ).value.trim();
+
+
+            const polozka =
+                document.getElementById(
+                    "polozka"
+                ).value.trim();
+
+
+            const prepravka =
+                document.getElementById(
+                    "prepravka"
+                ).value.trim();
+
+
+            const kusuVPrepravce =
+                document.getElementById(
+                    "kusuVPrepravce"
+                ).value;
+
+
+            const hmotnostPrepravky =
+                document.getElementById(
+                    "hmotnostPrepravky"
+                ).value;
+
+
+            const poznamka =
+                document.getElementById(
+                    "poznamka"
+                ).value.trim();
+
+
+            const zprava =
+                document.getElementById(
+                    "zprava"
+                );
+
+
+            zprava.innerText =
+                "";
+
+
+            if (
+                cisloZakazky === "" ||
+                !pocetKusu ||
+                pocetKusu <= 0
+            ) {
+
+                zprava.innerText =
+                    "Vyplň číslo zakázky a počet kusů.";
+
+                return;
+            }
+
+
+            const button =
+                document.getElementById(
+                    "ulozitButton"
+                );
+
+
+            button.disabled =
+                true;
+
+
+            button.innerText =
+                "UKLÁDÁM...";
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "zalozit_novou_zakazku",
+                        {
+
+                            p_cislo_zakazky:
+                                cisloZakazky,
+
+                            p_vykres_zakaznika:
+                                vykresZakaznika || null,
+
+                            p_vykres_dodavatele:
+                                vykresDodavatele || null,
+
+                            p_termin:
+                                termin || null,
+
+                            p_pozadovany_pocet_kusu:
+                                pocetKusu,
+
+                            p_objednavka:
+                                objednavka || null,
+
+                            p_ks_za_7_5_hod:
+                                ksZaSmenu
+                                ? Number(ksZaSmenu)
+                                : null,
+
+                            p_stroj:
+                                stroj || null,
+
+                            p_polozka:
+                                polozka || null,
+
+                            p_prepravka:
+                                prepravka || null,
+
+                            p_kusu_v_prepravce:
+                                kusuVPrepravce
+                                ? Number(
+                                    kusuVPrepravce
+                                )
+                                : null,
+
+                            p_hmotnost_prepravky:
+                                hmotnostPrepravky
+                                ? Number(
+                                    hmotnostPrepravky
+                                )
+                                : null,
+
+                            p_poznamka:
+                                poznamka || null
+                        }
+                    );
+
+
+            if (error) {
+
+                zprava.innerText =
+                    "Zakázku se nepodařilo uložit: " +
+                    error.message;
+
+
+                button.disabled =
+                    false;
+
+
+                button.innerText =
+                    "💾 ULOŽIT ZAKÁZKU";
+
+
+                return;
+            }
+
+
+            /*
+                ÚSPĚCH
+
+                ŽÁDNÉ VYSKAKOVACÍ OKNO
+            */
+
+            window.location.href =
+                "rozpracovane.html";
+
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>
