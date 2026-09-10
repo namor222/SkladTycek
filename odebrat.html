@@ -155,6 +155,11 @@
             cursor: pointer;
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 500px) {
 
             .hlavicka h1 {
@@ -590,26 +595,18 @@
                     "odebrat" + index
                 );
 
-
             const objednavkaInput =
                 document.getElementById(
                     "objednavka" + index
                 );
 
-
             const pocetOdebrat =
                 Number(input.value);
-
-
-            const osobniCislo =
-                osobniCisloPrihlaseneho;
-
 
             const objednavka =
                 objednavkaInput
                     .value
                     .trim();
-
 
             const polozka =
                 ulozenySklad[index];
@@ -622,16 +619,6 @@
 
                 alert(
                     "Zadej správný počet kusů."
-                );
-
-                return;
-            }
-
-
-            if (!osobniCislo) {
-
-                alert(
-                    "Nepodařilo se zjistit přihlášeného pracovníka."
                 );
 
                 return;
@@ -651,160 +638,136 @@
             }
 
 
-            const novyPocet =
-                Number(polozka.pocet) -
-                pocetOdebrat;
+            /*
+                ZABRÁNÍME DVOJITÉMU KLIKNUTÍ
+            */
+
+            input.disabled = true;
+            objednavkaInput.disabled = true;
 
 
-            if (novyPocet === 0) {
-
-                const { error } =
-                    await supabaseClient
-                        .from("sklad")
-                        .delete()
-                        .eq(
-                            "material",
-                            polozka.material
-                        )
-                        .eq(
-                            "druh",
-                            polozka.druh
-                        )
-                        .eq(
-                            "rozmer",
-                            polozka.rozmer
-                        )
-                        .eq(
-                            "delka",
-                            polozka.delka
-                        )
-                        .eq(
-                            "atest",
-                            polozka.atest
-                        );
+            const tlacitko =
+                input
+                    .closest(".atest")
+                    ?.querySelector("button");
 
 
-                if (error) {
+            if (tlacitko) {
 
-                    alert(
-                        "Chyba při odebírání: " +
-                        error.message
-                    );
+                tlacitko.disabled = true;
 
-                    return;
-                }
-
-            } else {
-
-                const { error } =
-                    await supabaseClient
-                        .from("sklad")
-                        .update({
-
-                            pocet:
-                                novyPocet
-
-                        })
-                        .eq(
-                            "material",
-                            polozka.material
-                        )
-                        .eq(
-                            "druh",
-                            polozka.druh
-                        )
-                        .eq(
-                            "rozmer",
-                            polozka.rozmer
-                        )
-                        .eq(
-                            "delka",
-                            polozka.delka
-                        )
-                        .eq(
-                            "atest",
-                            polozka.atest
-                        );
-
-
-                if (error) {
-
-                    alert(
-                        "Chyba při odebírání: " +
-                        error.message
-                    );
-
-                    return;
-                }
-
+                tlacitko.innerText =
+                    "UKLÁDÁM...";
             }
 
 
-            const datum =
-                new Date()
-                    .toLocaleDateString(
-                        "sv-SE"
+            /*
+                JEDNA BEZPEČNÁ DATABÁZOVÁ OPERACE
+
+                Funkce:
+                odebrat_material_do_vyroby
+
+                udělá najednou:
+
+                1. odečte materiál ze skladu
+                2. zapíše historii
+                3. vytvoří záznam v rozpracovane
+
+                Pokud některá část selže,
+                celá databázová transakce
+                se vrátí zpět.
+            */
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "odebrat_material_do_vyroby",
+                        {
+
+                            p_material:
+                                String(
+                                    polozka.material
+                                ),
+
+                            p_druh:
+                                String(
+                                    polozka.druh
+                                ),
+
+                            p_rozmer:
+                                String(
+                                    polozka.rozmer
+                                ),
+
+                            p_delka:
+                                String(
+                                    polozka.delka
+                                ),
+
+                            p_atest:
+                                String(
+                                    polozka.atest
+                                ),
+
+                            p_pocet:
+                                pocetOdebrat,
+
+                            p_objednavka:
+                                objednavka || null
+
+                        }
                     );
 
 
-            const zaznamHistorie = {
+            /*
+                CHYBA
+            */
 
-                datum:
-                    datum,
-
-                osobni_cislo:
-                    osobniCislo,
-
-                akce:
-                    "ODEBRÁNO",
-
-                material:
-                    polozka.material,
-
-                druh:
-                    polozka.druh,
-
-                rozmer:
-                    polozka.rozmer,
-
-                delka:
-                    polozka.delka,
-
-                atest:
-                    polozka.atest,
-
-                pocet:
-                    pocetOdebrat,
-
-                objednavka:
-                    objednavka || null
-
-            };
-
-
-            const {
-                error: chybaHistorie
-            } =
-                await supabaseClient
-                    .from("historie")
-                    .insert([
-                        zaznamHistorie
-                    ]);
-
-
-            if (chybaHistorie) {
+            if (error) {
 
                 alert(
-                    "Materiál byl odebrán, ale nepodařilo se zapsat historii: " +
-                    chybaHistorie.message
+                    "Odebrání se nepodařilo:\n" +
+                    error.message
                 );
 
 
-                nactiSklad();
+                input.disabled = false;
+                objednavkaInput.disabled = false;
+
+
+                if (tlacitko) {
+
+                    tlacitko.disabled = false;
+
+                    tlacitko.innerText =
+                        "➖ ODEBRAT";
+                }
+
 
                 return;
             }
 
+
+            /*
+                HOTOVO
+
+                data obsahuje ID
+                nového záznamu historie
+                vrácené Supabase funkcí.
+            */
+
+            alert(
+                "Materiál byl úspěšně odebrán.\n" +
+                "Záznam byl zároveň připraven do Rozpracovaných."
+            );
+
+
+            /*
+                ZNOVU NAČTEME SKLAD
+            */
 
             await nactiSklad();
 
