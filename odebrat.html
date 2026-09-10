@@ -638,10 +638,6 @@
             }
 
 
-            /*
-                ZABRÁNÍME DVOJITÉMU KLIKNUTÍ
-            */
-
             input.disabled = true;
             objednavkaInput.disabled = true;
 
@@ -662,20 +658,14 @@
 
 
             /*
-                JEDNA BEZPEČNÁ DATABÁZOVÁ OPERACE
+                BEZPEČNÁ DATABÁZOVÁ TRANSAKCE
 
-                Funkce:
-                odebrat_material_do_vyroby
-
-                udělá najednou:
-
-                1. odečte materiál ze skladu
+                1. odečte sklad
                 2. zapíše historii
-                3. vytvoří záznam v rozpracovane
+                3. vytvoří rozpracované
 
-                Pokud některá část selže,
-                celá databázová transakce
-                se vrátí zpět.
+                Pokud něco selže,
+                neprovede se nic napůl.
             */
 
             const {
@@ -723,7 +713,11 @@
 
 
             /*
-                CHYBA
+                CHYBOVÉ HLÁŠENÍ NECHÁVÁME.
+
+                To je důležité, protože když
+                se něco nepodaří, pracovník
+                o tom musí vědět.
             */
 
             if (error) {
@@ -752,21 +746,13 @@
 
 
             /*
-                HOTOVO
+                ÚSPĚCH
 
-                data obsahuje ID
-                nového záznamu historie
-                vrácené Supabase funkcí.
-            */
+                ŽÁDNÉ VYSKAKOVACÍ OKNO.
 
-            alert(
-                "Materiál byl úspěšně odebrán.\n" +
-                "Záznam byl zároveň připraven do Rozpracovaných."
-            );
-
-
-            /*
-                ZNOVU NAČTEME SKLAD
+                Pouze znovu načteme sklad.
+                Tím se otevřená skupina
+                automaticky zavře.
             */
 
             await nactiSklad();
