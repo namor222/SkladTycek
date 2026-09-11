@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Přidat materiál</title>
+
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f2f2f2;
+        margin: 0;
+        padding: 20px 15px 40px 15px;
+        display: none;
+    }
+
+    .hlavicka {
+        max-width: 600px;
+        margin: 0 auto 25px auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .hlavicka h1 {
+        margin: 0;
+        font-size: 28px;
+        text-align: left;
+    }
+
+    .zpet {
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+        color: #1976d2;
+        white-space: nowrap;
+    }
+
+    .zpet:hover {
+        text-decoration: underline;
+    }
+
+    .obsah {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .polozka {
+        background: white;
+        padding: 22px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+    }
+
+    .polozka h2 {
+        margin-top: 0;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        font-size: 17px;
+        margin-top: 16px;
+        margin-bottom: 5px;
+        text-align: left;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+        box-sizing: border-box;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+    }
+
+    input:focus {
+        outline: 2px solid #1976d2;
+        border-color: #1976d2;
+    }
+
+    .hlavni-input {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .napoveda {
+        font-size: 14px;
+        color: #666;
+        margin-top: 6px;
+        text-align: left;
+        line-height: 1.4;
+    }
+
+    .rozpoznano {
+        background: #eef6ff;
+        border: 2px solid #1976d2;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 18px;
+        text-align: left;
+    }
+
+    .rozpoznano h3 {
+        margin: 0 0 10px 0;
+        color: #1976d2;
+    }
+
+    .radek {
+        margin: 5px 0;
+        line-height: 1.5;
+    }
+
+    .radek strong {
+        display: inline-block;
+        min-width: 105px;
+    }
+
+    .vypocet {
+        background: #f4faf4;
+        border: 2px solid #2e8b57;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 18px;
+        text-align: left;
+        line-height: 1.6;
+    }
+
+    .vypocet h3 {
+        margin: 0 0 10px 0;
+        color: #247146;
+    }
+
+    .pocet-vysledek {
+        font-size: 30px;
+        font-weight: bold;
+        color: #1b8f3a;
+        margin-top: 5px;
+    }
+
+    button {
+        width: 100%;
+        padding: 18px;
+        margin-top: 20px;
+        font-size: 21px;
+        font-weight: bold;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        background: #1976d2;
+        color: white;
+    }
+
+    button:hover {
+        background: #125ea8;
+    }
+
+    button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    #zprava {
+        font-size: 17px;
+        font-weight: bold;
+        margin-top: 16px;
+        line-height: 1.4;
+    }
+
+    .chyba {
+        color: #c62828;
+    }
+
+    .uspech {
+        color: #1b8f3a;
+    }
+
+    @media (max-width: 600px) {
+
+        .hlavicka h1 {
+            font-size: 22px;
+        }
+
+        .zpet {
+            font-size: 15px;
+        }
+
+        .polozka {
+            padding: 17px;
+        }
+
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="hlavicka">
+
+    <h1>➕ Příjem materiálu</h1>
+
+    <a class="zpet" href="material.html">
+        ← ZPĚT
+    </a>
+
+</div>
+
+
+<div class="obsah">
+
+    <div class="polozka">
+
+        <h2>Údaje z dodacího listu</h2>
+
+
+        <label for="nazev">
+            Název materiálu z dodacího listu *
+        </label>
+
+        <input
+            type="text"
+            id="nazev"
+            class="hlavni-input"
+            placeholder="např. Tyč Kr Ta 30 11SMn30+C h9"
+            autocomplete="off"
+            oninput="rozpoznejNazev()"
+        >
+
+        <div class="napoveda">
+            Opiš název přesně tak, jak je uvedený na dodacím listu.
+        </div>
+
+
+        <div class="rozpoznano">
+
+            <h3>Rozpoznané údaje</h3>
+
+            <div class="radek">
+                <strong>Materiál:</strong>
+                <span id="nahledMaterial">—</span>
+            </div>
+
+            <div class="radek">
+                <strong>Druh:</strong>
+                <span id="nahledDruh">—</span>
+            </div>
+
+            <div class="radek">
+                <strong>Rozměr:</strong>
+                <span id="nahledRozmer">—</span>
+            </div>
+
+            <div class="radek">
+                <strong>Jakost:</strong>
+                <span id="nahledJakost">—</span>
+            </div>
+
+            <div class="radek">
+                <strong>Tolerance:</strong>
+                <span id="nahledTolerance">—</span>
+            </div>
+
+        </div>
+
+
+        <label for="tavba">
+            Atest / tavba *
+        </label>
+
+        <input
+            type="text"
+            id="tavba"
+            placeholder="např. X40809"
+            autocomplete="off"
+        >
+
+        <div class="napoveda">
+            Když není na dodacím listu, opíše se ze štítku na materiálu.
+        </div>
+
+
+        <label for="cisloDodaku">
+            Číslo dodacího listu
+        </label>
+
+        <input
+            type="text"
+            id="cisloDodaku"
+            placeholder="např. DL00116406"
+            autocomplete="off"
+        >
+
+
+        <label for="delka">
+            Délka jedné tyče *
+        </label>
+
+        <input
+            type="text"
+            inputmode="decimal"
+            id="delka"
+            placeholder="např. 3m nebo 3026mm"
+            oninput="prepocitej()"
+        >
+
+        <div class="napoveda">
+            Můžeš napsat 3m, 3,005m, 3000mm nebo 3026mm.
+        </div>
+
+
+        <label for="hmotnost">
+            Celková hmotnost (kg) *
+        </label>
+
+        <input
+            type="text"
+            inputmode="decimal"
+            id="hmotnost"
+            placeholder="např. 1836"
+            oninput="prepocitej()"
+        >
+
+
+        <div class="vypocet">
+
+            <h3>Výpočet</h3>
+
+            <div>
+                Délka:
+                <strong id="vypocetDelka">—</strong>
+            </div>
+
+            <div>
+                Rozměr:
+                <strong id="vypocetRozmer">—</strong>
+            </div>
+
+            <div>
+                Hustota:
+                <strong id="vypocetHustota">—</strong>
+            </div>
+
+            <div>
+                Hmotnost jedné tyče:
+                <strong id="vahaJedneTyce">—</strong>
+            </div>
+
+            <div>
+                Počet kusů:
+            </div>
+
+            <div
+                id="automatickyPocet"
+                class="pocet-vysledek"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <button
+            id="ulozitTlacitko"
+            type="button"
+            onclick="ulozitPrijem()"
+        >
+            ➕ ULOŽIT PŘÍJEM
+        </button>
+
+        <p id="zprava"></p>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<script>
+
+    const SUPABASE_URL =
+        "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+    const SUPABASE_KEY =
+        "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+    let osobniCisloPrihlaseneho = null;
+
+    let rozpoznanyMaterial = "";
+    let rozpoznanyDruh = "";
+    let rozpoznanyRozmer = null;
+    let rozpoznanaJakost = "";
+    let rozpoznanaTolerance = "";
+
+    let vypocitanyPocet = null;
+
+
+    const hustoty = {
+
+        "Ocel": 7850,
+        "Nerez": 8000,
+        "Hliník": 2700,
+        "Mosaz": 8500
+
+    };
+
+
+    async function zkontrolujPrihlaseni() {
+
+        const { data, error } =
+            await supabaseClient
+                .auth
+                .getSession();
+
+
+        if (
+            error ||
+            !data.session
+        ) {
+
+            window.location.replace(
+                "../login.html"
+            );
+
+            return;
+        }
+
+
+        const email =
+            data.session.user.email || "";
+
+
+        osobniCisloPrihlaseneho =
+            email.split("@")[0];
+
+
+        if (!osobniCisloPrihlaseneho) {
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+            window.location.replace(
+                "../login.html"
+            );
+
+            return;
+        }
+
+
+        document.body.style.display =
+            "block";
+
+    }
+
+
+    function odstranDiakritiku(text) {
+
+        return String(text || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+    }
+
+
+    function cisloZTextu(text) {
+
+        const upravene =
+            String(text || "")
+                .trim()
+                .replace(/\s/g, "")
+                .replace(",", ".");
+
+
+        const cislo =
+            Number(upravene);
+
+
+        if (
+            !Number.isFinite(cislo) ||
+            cislo <= 0
+        ) {
+
+            return null;
+
+        }
+
+
+        return cislo;
+
+    }
+
+
+    function rozpoznejNazev() {
+
+        const text =
+            document
+                .getElementById("nazev")
+                .value
+                .trim();
+
+
+        const bezDiakritiky =
+            odstranDiakritiku(text);
+
+
+        const t =
+            bezDiakritiky.toUpperCase();
+
+
+        rozpoznanyMaterial = "";
+        rozpoznanyDruh = "";
+        rozpoznanyRozmer = null;
+        rozpoznanaJakost = "";
+        rozpoznanaTolerance = "";
+
+
+        /*
+            MATERIÁL
+        */
+
+        if (
+            /\b1\.\d{4}\b/.test(t) ||
+            t.includes("NEREZ") ||
+            t.includes("INOX") ||
+            t.includes("STAINLESS")
+        ) {
+
+            rozpoznanyMaterial =
+                "Nerez";
+
+        }
+
+        else if (
+            t.includes("HLIN") ||
+            t.includes("ALUMIN") ||
+            t.includes("EN AW")
+        ) {
+
+            rozpoznanyMaterial =
+                "Hliník";
+
+        }
+
+        else if (
+            t.includes("MOSAZ") ||
+            t.includes("CUZN") ||
+            t.includes("BRASS")
+        ) {
+
+            rozpoznanyMaterial =
+                "Mosaz";
+
+        }
+
+        else if (text !== "") {
+
+            rozpoznanyMaterial =
+                "Ocel";
+
+        }
+
+
+        /*
+            DRUH
+        */
+
+        if (
+            t.includes("SESTIHR") ||
+            t.includes("HEXAGON") ||
+            /\bHEX\b/.test(t)
+        ) {
+
+            rozpoznanyDruh =
+                "Šestihran";
+
+        }
+
+        else if (
+            t.includes("KRUH") ||
+            /\bKR\b/.test(t) ||
+            /\bRD\b/.test(t) ||
+            t.includes("PRUM")
+        ) {
+
+            rozpoznanyDruh =
+                "Kulatina";
+
+        }
+
+
+        /*
+            TOLERANCE
+        */
+
+        const toleranceMatch =
+            text.match(
+                /\b[hH]\s*\d{1,2}\b/
+            );
+
+
+        if (toleranceMatch) {
+
+            rozpoznanaTolerance =
+                toleranceMatch[0]
+                    .replace(/\s/g, "")
+                    .toLowerCase();
+
+        }
+
+
+        /*
+            ROZMĚR
+        */
+
+        let rozmerMatch =
+            text.match(
+                /\b(?:Kr|KR|kr|Rd|RD|rd)\s*(?:Ta\s*)?(\d+(?:[.,]\d+)?)/
+            );
+
+
+        if (!rozmerMatch) {
+
+            rozmerMatch =
+                text.match(
+                    /pr[uů]m(?:ěr)?\.?\s*(\d+(?:[.,]\d+)?)\s*mm/i
+                );
+
+        }
+
+
+        if (
+            !rozmerMatch &&
+            rozpoznanyDruh === "Šestihran"
+        ) {
+
+            rozmerMatch =
+                text.match(
+                    /\bOK\s*(\d+(?:[.,]\d+)?)/i
+                );
+
+        }
+
+
+        if (
+            !rozmerMatch &&
+            rozpoznanyDruh === "Šestihran"
+        ) {
+
+            rozmerMatch =
+                text.match(
+                    /\b(\d+(?:[.,]\d+)?)\s*SK\b/i
+                );
+
+        }
+
+
+        if (rozmerMatch) {
+
+            rozpoznanyRozmer =
+                Number(
+                    rozmerMatch[1]
+                        .replace(",", ".")
+                );
+
+        }
+
+
+        /*
+            JAKOST
+        */
+
+        let jakostMatch =
+            text.match(
+                /\b1\.\d{4}\b/i
+            );
+
+
+        if (!jakostMatch) {
+
+            jakostMatch =
+                text.match(
+                    /\b\d{1,2}SMn(?:Pb)?\d+(?:\+C)?\b/i
+                );
+
+        }
+
+
+        if (!jakostMatch) {
+
+            jakostMatch =
+                text.match(
+                    /\bS\d{3}[A-Za-z0-9+-]*\b/i
+                );
+
+        }
+
+
+        if (!jakostMatch) {
+
+            jakostMatch =
+                text.match(
+                    /\bX\d+[A-Za-z0-9+-]+\b/i
+                );
+
+        }
+
+
+        if (!jakostMatch) {
+
+            jakostMatch =
+                text.match(
+                    /\bCuZn[A-Za-z0-9+-]*\b/i
+                );
+
+        }
+
+
+        if (!jakostMatch) {
+
+            jakostMatch =
+                text.match(
+                    /\bEN\s*AW[-\s]?[A-Za-z0-9+-]+\b/i
+                );
+
+        }
+
+
+        if (jakostMatch) {
+
+            rozpoznanaJakost =
+                jakostMatch[0];
+
+        }
+
+
+        aktualizujNahled();
+
+        prepocitej();
+
+    }
+
+
+    function aktualizujNahled() {
+
+        document
+            .getElementById("nahledMaterial")
+            .innerText =
+            rozpoznanyMaterial || "—";
+
+
+        document
+            .getElementById("nahledDruh")
+            .innerText =
+            rozpoznanyDruh || "—";
+
+
+        document
+            .getElementById("nahledRozmer")
+            .innerText =
+            rozpoznanyRozmer
+                ? rozpoznanyRozmer + " mm"
+                : "—";
+
+
+        document
+            .getElementById("nahledJakost")
+            .innerText =
+            rozpoznanaJakost || "—";
+
+
+        document
+            .getElementById("nahledTolerance")
+            .innerText =
+            rozpoznanaTolerance || "—";
+
+    }
+
+
+    function prevedDelkuNaMm(text) {
+
+        if (!text) {
+
+            return null;
+
+        }
+
+
+        let t =
+            String(text)
+                .trim()
+                .toLowerCase()
+                .replace(/\s/g, "");
+
+
+        if (t.endsWith("mm")) {
+
+            const mm =
+                Number(
+                    t.slice(0, -2)
+                        .replace(",", ".")
+                );
+
+
+            return (
+                Number.isFinite(mm) &&
+                mm > 0
+            )
+                ? mm
+                : null;
+
+        }
+
+
+        if (t.endsWith("m")) {
+
+            const metry =
+                Number(
+                    t.slice(0, -1)
+                        .replace(",", ".")
+                );
+
+
+            return (
+                Number.isFinite(metry) &&
+                metry > 0
+            )
+                ? metry * 1000
+                : null;
+
+        }
+
+
+        const hodnota =
+            Number(
+                t.replace(",", ".")
+            );
+
+
+        if (
+            !Number.isFinite(hodnota) ||
+            hodnota <= 0
+        ) {
+
+            return null;
+
+        }
+
+
+        if (hodnota <= 20) {
+
+            return hodnota * 1000;
+
+        }
+
+
+        return hodnota;
+
+    }
+
+
+    function plochaPrurezu(
+        druh,
+        rozmer
+    ) {
+
+        if (
+            druh === "Kulatina"
+        ) {
+
+            return (
+                Math.PI *
+                rozmer *
+                rozmer /
+                4
+            );
+
+        }
+
+
+        if (
+            druh === "Šestihran"
+        ) {
+
+            return (
+                Math.sqrt(3) /
+                2 *
+                rozmer *
+                rozmer
+            );
+
+        }
+
+
+        return 0;
+
+    }
+
+
+    function hmotnostTyce(
+        druh,
+        rozmerMm,
+        delkaMm,
+        hustota
+    ) {
+
+        const plochaMm2 =
+            plochaPrurezu(
+                druh,
+                rozmerMm
+            );
+
+
+        if (!plochaMm2) {
+
+            return 0;
+
+        }
+
+
+        const plochaM2 =
+            plochaMm2 /
+            1000000;
+
+
+        const delkaM =
+            delkaMm /
+            1000;
+
+
+        return (
+            plochaM2 *
+            delkaM *
+            hustota
+        );
+
+    }
+
+
+    function prepocitej() {
+
+        vypocitanyPocet =
+            null;
+
+
+        const delka =
+            prevedDelkuNaMm(
+                document
+                    .getElementById("delka")
+                    .value
+            );
+
+
+        const hmotnost =
+            cisloZTextu(
+                document
+                    .getElementById("hmotnost")
+                    .value
+            );
+
+
+        document
+            .getElementById("vypocetDelka")
+            .innerText =
+            delka
+                ? delka.toLocaleString("cs-CZ") + " mm"
+                : "—";
+
+
+        document
+            .getElementById("vypocetRozmer")
+            .innerText =
+            rozpoznanyRozmer
+                ? rozpoznanyRozmer + " mm"
+                : "—";
+
+
+        const hustota =
+            hustoty[
+                rozpoznanyMaterial
+            ];
+
+
+        document
+            .getElementById("vypocetHustota")
+            .innerText =
+            hustota
+                ? hustota + " kg/m³"
+                : "—";
+
+
+        if (
+            !rozpoznanyDruh ||
+            !rozpoznanyRozmer ||
+            !delka ||
+            !hmotnost ||
+            !hustota
+        ) {
+
+            document
+                .getElementById("vahaJedneTyce")
+                .innerText =
+                "—";
+
+
+            document
+                .getElementById("automatickyPocet")
+                .innerText =
+                "—";
+
+
+            return;
+
+        }
+
+
+        const vaha =
+            hmotnostTyce(
+                rozpoznanyDruh,
+                rozpoznanyRozmer,
+                delka,
+                hustota
+            );
+
+
+        if (
+            !vaha ||
+            vaha <= 0
+        ) {
+
+            document
+                .getElementById("vahaJedneTyce")
+                .innerText =
+                "—";
+
+
+            document
+                .getElementById("automatickyPocet")
+                .innerText =
+                "—";
+
+
+            return;
+
+        }
+
+
+        vypocitanyPocet =
+            Math.round(
+                hmotnost /
+                vaha
+            );
+
+
+        document
+            .getElementById("vahaJedneTyce")
+            .innerText =
+            vaha
+                .toFixed(3)
+                .replace(".", ",") +
+            " kg";
+
+
+        document
+            .getElementById("automatickyPocet")
+            .innerText =
+            vypocitanyPocet +
+            " ks";
+
+    }
+
+
+    function nastavZpravu(
+        text,
+        typ
+    ) {
+
+        const zprava =
+            document.getElementById(
+                "zprava"
+            );
+
+
+        zprava.innerText =
+            text;
+
+
+        zprava.className =
+            typ || "";
+
+    }
+
+
+    async function ulozitPrijem() {
+
+        nastavZpravu(
+            "",
+            ""
+        );
+
+
+        const nazev =
+            document
+                .getElementById("nazev")
+                .value
+                .trim();
+
+
+        const tavba =
+            document
+                .getElementById("tavba")
+                .value
+                .trim();
+
+
+        const cisloDodaku =
+            document
+                .getElementById("cisloDodaku")
+                .value
+                .trim();
+
+
+        const delka =
+            prevedDelkuNaMm(
+                document
+                    .getElementById("delka")
+                    .value
+            );
+
+
+        const hmotnost =
+            cisloZTextu(
+                document
+                    .getElementById("hmotnost")
+                    .value
+            );
+
+
+        prepocitej();
+
+
+        if (!nazev) {
+
+            nastavZpravu(
+                "Vyplň název materiálu z dodacího listu.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (!tavba) {
+
+            nastavZpravu(
+                "Vyplň atest / tavbu.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !delka ||
+            delka <= 0
+        ) {
+
+            nastavZpravu(
+                "Vyplň správnou délku tyče.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !hmotnost ||
+            hmotnost <= 0
+        ) {
+
+            nastavZpravu(
+                "Vyplň celkovou hmotnost v kg.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !rozpoznanyMaterial ||
+            !rozpoznanyDruh ||
+            !rozpoznanyRozmer
+        ) {
+
+            nastavZpravu(
+                "Z názvu materiálu se nepodařilo zjistit údaje potřebné pro výpočet.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isInteger(
+                vypocitanyPocet
+            ) ||
+            vypocitanyPocet <= 0
+        ) {
+
+            nastavZpravu(
+                "Nepodařilo se vypočítat počet kusů.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        if (!osobniCisloPrihlaseneho) {
+
+            nastavZpravu(
+                "Nepodařilo se zjistit přihlášeného pracovníka.",
+                "chyba"
+            );
+
+            return;
+
+        }
+
+
+        const tlacitko =
+            document.getElementById(
+                "ulozitTlacitko"
+            );
+
+
+        tlacitko.disabled =
+            true;
+
+
+        const { error } =
+            await supabaseClient
+                .rpc(
+                    "pridat_material_prijem",
+                    {
+                        p_nazev_z_dodaku:
+                            nazev,
+
+                        p_material:
+                            rozpoznanyMaterial,
+
+                        p_druh:
+                            rozpoznanyDruh,
+
+                        p_rozmer:
+                            rozpoznanyRozmer,
+
+                        p_jakost:
+                            rozpoznanaJakost || null,
+
+                        p_tolerance:
+                            rozpoznanaTolerance || null,
+
+                        p_tavba:
+                            tavba,
+
+                        p_delka_mm:
+                            delka,
+
+                        p_hmotnost_kg:
+                            hmotnost,
+
+                        p_pocet:
+                            vypocitanyPocet,
+
+                        p_cislo_dodaciho_listu:
+                            cisloDodaku || null
+                    }
+                );
+
+
+        if (error) {
+
+            nastavZpravu(
+                "Příjem se nepodařilo uložit: " +
+                error.message,
+                "chyba"
+            );
+
+
+            tlacitko.disabled =
+                false;
+
+
+            return;
+
+        }
+
+
+        document
+            .getElementById("nazev")
+            .value = "";
+
+
+        document
+            .getElementById("tavba")
+            .value = "";
+
+
+        document
+            .getElementById("cisloDodaku")
+            .value = "";
+
+
+        document
+            .getElementById("delka")
+            .value = "";
+
+
+        document
+            .getElementById("hmotnost")
+            .value = "";
+
+
+        rozpoznanyMaterial = "";
+        rozpoznanyDruh = "";
+        rozpoznanyRozmer = null;
+        rozpoznanaJakost = "";
+        rozpoznanaTolerance = "";
+        vypocitanyPocet = null;
+
+
+        aktualizujNahled();
+
+        prepocitej();
+
+
+        nastavZpravu(
+            "✅ Příjem uložen.",
+            "uspech"
+        );
+
+
+        tlacitko.disabled =
+            false;
+
+
+        document
+            .getElementById("nazev")
+            .focus();
+
+    }
+
+
+    zkontrolujPrihlaseni();
+
+</script>
+
+</body>
+</html>

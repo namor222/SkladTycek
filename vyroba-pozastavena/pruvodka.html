@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Průvodka</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 40px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 850px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .obsah {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .hlavni-box {
+            border-left: 8px solid #1976d2;
+        }
+
+        .material-box {
+            border-left: 8px solid #f57c00;
+        }
+
+        .baleni-box {
+            border-left: 8px solid #28a745;
+        }
+
+        .box h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .radek {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            font-size: 17px;
+            border: 1px solid #aaa;
+            border-radius: 9px;
+            background: white;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .automaticky {
+            background: #fff8e8;
+        }
+
+        .readonly {
+            background: #eeeeee;
+            color: #444;
+            font-weight: bold;
+        }
+
+        .material-karta {
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 12px;
+            border-left: 6px solid #f57c00;
+        }
+
+        .material-nazev {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .material-detail {
+            line-height: 1.7;
+        }
+
+        .tavba {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .pocet {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .sklad {
+            color: #1b8f3a;
+            font-weight: bold;
+        }
+
+        .info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .ulozit {
+            width: 100%;
+            padding: 17px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #1976d2;
+            color: white;
+            font-size: 19px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .ulozit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #zprava {
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .chyba {
+            color: #d32f2f;
+        }
+
+        .ok {
+            color: #1b8f3a;
+        }
+
+        @media (max-width: 650px) {
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+            .radek {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hlavicka">
+        <h1>📋 Průvodka</h1>
+
+        <a class="zpet" href="rozpracovane.html">
+            ← ZPĚT
+        </a>
+    </div>
+
+
+    <div class="obsah">
+
+        <!-- ZAKÁZKA -->
+
+        <div class="box hlavni-box">
+
+            <h2>Zakázka</h2>
+
+            <div class="radek">
+
+                <div>
+                    <label>Číslo zakázky</label>
+
+                    <input
+                        type="text"
+                        id="cisloZakazky"
+                    >
+                </div>
+
+                <div>
+                    <label>Termín</label>
+
+                    <input
+                        type="date"
+                        id="termin"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Číslo výkresu zákazníka</label>
+
+                    <input
+                        type="text"
+                        id="vykresZakaznika"
+                    >
+                </div>
+
+                <div>
+                    <label>Číslo výkresu dodavatele</label>
+
+                    <input
+                        type="text"
+                        id="vykresDodavatele"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Počet kusů</label>
+
+                    <input
+                        type="number"
+                        id="pozadovanyPocet"
+                        min="1"
+                    >
+                </div>
+
+                <div>
+                    <label>Objednávka</label>
+
+                    <input
+                        type="text"
+                        id="objednavka"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Ks / 7,5 h</label>
+
+                    <input
+                        type="number"
+                        id="ksZaSmenu"
+                        min="0"
+                    >
+                </div>
+
+                <div>
+                    <label>Stroj</label>
+
+                    <input
+                        type="text"
+                        id="stroj"
+                    >
+                </div>
+
+            </div>
+
+
+            <label>Položka</label>
+
+            <input
+                type="text"
+                id="polozka"
+            >
+
+        </div>
+
+
+        <!-- MATERIÁL -->
+
+        <div class="box material-box">
+
+            <h2>Materiál</h2>
+
+            <div id="materialy">
+                Načítám vydaný materiál...
+            </div>
+
+            <div class="info">
+                Zde se zobrazují všechny výdeje materiálu navázané na tuto zakázku.
+            </div>
+
+        </div>
+
+
+        <!-- PŮVODNÍ HLAVNÍ MATERIÁL -->
+
+        <div class="box material-box">
+
+            <h2>Hlavní materiál průvodky</h2>
+
+            <div class="info">
+                Tyto hodnoty zůstávají kvůli kompatibilitě se starší částí systému. Pokud má zakázka více výdejů, hlavní materiál je pouze orientační.
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Materiál</label>
+
+                    <input
+                        type="text"
+                        id="material"
+                        class="automaticky"
+                    >
+                </div>
+
+                <div>
+                    <label>Druh</label>
+
+                    <input
+                        type="text"
+                        id="druh"
+                        class="automaticky"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Rozměr</label>
+
+                    <input
+                        type="text"
+                        id="rozmer"
+                        class="automaticky"
+                    >
+                </div>
+
+                <div>
+                    <label>Délka tyče</label>
+
+                    <input
+                        type="text"
+                        id="delka"
+                        class="automaticky"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Celkem vydaných tyčí</label>
+
+                    <input
+                        type="number"
+                        id="pocetTyci"
+                        class="automaticky"
+                        min="0"
+                    >
+                </div>
+
+                <div>
+                    <label>Hlavní atest / tavba</label>
+
+                    <input
+                        type="text"
+                        id="atest"
+                        class="automaticky"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Vydal / založil</label>
+
+                    <input
+                        type="text"
+                        id="vydal"
+                        class="readonly"
+                        readonly
+                    >
+                </div>
+
+                <div>
+                    <label>Datum</label>
+
+                    <input
+                        type="text"
+                        id="datumVydani"
+                        class="readonly"
+                        readonly
+                    >
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PŘEPRAVKA -->
+
+        <div class="box baleni-box">
+
+            <h2>Přepravka</h2>
+
+            <label>Přepravka</label>
+
+            <input
+                type="text"
+                id="prepravka"
+                placeholder="např. KIT-01"
+            >
+
+
+            <div class="radek">
+
+                <div>
+                    <label>Počet kusů v přepravce</label>
+
+                    <input
+                        type="number"
+                        id="kusuVPrepravce"
+                        min="0"
+                    >
+                </div>
+
+                <div>
+                    <label>Hmotnost přepravky (kg)</label>
+
+                    <input
+                        type="number"
+                        id="hmotnostPrepravky"
+                        min="0"
+                        step="0.01"
+                    >
+                </div>
+
+            </div>
+
+
+            <label>Poznámka</label>
+
+            <textarea
+                id="poznamka"
+                placeholder="Doplňující informace..."
+            ></textarea>
+
+        </div>
+
+
+        <button
+            id="ulozitButton"
+            class="ulozit"
+            onclick="ulozitPruvodku()"
+        >
+            💾 ULOŽIT PRŮVODKU
+        </button>
+
+
+        <div id="zprava"></div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let rozpracovaneId = null;
+        let zaznam = null;
+        let vydejeData = [];
+
+
+        /*
+            OCHRANA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+
+            rozpracovaneId =
+                Number(
+                    params.get("id")
+                );
+
+
+            if (!rozpracovaneId) {
+
+                window.location.replace(
+                    "rozpracovane.html"
+                );
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            await nactiPolozku();
+        }
+
+
+        /*
+            NAČTENÍ PRŮVODKY
+        */
+
+        async function nactiPolozku() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .select("*")
+                    .eq(
+                        "id",
+                        rozpracovaneId
+                    )
+                    .single();
+
+
+            if (error) {
+
+                zobrazChybu(
+                    "Nepodařilo se načíst průvodku: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            zaznam = data;
+
+
+            vyplnFormular();
+
+
+            await nactiVydejeMaterialu();
+        }
+
+
+        /*
+            PŘEDVYPLNĚNÍ FORMULÁŘE
+        */
+
+        function vyplnFormular() {
+
+            document.getElementById(
+                "cisloZakazky"
+            ).value =
+                zaznam.cislo_zakazky || "";
+
+
+            document.getElementById(
+                "vykresZakaznika"
+            ).value =
+                zaznam.vykres_zakaznika || "";
+
+
+            document.getElementById(
+                "vykresDodavatele"
+            ).value =
+                zaznam.vykres_dodavatele || "";
+
+
+            document.getElementById(
+                "termin"
+            ).value =
+                zaznam.termin || "";
+
+
+            document.getElementById(
+                "pozadovanyPocet"
+            ).value =
+                zaznam.pozadovany_pocet_kusu || "";
+
+
+            document.getElementById(
+                "objednavka"
+            ).value =
+                zaznam.objednavka || "";
+
+
+            document.getElementById(
+                "ksZaSmenu"
+            ).value =
+                zaznam.ks_za_7_5_hod || "";
+
+
+            document.getElementById(
+                "stroj"
+            ).value =
+                zaznam.stroj || "";
+
+
+            document.getElementById(
+                "polozka"
+            ).value =
+                zaznam.polozka || "";
+
+
+            document.getElementById(
+                "material"
+            ).value =
+                zaznam.material || "";
+
+
+            document.getElementById(
+                "druh"
+            ).value =
+                zaznam.druh || "";
+
+
+            document.getElementById(
+                "rozmer"
+            ).value =
+                zaznam.rozmer || "";
+
+
+            document.getElementById(
+                "delka"
+            ).value =
+                zaznam.delka || "";
+
+
+            document.getElementById(
+                "pocetTyci"
+            ).value =
+                zaznam.pocet_tyci || "";
+
+
+            document.getElementById(
+                "atest"
+            ).value =
+                zaznam.atest || "";
+
+
+            document.getElementById(
+                "vydal"
+            ).value =
+                "Os. č. " +
+                (
+                    zaznam.osobni_cislo ||
+                    ""
+                );
+
+
+            document.getElementById(
+                "datumVydani"
+            ).value =
+                formatDatum(
+                    zaznam.datum
+                );
+
+
+            document.getElementById(
+                "prepravka"
+            ).value =
+                zaznam.prepravka || "";
+
+
+            document.getElementById(
+                "kusuVPrepravce"
+            ).value =
+                zaznam.kusu_v_prepravce || "";
+
+
+            document.getElementById(
+                "hmotnostPrepravky"
+            ).value =
+                zaznam.hmotnost_prepravky || "";
+
+
+            document.getElementById(
+                "poznamka"
+            ).value =
+                zaznam.poznamka || "";
+        }
+
+
+        /*
+            NAČTENÍ VŠECH VÝDEJŮ
+        */
+
+        async function nactiVydejeMaterialu() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("vydeje_materialu")
+                    .select("*")
+                    .eq(
+                        "rozpracovane_id",
+                        rozpracovaneId
+                    )
+                    .order(
+                        "id",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            if (error) {
+
+                document.getElementById(
+                    "materialy"
+                ).innerHTML = `
+
+                    <div class="material-karta">
+
+                        Nepodařilo se načíst výdeje:
+                        ${escapeHtml(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            vydejeData =
+                data || [];
+
+
+            /*
+                STARÝ ZPŮSOB
+
+                Pokud tabulka vydeje_materialu
+                nic neobsahuje, zobrazíme hlavní
+                materiál z rozpracovane.
+            */
+
+            if (
+                vydejeData.length === 0 &&
+                zaznam.material
+            ) {
+
+                zobrazStaryMaterial();
+
+                return;
+            }
+
+
+            zobrazVydeje();
+        }
+
+
+        /*
+            NOVÉ VÝDEJE
+        */
+
+        async function zobrazVydeje() {
+
+            const seznam =
+                document.getElementById(
+                    "materialy"
+                );
+
+
+            if (
+                vydejeData.length === 0
+            ) {
+
+                seznam.innerHTML = `
+
+                    <div class="material-karta">
+
+                        K této zakázce zatím
+                        není vydán žádný materiál.
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML =
+                "";
+
+
+            for (
+                const vydej of vydejeData
+            ) {
+
+                const zbyva =
+                    await nactiZbyvaSkladem(
+                        vydej
+                    );
+
+
+                seznam.innerHTML += `
+
+                    <div class="material-karta">
+
+                        <div class="material-nazev">
+
+                            ${escapeHtml(
+                                vydej.material
+                            )}
+
+                        </div>
+
+
+                        <div class="material-detail">
+
+                            ${escapeHtml(
+                                vydej.druh
+                            )}
+
+                            |
+
+                            ${escapeHtml(
+                                vydej.rozmer
+                            )}
+
+                            |
+
+                            ${escapeHtml(
+                                vydej.delka
+                            )}
+
+                            <br>
+
+
+                            Atest / tavba:
+
+                            <span class="tavba">
+
+                                ${escapeHtml(
+                                    vydej.atest
+                                )}
+
+                            </span>
+
+                            <br>
+
+
+                            Vydáno:
+
+                            <span class="pocet">
+
+                                ${formatCeleCislo(
+                                    vydej.pocet_tyci
+                                )} ks
+
+                            </span>
+
+                            <br>
+
+
+                            Zbývá této tavby skladem:
+
+                            <span class="sklad">
+
+                                ${formatCeleCislo(
+                                    zbyva
+                                )} ks
+
+                            </span>
+
+                            <br>
+
+
+                            Vydal Os. č.
+
+                            ${escapeHtml(
+                                vydej.vydal_osobni_cislo ||
+                                ""
+                            )}
+
+                            <br>
+
+
+                            Vydáno:
+
+                            ${formatDatumCas(
+                                vydej.vydano_at
+                            )}
+
+                        </div>
+
+                    </div>
+
+                `;
+            }
+        }
+
+
+        /*
+            STARÝ MATERIÁL
+        */
+
+        async function zobrazStaryMaterial() {
+
+            const seznam =
+                document.getElementById(
+                    "materialy"
+                );
+
+
+            const zbyva =
+                await nactiZbyvaSkladem(
+                    {
+                        material:
+                            zaznam.material,
+
+                        druh:
+                            zaznam.druh,
+
+                        rozmer:
+                            zaznam.rozmer,
+
+                        delka:
+                            zaznam.delka,
+
+                        atest:
+                            zaznam.atest
+                    }
+                );
+
+
+            seznam.innerHTML = `
+
+                <div class="material-karta">
+
+                    <div class="material-nazev">
+
+                        ${escapeHtml(
+                            zaznam.material
+                        )}
+
+                    </div>
+
+
+                    <div class="material-detail">
+
+                        ${escapeHtml(
+                            zaznam.druh
+                        )}
+
+                        |
+
+                        ${escapeHtml(
+                            zaznam.rozmer
+                        )}
+
+                        |
+
+                        ${escapeHtml(
+                            zaznam.delka
+                        )}
+
+                        <br>
+
+
+                        Atest / tavba:
+
+                        <span class="tavba">
+
+                            ${escapeHtml(
+                                zaznam.atest
+                            )}
+
+                        </span>
+
+                        <br>
+
+
+                        Vydáno:
+
+                        <span class="pocet">
+
+                            ${formatCeleCislo(
+                                zaznam.pocet_tyci
+                            )} ks
+
+                        </span>
+
+                        <br>
+
+
+                        Zbývá této tavby skladem:
+
+                        <span class="sklad">
+
+                            ${formatCeleCislo(
+                                zbyva
+                            )} ks
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            `;
+        }
+
+
+        /*
+            AKTUÁLNÍ ZŮSTATEK KONKRÉTNÍ TAVBY
+        */
+
+        async function nactiZbyvaSkladem(
+            vydej
+        ) {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("sklad")
+                    .select("pocet")
+                    .eq(
+                        "material",
+                        vydej.material
+                    )
+                    .eq(
+                        "druh",
+                        vydej.druh
+                    )
+                    .eq(
+                        "rozmer",
+                        vydej.rozmer
+                    )
+                    .eq(
+                        "delka",
+                        vydej.delka
+                    )
+                    .eq(
+                        "atest",
+                        vydej.atest
+                    );
+
+
+            if (error) {
+                return 0;
+            }
+
+
+            let celkem =
+                0;
+
+
+            (data || [])
+                .forEach(
+                    p => {
+
+                        celkem +=
+                            Number(
+                                p.pocet
+                            ) || 0;
+
+                    }
+                );
+
+
+            return celkem;
+        }
+
+
+        /*
+            ULOŽENÍ PRŮVODKY
+        */
+
+        async function ulozitPruvodku() {
+
+            const cisloZakazky =
+                document.getElementById(
+                    "cisloZakazky"
+                ).value.trim();
+
+
+            const vykresZakaznika =
+                document.getElementById(
+                    "vykresZakaznika"
+                ).value.trim();
+
+
+            const vykresDodavatele =
+                document.getElementById(
+                    "vykresDodavatele"
+                ).value.trim();
+
+
+            const termin =
+                document.getElementById(
+                    "termin"
+                ).value;
+
+
+            const pozadovanyPocet =
+                Number(
+                    document.getElementById(
+                        "pozadovanyPocet"
+                    ).value
+                );
+
+
+            const objednavka =
+                document.getElementById(
+                    "objednavka"
+                ).value.trim();
+
+
+            const ksZaSmenu =
+                document.getElementById(
+                    "ksZaSmenu"
+                ).value;
+
+
+            const stroj =
+                document.getElementById(
+                    "stroj"
+                ).value.trim();
+
+
+            const polozka =
+                document.getElementById(
+                    "polozka"
+                ).value.trim();
+
+
+            const material =
+                document.getElementById(
+                    "material"
+                ).value.trim();
+
+
+            const druh =
+                document.getElementById(
+                    "druh"
+                ).value.trim();
+
+
+            const rozmer =
+                document.getElementById(
+                    "rozmer"
+                ).value.trim();
+
+
+            const delka =
+                document.getElementById(
+                    "delka"
+                ).value.trim();
+
+
+            const pocetTyciInput =
+                document.getElementById(
+                    "pocetTyci"
+                ).value;
+
+
+            const atest =
+                document.getElementById(
+                    "atest"
+                ).value.trim();
+
+
+            const prepravka =
+                document.getElementById(
+                    "prepravka"
+                ).value.trim();
+
+
+            const kusuVPrepravce =
+                document.getElementById(
+                    "kusuVPrepravce"
+                ).value;
+
+
+            const hmotnostPrepravky =
+                document.getElementById(
+                    "hmotnostPrepravky"
+                ).value;
+
+
+            const poznamka =
+                document.getElementById(
+                    "poznamka"
+                ).value.trim();
+
+
+            if (
+                cisloZakazky === "" ||
+                !pozadovanyPocet ||
+                pozadovanyPocet <= 0
+            ) {
+
+                zobrazChybu(
+                    "Vyplň číslo zakázky a počet kusů."
+                );
+
+                return;
+            }
+
+
+            /*
+                Pokud máme nové výdeje,
+                materiál není potřeba ručně vyplňovat.
+
+                Pokud jde o starou průvodku,
+                zachováme původní kontrolu.
+            */
+
+            if (
+                vydejeData.length === 0
+            ) {
+
+                if (
+                    material === "" ||
+                    druh === "" ||
+                    rozmer === "" ||
+                    delka === "" ||
+                    atest === ""
+                ) {
+
+                    zobrazChybu(
+                        "Zkontroluj údaje o materiálu."
+                    );
+
+                    return;
+                }
+            }
+
+
+            const button =
+                document.getElementById(
+                    "ulozitButton"
+                );
+
+
+            button.disabled =
+                true;
+
+
+            button.innerText =
+                "UKLÁDÁM...";
+
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .update({
+
+                        cislo_zakazky:
+                            cisloZakazky,
+
+                        vykres_zakaznika:
+                            vykresZakaznika || null,
+
+                        vykres_dodavatele:
+                            vykresDodavatele || null,
+
+                        termin:
+                            termin || null,
+
+                        pozadovany_pocet_kusu:
+                            pozadovanyPocet,
+
+                        objednavka:
+                            objednavka || null,
+
+                        ks_za_7_5_hod:
+                            ksZaSmenu
+                            ? Number(
+                                ksZaSmenu
+                            )
+                            : null,
+
+                        stroj:
+                            stroj || null,
+
+                        polozka:
+                            polozka || null,
+
+                        material:
+                            material || null,
+
+                        druh:
+                            druh || null,
+
+                        rozmer:
+                            rozmer || null,
+
+                        delka:
+                            delka || null,
+
+                        pocet_tyci:
+                            pocetTyciInput
+                            ? Number(
+                                pocetTyciInput
+                            )
+                            : null,
+
+                        atest:
+                            atest || null,
+
+                        prepravka:
+                            prepravka || null,
+
+                        kusu_v_prepravce:
+                            kusuVPrepravce
+                            ? Number(
+                                kusuVPrepravce
+                            )
+                            : null,
+
+                        hmotnost_prepravky:
+                            hmotnostPrepravky
+                            ? Number(
+                                hmotnostPrepravky
+                            )
+                            : null,
+
+                        poznamka:
+                            poznamka || null,
+
+                        stav:
+                            "pruvodka_vytvorena"
+
+                    })
+                    .eq(
+                        "id",
+                        rozpracovaneId
+                    );
+
+
+            if (error) {
+
+                button.disabled =
+                    false;
+
+
+                button.innerText =
+                    "💾 ULOŽIT PRŮVODKU";
+
+
+                zobrazChybu(
+                    "Průvodku se nepodařilo uložit: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            window.location.href =
+                "rozpracovane.html";
+        }
+
+
+        function zobrazChybu(
+            text
+        ) {
+
+            const zprava =
+                document.getElementById(
+                    "zprava"
+                );
+
+
+            zprava.className =
+                "chyba";
+
+
+            zprava.innerText =
+                text;
+        }
+
+
+        function formatDatum(
+            datum
+        ) {
+
+            if (!datum) {
+                return "";
+            }
+
+
+            const pouzeDatum =
+                String(
+                    datum
+                )
+                .split("T")[0];
+
+
+            const casti =
+                pouzeDatum
+                    .split("-");
+
+
+            if (
+                casti.length !== 3
+            ) {
+
+                return String(
+                    datum
+                );
+            }
+
+
+            return (
+                Number(
+                    casti[2]
+                ) +
+                ". " +
+                Number(
+                    casti[1]
+                ) +
+                ". " +
+                casti[0]
+            );
+        }
+
+
+        function formatDatumCas(
+            datum
+        ) {
+
+            if (!datum) {
+                return "";
+            }
+
+
+            const d =
+                new Date(
+                    datum
+                );
+
+
+            return d.toLocaleString(
+                "cs-CZ",
+                {
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+
+        function formatCeleCislo(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    maximumFractionDigits: 0
+                }
+            );
+        }
+
+
+        function escapeHtml(
+            hodnota
+        ) {
+
+            return String(
+                hodnota ?? ""
+            )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Odebrat ze skladu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 30px 15px;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 650px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .zpet:hover {
+            text-decoration: underline;
+        }
+
+        .obsah {
+            max-width: 650px;
+            margin: auto;
+        }
+
+        .hledani {
+            max-width: 650px;
+            margin: 0 auto 20px auto;
+        }
+
+        .hledani input {
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 18px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .skupina {
+            background: white;
+            margin-bottom: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        .skupina summary {
+            padding: 20px;
+            cursor: pointer;
+            list-style: none;
+            font-size: 18px;
+        }
+
+        .skupina summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .nazev {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .parametry {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .celkem {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .atest {
+            margin: 0 15px 15px 15px;
+            padding: 18px;
+            background: #f7f7f7;
+            border-radius: 10px;
+        }
+
+        .atest h3 {
+            margin-top: 0;
+        }
+
+        .cislo-tavby {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .fifo {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .pocet-malo {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .pocet-stred {
+            color: #f57c00;
+            font-weight: bold;
+        }
+
+        .pocet-ok {
+            color: #1b8f3a;
+            font-weight: bold;
+        }
+
+        input {
+            width: 85%;
+            max-width: 300px;
+            padding: 12px;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #aaa;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 90%;
+            max-width: 320px;
+            padding: 15px;
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .chyba {
+            color: #d32f2f;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 500px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 16px;
+            }
+
+            .hledani input {
+                font-size: 16px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="hlavicka">
+
+        <h1>➖ Odebrat ze skladu</h1>
+
+        <a class="zpet" href="material.html">
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="hledani">
+
+        <input
+            type="text"
+            id="hledatTavbu"
+            placeholder="🔎 Hledat podle atestu / tavby..."
+            oninput="zobrazSklad()"
+        >
+
+    </div>
+
+
+    <div class="obsah">
+
+        <div id="seznam">
+            Načítám sklad...
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let ulozenySklad = [];
+        let zobrazeneTavby = [];
+
+
+        /*
+            KONTROLA PŘIHLÁŠENÍ
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const { data, error } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "../login.html"
+                );
+
+                return;
+
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            nactiSklad();
+
+        }
+
+
+        /*
+            BEZPEČNÉ ZOBRAZENÍ TEXTU
+        */
+
+        function escapeHtml(text) {
+
+            return String(
+                text ?? ""
+            )
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        }
+
+
+        /*
+            BARVA PODLE POČTU
+        */
+
+        function tridaPoctu(pocet) {
+
+            const cislo =
+                Number(pocet);
+
+
+            if (cislo < 10) {
+                return "pocet-malo";
+            }
+
+
+            if (cislo <= 20) {
+                return "pocet-stred";
+            }
+
+
+            return "pocet-ok";
+
+        }
+
+
+        /*
+            NAČTENÍ NOVÉHO SKLADU
+        */
+
+        async function nactiSklad() {
+
+            const seznam =
+                document.getElementById(
+                    "seznam"
+                );
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from("prijmy_materialu")
+                    .select(
+                        "id, material, druh, rozmer, tavba, pocet_zbyva, datum_prijmu"
+                    )
+                    .gt(
+                        "pocet_zbyva",
+                        0
+                    )
+                    .order(
+                        "datum_prijmu",
+                        {
+                            ascending: true
+                        }
+                    )
+                    .order(
+                        "id",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            if (error) {
+
+                seznam.innerHTML =
+                    "<p>Chyba při načítání skladu:<br>" +
+                    escapeHtml(error.message) +
+                    "</p>";
+
+                return;
+
+            }
+
+
+            ulozenySklad =
+                data || [];
+
+
+            zobrazSklad();
+
+        }
+
+
+        /*
+            ZOBRAZENÍ SKLADU
+        */
+
+        function zobrazSklad() {
+
+            const seznam =
+                document.getElementById(
+                    "seznam"
+                );
+
+
+            const hledanaTavba =
+                document
+                    .getElementById(
+                        "hledatTavbu"
+                    )
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            let filtrovanySklad =
+                ulozenySklad;
+
+
+            /*
+                HLEDÁNÍ PODLE TAVBY
+            */
+
+            if (
+                hledanaTavba !== ""
+            ) {
+
+                filtrovanySklad =
+                    ulozenySklad.filter(
+                        polozka =>
+
+                            String(
+                                polozka.tavba || ""
+                            )
+                            .toLowerCase()
+                            .includes(
+                                hledanaTavba
+                            )
+
+                    );
+
+            }
+
+
+            if (
+                filtrovanySklad.length === 0
+            ) {
+
+                seznam.innerHTML =
+                    "<p>Žádný materiál nebyl nalezen.</p>";
+
+                zobrazeneTavby = [];
+
+                return;
+
+            }
+
+
+            /*
+                HLAVNÍ SKUPINA:
+
+                materiál
+                druh
+                rozměr
+
+                Délka sklad NEROZDĚLUJE.
+            */
+
+            const skupiny = {};
+
+
+            filtrovanySklad.forEach(
+                polozka => {
+
+                    const material =
+                        String(
+                            polozka.material || "Neuvedeno"
+                        );
+
+                    const druh =
+                        String(
+                            polozka.druh || "Neuvedeno"
+                        );
+
+                    const rozmer =
+                        polozka.rozmer;
+
+
+                    const hlavniKlic =
+                        material + "|" +
+                        druh + "|" +
+                        String(rozmer);
+
+
+                    if (!skupiny[hlavniKlic]) {
+
+                        skupiny[hlavniKlic] = {
+
+                            material:
+                                material,
+
+                            druh:
+                                druh,
+
+                            rozmer:
+                                rozmer,
+
+                            celkem:
+                                0,
+
+                            tavby:
+                                {}
+
+                        };
+
+                    }
+
+
+                    const tavba =
+                        String(
+                            polozka.tavba || ""
+                        );
+
+
+                    if (
+                        !skupiny[hlavniKlic]
+                            .tavby[tavba]
+                    ) {
+
+                        skupiny[hlavniKlic]
+                            .tavby[tavba] = {
+
+                                material:
+                                    material,
+
+                                druh:
+                                    druh,
+
+                                rozmer:
+                                    rozmer,
+
+                                tavba:
+                                    tavba,
+
+                                pocet:
+                                    0,
+
+                                nejstarsiDatum:
+                                    polozka.datum_prijmu,
+
+                                nejstarsiId:
+                                    Number(polozka.id)
+
+                            };
+
+                    }
+
+
+                    const tavbaObj =
+                        skupiny[hlavniKlic]
+                            .tavby[tavba];
+
+
+                    tavbaObj.pocet +=
+                        Number(
+                            polozka.pocet_zbyva
+                        );
+
+
+                    skupiny[hlavniKlic].celkem +=
+                        Number(
+                            polozka.pocet_zbyva
+                        );
+
+
+                    /*
+                        U TAVBY UCHOVÁME NEJSTARŠÍ
+                        PŘÍJEM PRO FIFO POŘADÍ.
+                    */
+
+                    const datumAktualni =
+                        new Date(
+                            polozka.datum_prijmu
+                        );
+
+                    const datumNejstarsi =
+                        new Date(
+                            tavbaObj.nejstarsiDatum
+                        );
+
+
+                    if (
+                        datumAktualni <
+                        datumNejstarsi
+                    ) {
+
+                        tavbaObj.nejstarsiDatum =
+                            polozka.datum_prijmu;
+
+                        tavbaObj.nejstarsiId =
+                            Number(polozka.id);
+
+                    } else if (
+                        datumAktualni.getTime() ===
+                        datumNejstarsi.getTime() &&
+                        Number(polozka.id) <
+                        tavbaObj.nejstarsiId
+                    ) {
+
+                        tavbaObj.nejstarsiId =
+                            Number(polozka.id);
+
+                    }
+
+                }
+            );
+
+
+            /*
+                SEŘAZENÍ HLAVNÍCH SKUPIN
+            */
+
+            const serazeneSkupiny =
+                Object.values(
+                    skupiny
+                )
+                .sort(
+                    (a, b) => {
+
+                        const material =
+                            String(a.material)
+                                .localeCompare(
+                                    String(b.material),
+                                    "cs"
+                                );
+
+
+                        if (material !== 0) {
+                            return material;
+                        }
+
+
+                        const druh =
+                            String(a.druh)
+                                .localeCompare(
+                                    String(b.druh),
+                                    "cs"
+                                );
+
+
+                        if (druh !== 0) {
+                            return druh;
+                        }
+
+
+                        return (
+                            Number(a.rozmer) -
+                            Number(b.rozmer)
+                        );
+
+                    }
+                );
+
+
+            /*
+                ZNOVU VYTVOŘÍME SEZNAM TAVEB,
+                PODLE KTERÉHO TLAČÍTKO POZNÁ,
+                CO MÁ ODEBRAT.
+            */
+
+            zobrazeneTavby = [];
+
+
+            seznam.innerHTML =
+                "";
+
+
+            serazeneSkupiny.forEach(
+                skupina => {
+
+                    /*
+                        TAVBY JSOU SEŘAZENÉ FIFO.
+
+                        NEJSTARŠÍ MATERIÁL JE PRVNÍ.
+                    */
+
+                    const tavby =
+                        Object.values(
+                            skupina.tavby
+                        )
+                        .sort(
+                            (a, b) => {
+
+                                const rozdilDat =
+                                    new Date(
+                                        a.nejstarsiDatum
+                                    ) -
+                                    new Date(
+                                        b.nejstarsiDatum
+                                    );
+
+
+                                if (rozdilDat !== 0) {
+                                    return rozdilDat;
+                                }
+
+
+                                return (
+                                    a.nejstarsiId -
+                                    b.nejstarsiId
+                                );
+
+                            }
+                        );
+
+
+                    let htmlAtesty =
+                        "";
+
+
+                    tavby.forEach(
+                        tavba => {
+
+                            const index =
+                                zobrazeneTavby.length;
+
+
+                            zobrazeneTavby.push(
+                                tavba
+                            );
+
+
+                            const trida =
+                                tridaPoctu(
+                                    tavba.pocet
+                                );
+
+
+                            htmlAtesty += `
+
+                                <div
+                                    class="atest"
+                                    id="atest${index}"
+                                >
+
+                                    <h3>
+
+                                        Atest / tavba:
+
+                                        <span class="cislo-tavby">
+                                            ${escapeHtml(
+                                                tavba.tavba
+                                            )}
+                                        </span>
+
+                                    </h3>
+
+
+                                    <p>
+
+                                        Na skladě:
+
+                                        <span class="${trida}">
+                                            ${tavba.pocet} ks
+                                        </span>
+
+                                    </p>
+
+
+                                    <div class="fifo">
+                                        Odebírá se automaticky od nejstaršího příjmu.
+                                    </div>
+
+
+                                    <br>
+
+
+                                    <label>
+                                        Kolik kusů odebrat?
+                                    </label>
+
+                                    <br><br>
+
+
+                                    <input
+                                        type="number"
+                                        id="odebrat${index}"
+                                        min="1"
+                                        max="${tavba.pocet}"
+                                        step="1"
+                                        inputmode="numeric"
+                                        placeholder="např. 10"
+                                    >
+
+
+                                    <br><br>
+
+
+                                    <label>
+                                        Objednávka
+                                    </label>
+
+                                    <br><br>
+
+
+                                    <input
+                                        type="text"
+                                        id="objednavka${index}"
+                                        placeholder="např. 123/ABC"
+                                    >
+
+
+                                    <br>
+
+
+                                    <button
+                                        id="tlacitko${index}"
+                                        onclick="odebrat(${index})"
+                                    >
+                                        ➖ ODEBRAT
+                                    </button>
+
+
+                                    <div
+                                        class="chyba"
+                                        id="chyba${index}"
+                                    ></div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    );
+
+
+                    const automatickyOtevrit =
+                        hledanaTavba !== ""
+                            ? "open"
+                            : "";
+
+
+                    const rozmerText =
+                        skupina.rozmer == null
+                            ? "Neuvedeno"
+                            : escapeHtml(
+                                skupina.rozmer
+                            ) + " mm";
+
+
+                    seznam.innerHTML += `
+
+                        <details
+                            class="skupina"
+                            ${automatickyOtevrit}
+                        >
+
+                            <summary>
+
+                                <div class="nazev">
+                                    ${escapeHtml(
+                                        skupina.material
+                                    )}
+                                </div>
+
+
+                                <div class="parametry">
+
+                                    ${escapeHtml(
+                                        skupina.druh
+                                    )}
+
+                                    |
+
+                                    ${rozmerText}
+
+                                </div>
+
+
+                                <div class="celkem">
+
+                                    Celkem:
+                                    ${skupina.celkem} ks
+
+                                </div>
+
+
+                                <div>
+                                    ▼ Klikni pro výběr atestu / tavby
+                                </div>
+
+                            </summary>
+
+
+                            ${htmlAtesty}
+
+
+                        </details>
+
+                    `;
+
+                }
+            );
+
+        }
+
+
+        /*
+            ODEBRÁNÍ MATERIÁLU
+        */
+
+        async function odebrat(index) {
+
+            const tavba =
+                zobrazeneTavby[index];
+
+
+            if (!tavba) {
+                return;
+            }
+
+
+            const input =
+                document.getElementById(
+                    "odebrat" + index
+                );
+
+
+            const objednavkaInput =
+                document.getElementById(
+                    "objednavka" + index
+                );
+
+
+            const tlacitko =
+                document.getElementById(
+                    "tlacitko" + index
+                );
+
+
+            const chyba =
+                document.getElementById(
+                    "chyba" + index
+                );
+
+
+            chyba.textContent =
+                "";
+
+
+            const pocetOdebrat =
+                Number(
+                    input.value
+                );
+
+
+            const objednavka =
+                objednavkaInput
+                    .value
+                    .trim();
+
+
+            /*
+                KONTROLA POČTU
+            */
+
+            if (
+                !Number.isInteger(
+                    pocetOdebrat
+                ) ||
+                pocetOdebrat <= 0
+            ) {
+
+                chyba.textContent =
+                    "Zadej správný počet kusů.";
+
+                return;
+
+            }
+
+
+            if (
+                pocetOdebrat >
+                Number(
+                    tavba.pocet
+                )
+            ) {
+
+                chyba.textContent =
+                    "Nelze odebrat více kusů, než je na této tavbě.";
+
+                return;
+
+            }
+
+
+            /*
+                ZABLOKUJEME OVLÁDÁNÍ,
+                ABY NEŠLO KLIKNOUT 2×.
+            */
+
+            input.disabled =
+                true;
+
+            objednavkaInput.disabled =
+                true;
+
+            tlacitko.disabled =
+                true;
+
+            tlacitko.innerText =
+                "UKLÁDÁM...";
+
+
+            /*
+                NOVÁ ZABEZPEČENÁ FIFO FUNKCE.
+
+                Samotné rozhodnutí, ze kterého
+                jednotlivého příjmu se kusy odečtou,
+                provede Supabase.
+
+                Web pouze řekne:
+                materiál + druh + rozměr + tavba + počet.
+            */
+
+            const { error } =
+                await supabaseClient
+                    .rpc(
+                        "odebrat_material_fifo",
+                        {
+
+                            p_material:
+                                String(
+                                    tavba.material
+                                ),
+
+                            p_druh:
+                                String(
+                                    tavba.druh
+                                ),
+
+                            p_rozmer:
+                                Number(
+                                    tavba.rozmer
+                                ),
+
+                            p_tavba:
+                                String(
+                                    tavba.tavba
+                                ),
+
+                            p_pocet:
+                                pocetOdebrat,
+
+                            p_objednavka:
+                                objednavka || null
+
+                        }
+                    );
+
+
+            if (error) {
+
+                chyba.textContent =
+                    "Odebrání se nepodařilo: " +
+                    error.message;
+
+
+                input.disabled =
+                    false;
+
+                objednavkaInput.disabled =
+                    false;
+
+                tlacitko.disabled =
+                    false;
+
+                tlacitko.innerText =
+                    "➖ ODEBRAT";
+
+
+                return;
+
+            }
+
+
+            /*
+                ÚSPĚCH
+
+                ŽÁDNÉ VYSKAKOVACÍ OKNO.
+
+                Jen znovu načteme aktuální sklad.
+            */
+
+            await nactiSklad();
+
+        }
+
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

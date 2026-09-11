@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Lístky do bedny</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #eeeeee;
+            display: none;
+        }
+
+
+        /*
+            ====================================
+            OVLÁDÁNÍ
+            ====================================
+        */
+
+        .ovladani {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 15px;
+
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .ovladani button,
+        .ovladani a {
+            padding: 13px 20px;
+            border: none;
+            border-radius: 8px;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .tisk {
+            background: #1976d2;
+            color: white;
+        }
+
+        .zpet {
+            background: #555;
+            color: white;
+        }
+
+
+        /*
+            ====================================
+            A4
+            ====================================
+        */
+
+        .stranka {
+            width: 210mm;
+            min-height: 297mm;
+
+            margin: 20px auto;
+            padding: 5mm;
+
+            background: white;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            grid-template-rows:
+                repeat(5, 1fr);
+
+            gap: 2mm;
+        }
+
+
+        /*
+            ====================================
+            JEDEN LÍSTEK
+            ====================================
+        */
+
+        .listek {
+            border: 1.5px solid #222;
+
+            height: 55mm;
+
+            overflow: hidden;
+
+            background: white;
+
+            font-size: 9pt;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        /*
+            HLAVIČKA
+        */
+
+        .hlava {
+            display: grid;
+
+            grid-template-columns:
+                1.45fr 0.75fr;
+
+            border-bottom:
+                1.5px solid #222;
+
+            min-height: 10mm;
+        }
+
+        .shodny {
+            font-size: 15pt;
+            font-weight: bold;
+
+            padding: 4px 6px;
+
+            display: flex;
+            align-items: center;
+
+            white-space: nowrap;
+        }
+
+        .uvolneno {
+            font-size: 12pt;
+            font-weight: bold;
+
+            text-align: center;
+
+            background: #bde8c5;
+
+            padding: 5px 3px;
+
+            border-left:
+                1.5px solid #222;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        /*
+            ====================================
+            HLAVNÍ DATA
+            ====================================
+        */
+
+        .hlavni-data {
+            display: grid;
+
+            grid-template-columns:
+                53% 47%;
+
+            flex: 1;
+        }
+
+        .leva,
+        .prava {
+            min-width: 0;
+        }
+
+        .prava {
+            border-left:
+                1px solid #555;
+        }
+
+
+        .radek-data {
+            min-height: 7.8mm;
+
+            display: flex;
+
+            align-items: center;
+
+            border-bottom:
+                1px solid #666;
+        }
+
+        .radek-data:last-child {
+            border-bottom: none;
+        }
+
+
+        .radek-popis {
+            width: 34%;
+
+            padding-left: 4px;
+
+            font-size: 8.5pt;
+        }
+
+
+        .radek-hodnota {
+            width: 66%;
+
+            padding: 2px 4px;
+
+            font-weight: bold;
+
+            font-size: 10pt;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /*
+            ====================================
+            KUSŮ
+            ====================================
+        */
+
+        .kusy {
+            min-height: 8mm;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            font-size: 12pt;
+
+            border-top:
+                1px solid #555;
+
+            border-bottom:
+                1px solid #555;
+        }
+
+        .kusy strong {
+            margin-right: 5px;
+        }
+
+
+        /*
+            ====================================
+            DATUM / OSOBNÍ ČÍSLO
+            ====================================
+        */
+
+        .rucni {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            min-height: 8mm;
+        }
+
+        .rucni-box {
+            padding: 3px 4px;
+
+            border-right:
+                1px solid #555;
+
+            font-size: 8.5pt;
+        }
+
+        .rucni-box:last-child {
+            border-right: none;
+        }
+
+        .cara {
+            margin-top: 4px;
+
+            border-bottom:
+                1px solid #333;
+
+            height: 4px;
+        }
+
+
+        /*
+            ====================================
+            PODPIS
+            ====================================
+        */
+
+        .podpis {
+            min-height: 7mm;
+
+            padding: 3px 4px;
+
+            border-top:
+                1px solid #555;
+
+            font-size: 8.5pt;
+        }
+
+
+        /*
+            ====================================
+            OPERACE
+            ====================================
+        */
+
+        .operace {
+            display: grid;
+
+            grid-template-columns:
+                1.5fr repeat(9, 1fr);
+
+            min-height: 7mm;
+
+            border-top:
+                1.5px solid #333;
+        }
+
+
+        .operace div {
+            border-right:
+                1px solid #555;
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            font-size: 8pt;
+        }
+
+
+        .operace div:last-child {
+            border-right: none;
+        }
+
+
+        .operace-nazev {
+            font-size: 7.5pt !important;
+        }
+
+
+        /*
+            ====================================
+            CHYBA
+            ====================================
+        */
+
+        .chyba {
+            max-width: 700px;
+
+            margin: 30px auto;
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 12px;
+
+            text-align: center;
+
+            color: #d32f2f;
+
+            font-weight: bold;
+        }
+
+
+        /*
+            ====================================
+            TISK
+            ====================================
+        */
+
+        @page {
+
+            size: A4 portrait;
+
+            margin: 5mm;
+        }
+
+
+        @media print {
+
+            body {
+                background: white;
+            }
+
+            .ovladani {
+                display: none;
+            }
+
+            .chyba {
+                display: none;
+            }
+
+            .stranka {
+                margin: 0;
+
+                padding: 0;
+
+                width: 200mm;
+
+                min-height: 287mm;
+
+                gap: 2mm;
+
+                box-shadow: none;
+            }
+
+            .listek {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+
+        /*
+            ====================================
+            MOBILNÍ NÁHLED
+            ====================================
+        */
+
+        @media screen and (max-width: 900px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+            .ovladani {
+                margin-bottom: 5px;
+            }
+
+            .stranka {
+                transform-origin:
+                    top left;
+
+                transform:
+                    scale(0.47);
+
+                margin-left:
+                    6px;
+
+                margin-bottom:
+                    -150mm;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- OVLÁDÁNÍ -->
+
+    <div class="ovladani">
+
+        <a
+            id="zpetButton"
+            class="zpet"
+            href="vyroba.html"
+        >
+            ← ZPĚT
+        </a>
+
+
+        <button
+            class="tisk"
+            onclick="window.print()"
+        >
+            🖨️ TISKNOUT
+        </button>
+
+    </div>
+
+
+    <!-- A4 -->
+
+    <div
+        id="stranka"
+        class="stranka"
+    ></div>
+
+
+    <div
+        id="chyba"
+        class="chyba"
+        style="display:none;"
+    ></div>
+
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let zakazkaId =
+            null;
+
+
+        let pocetKusu =
+            0;
+
+
+        let pocetListku =
+            10;
+
+
+        let zakazka =
+            null;
+
+
+        let vydejeData =
+            [];
+
+
+        /*
+            ====================================
+            OCHRANA PŘIHLÁŠENÍ
+            ====================================
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+
+            zakazkaId =
+                Number(
+                    params.get("id")
+                );
+
+
+            pocetKusu =
+                Number(
+                    params.get("kusu")
+                );
+
+
+            pocetListku =
+                Number(
+                    params.get("pocet")
+                ) || 10;
+
+
+            /*
+                KONTROLA ID
+            */
+
+            if (
+                !zakazkaId ||
+                zakazkaId <= 0
+            ) {
+
+                window.location.replace(
+                    "vyroba.html"
+                );
+
+                return;
+            }
+
+
+            /*
+                KONTROLA POČTU KUSŮ
+            */
+
+            if (
+                !pocetKusu ||
+                pocetKusu <= 0
+            ) {
+
+                window.location.replace(
+                    "vyroba-detail.html?id=" +
+                    encodeURIComponent(
+                        zakazkaId
+                    )
+                );
+
+                return;
+            }
+
+
+            /*
+                POČET LÍSTKŮ
+                1 AŽ 10
+            */
+
+            if (
+                pocetListku < 1
+            ) {
+
+                pocetListku =
+                    1;
+            }
+
+
+            if (
+                pocetListku > 10
+            ) {
+
+                pocetListku =
+                    10;
+            }
+
+
+            /*
+                TLAČÍTKO ZPĚT
+            */
+
+            document.getElementById(
+                "zpetButton"
+            ).href =
+                "vyroba-detail.html?id=" +
+                encodeURIComponent(
+                    zakazkaId
+                );
+
+
+            /*
+                STRÁNKU ZOBRAZÍME
+                AŽ PŘIHLÁŠENÉMU
+            */
+
+            document.body.style.display =
+                "block";
+
+
+            await nactiZakazku();
+        }
+
+
+
+        /*
+            ====================================
+            NAČTENÍ ZAKÁZKY
+            ====================================
+        */
+
+        async function nactiZakazku() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .select("*")
+                    .eq(
+                        "id",
+                        zakazkaId
+                    )
+                    .single();
+
+
+            if (
+                error ||
+                !data
+            ) {
+
+                zobrazChybu(
+                    "Zakázku se nepodařilo načíst."
+                );
+
+                return;
+            }
+
+
+            zakazka =
+                data;
+
+
+            await nactiVydeje();
+        }
+
+
+
+        /*
+            ====================================
+            NAČTENÍ VŠECH VÝDEJŮ
+            ====================================
+        */
+
+        async function nactiVydeje() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        "vydeje_materialu"
+                    )
+                    .select("*")
+                    .eq(
+                        "rozpracovane_id",
+                        zakazkaId
+                    )
+                    .order(
+                        "id",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            /*
+                Když dotaz selže,
+                starší zakázka může stále
+                fungovat přes hlavní atest.
+            */
+
+            if (error) {
+
+                vydejeData =
+                    [];
+
+                vytvorListky();
+
+                return;
+            }
+
+
+            vydejeData =
+                data || [];
+
+
+            vytvorListky();
+        }
+
+
+
+        /*
+            ====================================
+            SEZNAM ATESTŮ
+            ====================================
+        */
+
+        function ziskejAtesty() {
+
+            let atesty =
+                [];
+
+
+            /*
+                NOVÝ SYSTÉM
+            */
+
+            if (
+                vydejeData.length > 0
+            ) {
+
+                vydejeData.forEach(
+                    vydej => {
+
+                        const atest =
+                            String(
+                                vydej.atest || ""
+                            )
+                            .trim();
+
+
+                        if (
+                            atest !== "" &&
+                            !atesty.includes(
+                                atest
+                            )
+                        ) {
+
+                            atesty.push(
+                                atest
+                            );
+                        }
+
+                    }
+                );
+            }
+
+
+            /*
+                STARÝ SYSTÉM
+            */
+
+            if (
+                atesty.length === 0 &&
+                zakazka.atest
+            ) {
+
+                atesty.push(
+                    String(
+                        zakazka.atest
+                    )
+                );
+            }
+
+
+            return atesty;
+        }
+
+
+
+        /*
+            ====================================
+            ROZDĚLENÍ ATESTŮ DO 2 ŘÁDKŮ
+            ====================================
+        */
+
+        function pripravAtesty() {
+
+            const atesty =
+                ziskejAtesty();
+
+
+            if (
+                atesty.length === 0
+            ) {
+
+                return {
+
+                    prvni:
+                        "",
+
+                    druhy:
+                        ""
+
+                };
+            }
+
+
+            if (
+                atesty.length === 1
+            ) {
+
+                return {
+
+                    prvni:
+                        atesty[0],
+
+                    druhy:
+                        ""
+
+                };
+            }
+
+
+            /*
+                PRVNÍ TAVBA JE V PRVNÍM ŘÁDKU
+
+                VŠECHNY DALŠÍ JSOU
+                VE DRUHÉM ŘÁDKU.
+            */
+
+            return {
+
+                prvni:
+                    atesty[0],
+
+                druhy:
+                    atesty
+                        .slice(1)
+                        .join(" / ")
+
+            };
+        }
+
+
+
+        /*
+            ====================================
+            VÝKRES
+            ====================================
+        */
+
+        function ziskejVykres() {
+
+            /*
+                Primárně výkres dodavatele.
+
+                Když není,
+                výkres zákazníka.
+            */
+
+            return (
+                zakazka.vykres_dodavatele
+                ||
+                zakazka.vykres_zakaznika
+                ||
+                ""
+            );
+        }
+
+
+
+        /*
+            ====================================
+            VYTVOŘENÍ VŠECH LÍSTKŮ
+            ====================================
+        */
+
+        function vytvorListky() {
+
+            const stranka =
+                document.getElementById(
+                    "stranka"
+                );
+
+
+            stranka.innerHTML =
+                "";
+
+
+            for (
+                let i = 0;
+                i < pocetListku;
+                i++
+            ) {
+
+                stranka.innerHTML +=
+                    vytvorListek();
+
+            }
+        }
+
+
+
+        /*
+            ====================================
+            JEDEN LÍSTEK
+            ====================================
+        */
+
+        function vytvorListek() {
+
+            const vykres =
+                ziskejVykres();
+
+
+            const atesty =
+                pripravAtesty();
+
+
+            const cisloZakazky =
+                zakazka.cislo_zakazky
+                ||
+                "";
+
+
+            const objednavka =
+                zakazka.objednavka
+                ||
+                "";
+
+
+            return `
+
+                <div class="listek">
+
+
+                    <!-- HLAVIČKA -->
+
+                    <div class="hlava">
+
+                        <div class="shodny">
+
+                            SHODNÝ VÝROBEK
+
+                        </div>
+
+
+                        <div class="uvolneno">
+
+                            UVOLNĚNO
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- HLAVNÍ DATA -->
+
+                    <div class="hlavni-data">
+
+
+                        <!-- LEVÁ ČÁST -->
+
+                        <div class="leva">
+
+
+                            <div class="radek-data">
+
+                                <div class="radek-popis">
+
+                                    Zakázka
+
+                                </div>
+
+
+                                <div class="radek-hodnota">
+
+                                    ${escapeHtml(
+                                        cisloZakazky
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="radek-data">
+
+                                <div class="radek-popis">
+
+                                    Výkres
+
+                                </div>
+
+
+                                <div class="radek-hodnota">
+
+                                    ${escapeHtml(
+                                        vykres
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- PRAVÁ ČÁST -->
+
+                        <div class="prava">
+
+
+                            <div class="radek-data">
+
+                                <div class="radek-popis">
+
+                                    Obj.
+
+                                </div>
+
+
+                                <div class="radek-hodnota">
+
+                                    ${escapeHtml(
+                                        objednavka
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="radek-data">
+
+                                <div class="radek-popis">
+
+                                    Atest
+
+                                </div>
+
+
+                                <div class="radek-hodnota">
+
+                                    ${escapeHtml(
+                                        atesty.prvni
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="radek-data">
+
+                                <div class="radek-popis">
+
+                                    Atest
+
+                                </div>
+
+
+                                <div class="radek-hodnota">
+
+                                    ${escapeHtml(
+                                        atesty.druhy
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- POČET KUSŮ -->
+
+                    <div class="kusy">
+
+                        <strong>
+
+                            ${formatCeleCislo(
+                                pocetKusu
+                            )}
+
+                        </strong>
+
+                        kusů
+
+                    </div>
+
+
+
+                    <!-- DATUM + OSOBNÍ ČÍSLO -->
+
+                    <div class="rucni">
+
+
+                        <div class="rucni-box">
+
+                            Datum:
+
+                            <div class="cara"></div>
+
+                        </div>
+
+
+                        <div class="rucni-box">
+
+                            Os. číslo:
+
+                            <div class="cara"></div>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- PODPIS -->
+
+                    <div class="podpis">
+
+                        Podpis:
+
+                        <div class="cara"></div>
+
+                    </div>
+
+
+
+                    <!-- OPERACE -->
+
+                    <div class="operace">
+
+                        <div class="operace-nazev">
+                            Operace
+                        </div>
+
+                        <div>10</div>
+                        <div>20</div>
+                        <div>30</div>
+                        <div>40</div>
+                        <div>50</div>
+                        <div>60</div>
+                        <div>70</div>
+                        <div>80</div>
+                        <div>K</div>
+
+                    </div>
+
+
+                </div>
+
+            `;
+        }
+
+
+
+        /*
+            ====================================
+            CHYBA
+            ====================================
+        */
+
+        function zobrazChybu(
+            text
+        ) {
+
+            document.getElementById(
+                "stranka"
+            ).style.display =
+                "none";
+
+
+            const chyba =
+                document.getElementById(
+                    "chyba"
+                );
+
+
+            chyba.style.display =
+                "block";
+
+
+            chyba.innerText =
+                text;
+        }
+
+
+
+        /*
+            ====================================
+            FORMÁT ČÍSLA
+            ====================================
+        */
+
+        function formatCeleCislo(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    maximumFractionDigits:
+                        0
+                }
+            );
+        }
+
+
+
+        /*
+            ====================================
+            OCHRANA TEXTŮ
+            ====================================
+        */
+
+        function escapeHtml(
+            hodnota
+        ) {
+
+            return String(
+                hodnota ?? ""
+            )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+        }
+
+
+
+        /*
+            ====================================
+            START
+            ====================================
+        */
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

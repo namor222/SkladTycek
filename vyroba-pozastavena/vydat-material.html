@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Vydat materiál</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px 15px 40px 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .hlavicka {
+            max-width: 850px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .hlavicka h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: left;
+        }
+
+        .zpet {
+            text-decoration: none;
+            color: #1976d2;
+            font-size: 17px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .obsah {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .zakazka-box {
+            border-left: 8px solid #1976d2;
+        }
+
+        .vydeje-box {
+            border-left: 8px solid #28a745;
+        }
+
+        .sklad-box {
+            border-left: 8px solid #f57c00;
+        }
+
+        .zakazka {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .detail {
+            line-height: 1.7;
+        }
+
+        .objednavka {
+            color: #f57c00;
+            font-weight: bold;
+        }
+
+        .hledani {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            font-size: 17px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .skupina {
+            background: #f7f7f7;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .skupina summary {
+            padding: 17px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .skupina summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .material {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .parametry {
+            line-height: 1.6;
+        }
+
+        .tavba {
+            background: white;
+            margin: 0 12px 12px 12px;
+            padding: 15px;
+            border-radius: 9px;
+        }
+
+        .cislo-tavby {
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .pocet {
+            font-weight: bold;
+            color: #1b8f3a;
+        }
+
+        .tavba input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 17px;
+            text-align: center;
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .vydat {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 9px;
+            background: #1976d2;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .vydat:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .vydej {
+            background: #f5f5f5;
+            border-radius: 9px;
+            padding: 14px;
+            margin-top: 10px;
+            line-height: 1.7;
+        }
+
+        .dokoncit {
+            width: 100%;
+            padding: 17px;
+            border: none;
+            border-radius: 10px;
+            background: #28a745;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .dokoncit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .prazdne {
+            padding: 20px;
+            text-align: center;
+            color: #777;
+        }
+
+        @media (max-width: 600px) {
+
+            .hlavicka h1 {
+                font-size: 22px;
+            }
+
+            .zpet {
+                font-size: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="hlavicka">
+
+        <h1>📦 Vydat materiál</h1>
+
+        <a
+            class="zpet"
+            href="rozpracovane.html"
+        >
+            ← ZPĚT
+        </a>
+
+    </div>
+
+
+    <div class="obsah">
+
+
+        <!-- ZAKÁZKA -->
+
+        <div class="box zakazka-box">
+
+            <div
+                id="cisloZakazky"
+                class="zakazka"
+            >
+                Načítám...
+            </div>
+
+            <div
+                id="detailZakazky"
+                class="detail"
+            ></div>
+
+        </div>
+
+
+        <!-- JIŽ VYDANÝ MATERIÁL -->
+
+        <div class="box vydeje-box">
+
+            <h2>✅ Již vydaný materiál</h2>
+
+            <div id="vydeje">
+                Načítám...
+            </div>
+
+        </div>
+
+
+        <!-- SKLAD -->
+
+        <div class="box sklad-box">
+
+            <h2>📦 Vybrat ze skladu</h2>
+
+            <input
+                type="text"
+                id="hledat"
+                class="hledani"
+                placeholder="🔎 Hledat tavbu, materiál nebo rozměr..."
+                oninput="zobrazSklad()"
+            >
+
+            <div id="sklad">
+                Načítám sklad...
+            </div>
+
+        </div>
+
+
+        <!-- HOTOVO -->
+
+        <button
+            id="dokoncitButton"
+            class="dokoncit"
+            onclick="dokoncitVydej()"
+        >
+            ✅ HOTOVO – MATERIÁL VYDÁN
+        </button>
+
+
+    </div>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        let zakazkaId =
+            null;
+
+        let zakazka =
+            null;
+
+        let skladData =
+            [];
+
+        let vydejeData =
+            [];
+
+
+        /*
+            =================================
+            LOGIN
+            =================================
+        */
+
+        async function zkontrolujPrihlaseni() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+
+            zakazkaId =
+                Number(
+                    params.get("id")
+                );
+
+
+            if (!zakazkaId) {
+
+                window.location.replace(
+                    "rozpracovane.html"
+                );
+
+                return;
+            }
+
+
+            document.body.style.display =
+                "block";
+
+
+            await nactiZakazku();
+        }
+
+
+        /*
+            =================================
+            ZAKÁZKA
+            =================================
+        */
+
+        async function nactiZakazku() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("rozpracovane")
+                    .select("*")
+                    .eq(
+                        "id",
+                        zakazkaId
+                    )
+                    .single();
+
+
+            if (
+                error ||
+                !data
+            ) {
+
+                alert(
+                    "Zakázku se nepodařilo načíst."
+                );
+
+                window.location.replace(
+                    "rozpracovane.html"
+                );
+
+                return;
+            }
+
+
+            zakazka =
+                data;
+
+
+            document.getElementById(
+                "cisloZakazky"
+            ).innerText =
+                "Zakázka " +
+                (
+                    zakazka.cislo_zakazky ||
+                    "neuvedena"
+                );
+
+
+            document.getElementById(
+                "detailZakazky"
+            ).innerHTML = `
+
+                Objednávka:
+
+                <span class="objednavka">
+                    ${escapeHtml(
+                        zakazka.objednavka ||
+                        "neuvedena"
+                    )}
+                </span>
+
+                <br>
+
+                Požadováno:
+
+                <strong>
+                    ${formatCeleCislo(
+                        zakazka.pozadovany_pocet_kusu
+                    )} ks
+                </strong>
+
+                <br>
+
+                Výkres:
+
+                <strong>
+                    ${escapeHtml(
+                        zakazka.vykres_zakaznika ||
+                        "neuveden"
+                    )}
+                </strong>
+
+                <br>
+
+                Stroj:
+
+                <strong>
+                    ${escapeHtml(
+                        zakazka.stroj ||
+                        "neuveden"
+                    )}
+                </strong>
+
+            `;
+
+
+            await Promise.all([
+                nactiVydeje(),
+                nactiSklad()
+            ]);
+        }
+
+
+        /*
+            =================================
+            JIŽ VYDANÝ MATERIÁL
+            =================================
+        */
+
+        async function nactiVydeje() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        "vydeje_materialu"
+                    )
+                    .select("*")
+                    .eq(
+                        "rozpracovane_id",
+                        zakazkaId
+                    )
+                    .order(
+                        "id",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            if (error) {
+
+                document.getElementById(
+                    "vydeje"
+                ).innerHTML =
+                    escapeHtml(
+                        error.message
+                    );
+
+                return;
+            }
+
+
+            vydejeData =
+                data || [];
+
+
+            zobrazVydeje();
+        }
+
+
+        function zobrazVydeje() {
+
+            const seznam =
+                document.getElementById(
+                    "vydeje"
+                );
+
+
+            if (
+                vydejeData.length === 0
+            ) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+                        Zatím nebyl vydán žádný materiál.
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            seznam.innerHTML =
+                "";
+
+
+            vydejeData.forEach(
+                vydej => {
+
+                    seznam.innerHTML += `
+
+                        <div class="vydej">
+
+                            <strong>
+                                ${escapeHtml(
+                                    vydej.material
+                                )}
+                            </strong>
+
+                            |
+
+                            ${escapeHtml(
+                                vydej.druh
+                            )}
+
+                            |
+
+                            ${escapeHtml(
+                                vydej.rozmer
+                            )}
+
+                            |
+
+                            ${escapeHtml(
+                                vydej.delka
+                            )}
+
+                            <br>
+
+                            Tavba:
+
+                            <span class="cislo-tavby">
+                                ${escapeHtml(
+                                    vydej.atest
+                                )}
+                            </span>
+
+                            <br>
+
+                            Vydáno:
+
+                            <strong>
+                                ${formatCeleCislo(
+                                    vydej.pocet_tyci
+                                )} ks
+                            </strong>
+
+                            <br>
+
+                            Vydal Os. č.
+
+                            ${escapeHtml(
+                                vydej.vydal_osobni_cislo
+                            )}
+
+                        </div>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        /*
+            =================================
+            SKLAD
+            =================================
+        */
+
+        async function nactiSklad() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from("sklad")
+                    .select("*")
+                    .order("material")
+                    .order("druh")
+                    .order("rozmer")
+                    .order("delka")
+                    .order("atest");
+
+
+            if (error) {
+
+                document.getElementById(
+                    "sklad"
+                ).innerHTML =
+                    escapeHtml(
+                        error.message
+                    );
+
+                return;
+            }
+
+
+            skladData =
+                (data || [])
+                    .filter(
+                        p =>
+                            Number(
+                                p.pocet
+                            ) > 0
+                    );
+
+
+            zobrazSklad();
+        }
+
+
+        function zobrazSklad() {
+
+            const seznam =
+                document.getElementById(
+                    "sklad"
+                );
+
+
+            const hledat =
+                document
+                    .getElementById(
+                        "hledat"
+                    )
+                    .value
+                    .trim()
+                    .toLowerCase();
+
+
+            let data =
+                skladData;
+
+
+            if (
+                hledat !== ""
+            ) {
+
+                data =
+                    data.filter(
+                        p => {
+
+                            const text =
+                                (
+                                    String(
+                                        p.material ||
+                                        ""
+                                    ) +
+                                    " " +
+                                    String(
+                                        p.druh ||
+                                        ""
+                                    ) +
+                                    " " +
+                                    String(
+                                        p.rozmer ||
+                                        ""
+                                    ) +
+                                    " " +
+                                    String(
+                                        p.delka ||
+                                        ""
+                                    ) +
+                                    " " +
+                                    String(
+                                        p.atest ||
+                                        ""
+                                    )
+                                )
+                                .toLowerCase();
+
+
+                            return text.includes(
+                                hledat
+                            );
+
+                        }
+                    );
+            }
+
+
+            if (
+                data.length === 0
+            ) {
+
+                seznam.innerHTML = `
+
+                    <div class="prazdne">
+                        Žádný materiál nebyl nalezen.
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            const skupiny =
+                {};
+
+
+            data.forEach(
+                p => {
+
+                    const index =
+                        skladData.indexOf(
+                            p
+                        );
+
+
+                    const klic =
+                        p.material +
+                        "|" +
+                        p.druh +
+                        "|" +
+                        p.rozmer +
+                        "|" +
+                        p.delka;
+
+
+                    if (
+                        !skupiny[klic]
+                    ) {
+
+                        skupiny[klic] = {
+
+                            material:
+                                p.material,
+
+                            druh:
+                                p.druh,
+
+                            rozmer:
+                                p.rozmer,
+
+                            delka:
+                                p.delka,
+
+                            celkem:
+                                0,
+
+                            atesty:
+                                []
+
+                        };
+                    }
+
+
+                    skupiny[klic].celkem +=
+                        Number(
+                            p.pocet
+                        );
+
+
+                    skupiny[klic].atesty.push({
+
+                        index:
+                            index,
+
+                        atest:
+                            p.atest,
+
+                        pocet:
+                            Number(
+                                p.pocet
+                            )
+
+                    });
+
+                }
+            );
+
+
+            seznam.innerHTML =
+                "";
+
+
+            Object.values(
+                skupiny
+            )
+            .forEach(
+                skupina => {
+
+                    let atestyHTML =
+                        "";
+
+
+                    skupina.atesty
+                        .sort(
+                            (
+                                a,
+                                b
+                            ) =>
+                                a.pocet -
+                                b.pocet
+                        )
+                        .forEach(
+                            atest => {
+
+                                atestyHTML += `
+
+                                    <div class="tavba">
+
+                                        Tavba:
+
+                                        <span class="cislo-tavby">
+
+                                            ${escapeHtml(
+                                                atest.atest
+                                            )}
+
+                                        </span>
+
+                                        <br>
+
+                                        Na skladě:
+
+                                        <span class="pocet">
+
+                                            ${formatCeleCislo(
+                                                atest.pocet
+                                            )} ks
+
+                                        </span>
+
+
+                                        <input
+                                            type="number"
+                                            id="pocet${atest.index}"
+                                            min="1"
+                                            max="${atest.pocet}"
+                                            placeholder="Kolik tyčí vydat?"
+                                        >
+
+
+                                        <button
+                                            id="button${atest.index}"
+                                            class="vydat"
+                                            onclick="vydat(${atest.index})"
+                                        >
+
+                                            📦 VYDAT K ZAKÁZCE
+
+                                        </button>
+
+                                    </div>
+
+                                `;
+
+                            }
+                        );
+
+
+                    seznam.innerHTML += `
+
+                        <details class="skupina">
+
+                            <summary>
+
+                                <div class="material">
+
+                                    ${escapeHtml(
+                                        skupina.material
+                                    )}
+
+                                </div>
+
+                                <div class="parametry">
+
+                                    ${escapeHtml(
+                                        skupina.druh
+                                    )}
+
+                                    |
+
+                                    ${escapeHtml(
+                                        skupina.rozmer
+                                    )}
+
+                                    |
+
+                                    ${escapeHtml(
+                                        skupina.delka
+                                    )}
+
+                                    <br>
+
+                                    Celkem:
+                                    <strong>
+                                        ${formatCeleCislo(
+                                            skupina.celkem
+                                        )} ks
+                                    </strong>
+
+                                    <br>
+
+                                    ▼ Klikni pro výběr tavby
+
+                                </div>
+
+                            </summary>
+
+
+                            ${atestyHTML}
+
+                        </details>
+
+                    `;
+
+                }
+            );
+        }
+
+
+        /*
+            =================================
+            VÝDEJ
+            =================================
+        */
+
+        async function vydat(
+            index
+        ) {
+
+            const polozka =
+                skladData[
+                    index
+                ];
+
+
+            const input =
+                document.getElementById(
+                    "pocet" +
+                    index
+                );
+
+
+            const button =
+                document.getElementById(
+                    "button" +
+                    index
+                );
+
+
+            const pocet =
+                Number(
+                    input.value
+                );
+
+
+            if (
+                !pocet ||
+                pocet <= 0
+            ) {
+
+                alert(
+                    "Zadej správný počet tyčí."
+                );
+
+                return;
+            }
+
+
+            if (
+                pocet >
+                Number(
+                    polozka.pocet
+                )
+            ) {
+
+                alert(
+                    "Na skladě není tolik tyčí."
+                );
+
+                return;
+            }
+
+
+            input.disabled =
+                true;
+
+
+            button.disabled =
+                true;
+
+
+            button.innerText =
+                "VYDÁVÁM...";
+
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "vydat_material_k_zakazce",
+                        {
+
+                            p_rozpracovane_id:
+                                zakazkaId,
+
+                            p_material:
+                                String(
+                                    polozka.material
+                                ),
+
+                            p_druh:
+                                String(
+                                    polozka.druh
+                                ),
+
+                            p_rozmer:
+                                String(
+                                    polozka.rozmer
+                                ),
+
+                            p_delka:
+                                String(
+                                    polozka.delka
+                                ),
+
+                            p_atest:
+                                String(
+                                    polozka.atest
+                                ),
+
+                            p_pocet:
+                                pocet
+
+                        }
+                    );
+
+
+            if (error) {
+
+                alert(
+                    "Výdej se nepodařil:\n" +
+                    error.message
+                );
+
+
+                input.disabled =
+                    false;
+
+
+                button.disabled =
+                    false;
+
+
+                button.innerText =
+                    "📦 VYDAT K ZAKÁZCE";
+
+
+                return;
+            }
+
+
+            /*
+                Bez potvrzovacího okna.
+
+                Jen se aktualizuje
+                seznam výdejů a sklad.
+            */
+
+            await Promise.all([
+                nactiVydeje(),
+                nactiSklad()
+            ]);
+
+        }
+
+
+        /*
+            =================================
+            DOKONČIT VÝDEJ
+            =================================
+        */
+
+        async function dokoncitVydej() {
+
+            if (
+                vydejeData.length === 0
+            ) {
+
+                alert(
+                    "Nejdřív vydej alespoň jeden materiál."
+                );
+
+                return;
+            }
+
+
+            const button =
+                document.getElementById(
+                    "dokoncitButton"
+                );
+
+
+            button.disabled =
+                true;
+
+
+            button.innerText =
+                "UKLÁDÁM...";
+
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .rpc(
+                        "dokoncit_vydej_materialu",
+                        {
+                            p_rozpracovane_id:
+                                zakazkaId
+                        }
+                    );
+
+
+            if (error) {
+
+                alert(
+                    "Nepodařilo se dokončit výdej:\n" +
+                    error.message
+                );
+
+
+                button.disabled =
+                    false;
+
+
+                button.innerText =
+                    "✅ HOTOVO – MATERIÁL VYDÁN";
+
+
+                return;
+            }
+
+
+            window.location.href =
+                "rozpracovane.html";
+
+        }
+
+
+        /*
+            =================================
+            POMOCNÉ
+            =================================
+        */
+
+        function formatCeleCislo(
+            cislo
+        ) {
+
+            return Number(
+                cislo || 0
+            )
+            .toLocaleString(
+                "cs-CZ",
+                {
+                    maximumFractionDigits:
+                        0
+                }
+            );
+        }
+
+
+        function escapeHtml(
+            hodnota
+        ) {
+
+            return String(
+                hodnota ?? ""
+            )
+            .replaceAll(
+                "&",
+                "&amp;"
+            )
+            .replaceAll(
+                "<",
+                "&lt;"
+            )
+            .replaceAll(
+                ">",
+                "&gt;"
+            )
+            .replaceAll(
+                '"',
+                "&quot;"
+            )
+            .replaceAll(
+                "'",
+                "&#039;"
+            );
+        }
+
+
+        /*
+            START
+        */
+
+        zkontrolujPrihlaseni();
+
+    </script>
+
+</body>
+</html>

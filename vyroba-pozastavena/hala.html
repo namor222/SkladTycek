@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>KOVOHLADIL</title>
+    <title>Výrobní hala</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -20,36 +20,29 @@
 
         .hlavicka {
             max-width: 600px;
-            margin: 0 auto 40px auto;
-            position: relative;
+            margin: 0 auto 35px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
         }
 
-        h1 {
+        .hlavicka h1 {
             margin: 0;
-            font-size: 38px;
+            font-size: 30px;
+            text-align: left;
         }
 
-        .podnadpis {
-            margin-top: 8px;
-            color: #666;
+        .zpet {
+            text-decoration: none;
             font-size: 17px;
-        }
-
-        .odhlasit {
-            position: absolute;
-            top: -5px;
-            right: 0;
-        }
-
-        .odhlasit button {
-            background: #555;
-            color: white;
-            padding: 10px 14px;
-            font-size: 14px;
             font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+            color: #1976d2;
+            white-space: nowrap;
+        }
+
+        .zpet:hover {
+            text-decoration: underline;
         }
 
         .menu {
@@ -64,9 +57,9 @@
 
         .menu button {
             width: 100%;
-            padding: 27px;
+            padding: 27px 20px;
             margin-bottom: 20px;
-            font-size: 23px;
+            font-size: 22px;
             font-weight: bold;
             border: none;
             border-radius: 12px;
@@ -75,25 +68,31 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
 
-        .menu button:hover {
-            background: #fafafa;
+        .rozpracovane {
+            border-left: 8px solid #f57c00 !important;
+        }
+
+        .vyroba {
+            border-left: 8px solid #1976d2 !important;
+        }
+
+        .vyrobeno {
+            border-left: 8px solid #28a745 !important;
         }
 
         @media (max-width: 500px) {
 
-            h1 {
-                font-size: 30px;
-                margin-top: 35px;
+            .hlavicka h1 {
+                font-size: 23px;
             }
 
-            .odhlasit {
-                top: -25px;
-                right: 0;
+            .zpet {
+                font-size: 15px;
             }
 
             .menu button {
                 font-size: 20px;
-                padding: 23px;
+                padding: 23px 15px;
             }
         }
     </style>
@@ -103,26 +102,32 @@
 
     <div class="hlavicka">
 
-        <div class="odhlasit">
-            <button onclick="odhlasit()">
-                🚪 ODHLÁSIT
-            </button>
-        </div>
+        <h1>🏗️ Výrobní hala</h1>
 
-        <h1>KOVOHLADIL</h1>
-
-        <div class="podnadpis">
-            Firemní systém
-        </div>
+        <a class="zpet" href="index.html">
+            ← HLAVNÍ MENU
+        </a>
 
     </div>
 
 
     <div class="menu">
 
-        <a href="sklad/material.html">
-            <button>
-                📦 SKLAD MATERIÁLU
+        <a href="rozpracovane.html">
+            <button class="rozpracovane">
+                🟠 ROZPRACOVANÉ
+            </button>
+        </a>
+
+        <a href="vyroba.html">
+            <button class="vyroba">
+                🔵 VÝROBA
+            </button>
+        </a>
+
+        <a href="vyrobeno.html">
+            <button class="vyrobeno">
+                🟢 VYROBENO
             </button>
         </a>
 
@@ -151,6 +156,7 @@
                     .auth
                     .getSession();
 
+
             if (
                 error ||
                 !data.session
@@ -163,20 +169,9 @@
                 return;
             }
 
+
             document.body.style.display =
                 "block";
-        }
-
-
-        async function odhlasit() {
-
-            await supabaseClient
-                .auth
-                .signOut();
-
-            window.location.replace(
-                "login.html"
-            );
         }
 
 
