@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Přidat materiál</title>
 
-<style>
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css"
+>
 
+<style>
     body {
         font-family: Arial, sans-serif;
         text-align: center;
@@ -180,8 +183,85 @@
         color: #1b8f3a;
     }
 
-    @media (max-width: 600px) {
+    /* =========================
+       FOTO DODACÍHO LISTU
+       ========================= */
 
+    .foto-box {
+        background: #f8fbff;
+        border: 2px dashed #90caf9;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .foto-box h3 {
+        margin: 0 0 8px 0;
+        color: #1976d2;
+    }
+
+    .foto-box p {
+        margin: 0 0 12px 0;
+        color: #555;
+        line-height: 1.4;
+    }
+
+    .foto-tlacitko {
+        margin-top: 8px;
+        background: #1976d2;
+    }
+
+    .foto-tlacitko-sekundarni {
+        margin-top: 10px;
+        background: #607d8b;
+    }
+
+    .foto-tlacitko-sekundarni:hover {
+        background: #455a64;
+    }
+
+    #fotoNahledObal {
+        display: none;
+        margin-top: 15px;
+    }
+
+    .foto-editor {
+        width: 100%;
+        max-height: 60vh;
+        overflow: hidden;
+        background: #111;
+        border-radius: 10px;
+    }
+
+    #fotoNahled {
+        display: block;
+        max-width: 100%;
+    }
+
+    #orezNahledObal {
+        display: none;
+        margin-top: 15px;
+    }
+
+    #orezNahled {
+        display: block;
+        width: 100%;
+        max-height: 45vh;
+        object-fit: contain;
+        border-radius: 10px;
+        border: 1px solid #bbb;
+        background: white;
+    }
+
+    .foto-stav {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #555;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
         .hlavicka h1 {
             font-size: 22px;
         }
@@ -194,22 +274,21 @@
             padding: 17px;
         }
 
+        button {
+            font-size: 18px;
+        }
     }
-
 </style>
-
 </head>
 
 <body>
 
 <div class="hlavicka">
-
     <h1>➕ Příjem materiálu</h1>
 
     <a class="zpet" href="material.html">
         ← ZPĚT
     </a>
-
 </div>
 
 
@@ -219,6 +298,104 @@
 
         <h2>Údaje z dodacího listu</h2>
 
+
+        <!-- =========================
+             FOTO DODACÍHO LISTU
+             ========================= -->
+
+        <div class="foto-box">
+
+            <h3>📷 Vyfotit z dodacího listu</h3>
+
+            <p>
+                Vyfoť dodací list a potom označ jen řádek nebo část,
+                která patří k jednomu konkrétnímu materiálu.
+                Tím zabráníme smíchání údajů z více položek.
+            </p>
+
+            <input
+                id="fotoInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+            >
+
+            <button
+                type="button"
+                class="foto-tlacitko"
+                onclick="otevriFotoaparat()"
+            >
+                📷 VYFOTIT / VYBRAT FOTKU
+            </button>
+
+
+            <div id="fotoNahledObal">
+
+                <div class="napoveda">
+                    Posuň a zvětši rámeček tak, aby uvnitř zůstal
+                    pouze požadovaný materiál.
+                </div>
+
+                <div class="foto-editor">
+                    <img
+                        id="fotoNahled"
+                        alt="Fotografie dodacího listu"
+                    >
+                </div>
+
+                <button
+                    type="button"
+                    class="foto-tlacitko-sekundarni"
+                    onclick="potvrdOrez()"
+                >
+                    ✂️ POUŽÍT TENTO VÝŘEZ
+                </button>
+
+                <button
+                    type="button"
+                    class="foto-tlacitko-sekundarni"
+                    onclick="zrusFoto()"
+                >
+                    🔄 VYFOTIT ZNOVU
+                </button>
+
+            </div>
+
+
+            <div id="orezNahledObal">
+
+                <div class="napoveda">
+                    Vybraný výřez jednoho materiálu:
+                </div>
+
+                <img
+                    id="orezNahled"
+                    alt="Oříznutá část dodacího listu"
+                >
+
+                <button
+                    type="button"
+                    class="foto-tlacitko-sekundarni"
+                    onclick="zrusFoto()"
+                >
+                    🔄 VYFOTIT JINÝ VÝŘEZ
+                </button>
+
+            </div>
+
+
+            <div
+                id="fotoStav"
+                class="foto-stav"
+            ></div>
+
+        </div>
+
+
+        <!-- =========================
+             NÁZEV MATERIÁLU
+             ========================= -->
 
         <label for="nazev">
             Název materiálu z dodacího listu *
@@ -270,6 +447,10 @@
         </div>
 
 
+        <!-- =========================
+             TAVBA
+             ========================= -->
+
         <label for="tavba">
             Atest / tavba *
         </label>
@@ -286,6 +467,10 @@
         </div>
 
 
+        <!-- =========================
+             DODACÍ LIST
+             ========================= -->
+
         <label for="cisloDodaku">
             Číslo dodacího listu
         </label>
@@ -297,6 +482,10 @@
             autocomplete="off"
         >
 
+
+        <!-- =========================
+             DÉLKA
+             ========================= -->
 
         <label for="delka">
             Délka jedné tyče *
@@ -315,6 +504,10 @@
         </div>
 
 
+        <!-- =========================
+             HMOTNOST
+             ========================= -->
+
         <label for="hmotnost">
             Celková hmotnost (kg) *
         </label>
@@ -327,6 +520,10 @@
             oninput="prepocitej()"
         >
 
+
+        <!-- =========================
+             VÝPOČET
+             ========================= -->
 
         <div class="vypocet">
 
@@ -381,10 +578,20 @@
 </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"
+></script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
 
 
 <script>
+
+    /* =========================================================
+       SUPABASE
+       ========================================================= */
 
     const SUPABASE_URL =
         "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -400,6 +607,10 @@
         );
 
 
+    /* =========================================================
+       PROMĚNNÉ
+       ========================================================= */
+
     let osobniCisloPrihlaseneho = null;
 
     let rozpoznanyMaterial = "";
@@ -410,16 +621,22 @@
 
     let vypocitanyPocet = null;
 
+    let cropper = null;
+
+    let orezanyObrazekBlob = null;
+
 
     const hustoty = {
-
         "Ocel": 7850,
         "Nerez": 8000,
         "Hliník": 2700,
         "Mosaz": 8500
-
     };
 
+
+    /* =========================================================
+       PŘIHLÁŠENÍ
+       ========================================================= */
 
     async function zkontrolujPrihlaseni() {
 
@@ -466,16 +683,344 @@
 
         document.body.style.display =
             "block";
-
     }
 
+
+    /* =========================================================
+       FOTOAPARÁT
+       ========================================================= */
+
+    function otevriFotoaparat() {
+
+        const input =
+            document.getElementById(
+                "fotoInput"
+            );
+
+        input.value = "";
+
+        input.click();
+    }
+
+
+    document
+        .getElementById("fotoInput")
+        .addEventListener(
+            "change",
+            function(event) {
+
+                const soubor =
+                    event.target.files[0];
+
+
+                if (!soubor) {
+                    return;
+                }
+
+
+                if (
+                    !soubor.type ||
+                    !soubor.type.startsWith("image/")
+                ) {
+
+                    document
+                        .getElementById("fotoStav")
+                        .innerText =
+                        "❌ Vybraný soubor není fotografie.";
+
+                    return;
+                }
+
+
+                zobrazFotkuProOrez(
+                    soubor
+                );
+            }
+        );
+
+
+    function zobrazFotkuProOrez(soubor) {
+
+        if (cropper) {
+
+            cropper.destroy();
+
+            cropper = null;
+        }
+
+
+        orezanyObrazekBlob =
+            null;
+
+
+        const obrazek =
+            document.getElementById(
+                "fotoNahled"
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                soubor
+            );
+
+
+        obrazek.onload =
+            function() {
+
+                if (cropper) {
+                    cropper.destroy();
+                }
+
+
+                cropper =
+                    new Cropper(
+                        obrazek,
+                        {
+                            viewMode: 1,
+
+                            dragMode: "move",
+
+                            autoCropArea: 0.7,
+
+                            responsive: true,
+
+                            background: false,
+
+                            movable: true,
+
+                            zoomable: true,
+
+                            rotatable: true,
+
+                            scalable: false,
+
+                            guides: true,
+
+                            center: true,
+
+                            highlight: true,
+
+                            cropBoxMovable: true,
+
+                            cropBoxResizable: true,
+
+                            toggleDragModeOnDblclick: false
+                        }
+                    );
+
+
+                URL.revokeObjectURL(
+                    url
+                );
+            };
+
+
+        obrazek.src =
+            url;
+
+
+        document
+            .getElementById(
+                "fotoNahledObal"
+            )
+            .style.display =
+            "block";
+
+
+        document
+            .getElementById(
+                "orezNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "fotoStav"
+            )
+            .innerText =
+            "Prstem nebo myší označ jen část dodáku, která patří k jednomu materiálu.";
+    }
+
+
+    function potvrdOrez() {
+
+        if (!cropper) {
+
+            document
+                .getElementById(
+                    "fotoStav"
+                )
+                .innerText =
+                "❌ Nejdřív vyfoť nebo vyber fotografii.";
+
+            return;
+        }
+
+
+        const canvas =
+            cropper.getCroppedCanvas(
+                {
+                    maxWidth: 1800,
+                    maxHeight: 1800,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: "high"
+                }
+            );
+
+
+        if (!canvas) {
+
+            document
+                .getElementById(
+                    "fotoStav"
+                )
+                .innerText =
+                "❌ Výřez se nepodařilo vytvořit.";
+
+            return;
+        }
+
+
+        const nahled =
+            document.getElementById(
+                "orezNahled"
+            );
+
+
+        nahled.src =
+            canvas.toDataURL(
+                "image/jpeg",
+                0.92
+            );
+
+
+        canvas.toBlob(
+            function(blob) {
+
+                orezanyObrazekBlob =
+                    blob;
+
+            },
+            "image/jpeg",
+            0.92
+        );
+
+
+        document
+            .getElementById(
+                "fotoNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "orezNahledObal"
+            )
+            .style.display =
+            "block";
+
+
+        document
+            .getElementById(
+                "fotoStav"
+            )
+            .innerText =
+            "✅ Výřez je připravený. Zatím ho pouze kontrolujeme – automatické přečtení údajů přidáme v dalším kroku.";
+
+
+        cropper.destroy();
+
+        cropper = null;
+    }
+
+
+    function zrusFoto() {
+
+        if (cropper) {
+
+            cropper.destroy();
+
+            cropper = null;
+        }
+
+
+        orezanyObrazekBlob =
+            null;
+
+
+        const input =
+            document.getElementById(
+                "fotoInput"
+            );
+
+
+        input.value =
+            "";
+
+
+        document
+            .getElementById(
+                "fotoNahled"
+            )
+            .removeAttribute(
+                "src"
+            );
+
+
+        document
+            .getElementById(
+                "orezNahled"
+            )
+            .removeAttribute(
+                "src"
+            );
+
+
+        document
+            .getElementById(
+                "fotoNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "orezNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "fotoStav"
+            )
+            .innerText =
+            "";
+
+
+        otevriFotoaparat();
+    }
+
+
+    /* =========================================================
+       POMOCNÉ FUNKCE
+       ========================================================= */
 
     function odstranDiakritiku(text) {
 
         return String(text || "")
             .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
-
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            );
     }
 
 
@@ -498,14 +1043,16 @@
         ) {
 
             return null;
-
         }
 
 
         return cislo;
-
     }
 
+
+    /* =========================================================
+       ROZPOZNÁNÍ NÁZVU
+       ========================================================= */
 
     function rozpoznejNazev() {
 
@@ -531,9 +1078,7 @@
         rozpoznanaTolerance = "";
 
 
-        /*
-            MATERIÁL
-        */
+        /* MATERIÁL */
 
         if (
             /\b1\.\d{4}\b/.test(t) ||
@@ -544,7 +1089,6 @@
 
             rozpoznanyMaterial =
                 "Nerez";
-
         }
 
         else if (
@@ -555,7 +1099,6 @@
 
             rozpoznanyMaterial =
                 "Hliník";
-
         }
 
         else if (
@@ -566,20 +1109,16 @@
 
             rozpoznanyMaterial =
                 "Mosaz";
-
         }
 
         else if (text !== "") {
 
             rozpoznanyMaterial =
                 "Ocel";
-
         }
 
 
-        /*
-            DRUH
-        */
+        /* DRUH */
 
         if (
             t.includes("SESTIHR") ||
@@ -589,7 +1128,6 @@
 
             rozpoznanyDruh =
                 "Šestihran";
-
         }
 
         else if (
@@ -601,13 +1139,10 @@
 
             rozpoznanyDruh =
                 "Kulatina";
-
         }
 
 
-        /*
-            TOLERANCE
-        */
+        /* TOLERANCE */
 
         const toleranceMatch =
             text.match(
@@ -621,13 +1156,10 @@
                 toleranceMatch[0]
                     .replace(/\s/g, "")
                     .toLowerCase();
-
         }
 
 
-        /*
-            ROZMĚR
-        */
+        /* ROZMĚR */
 
         let rozmerMatch =
             text.match(
@@ -641,7 +1173,6 @@
                 text.match(
                     /pr[uů]m(?:ěr)?\.?\s*(\d+(?:[.,]\d+)?)\s*mm/i
                 );
-
         }
 
 
@@ -654,7 +1185,6 @@
                 text.match(
                     /\bOK\s*(\d+(?:[.,]\d+)?)/i
                 );
-
         }
 
 
@@ -667,7 +1197,6 @@
                 text.match(
                     /\b(\d+(?:[.,]\d+)?)\s*SK\b/i
                 );
-
         }
 
 
@@ -678,13 +1207,10 @@
                     rozmerMatch[1]
                         .replace(",", ".")
                 );
-
         }
 
 
-        /*
-            JAKOST
-        */
+        /* JAKOST */
 
         let jakostMatch =
             text.match(
@@ -698,7 +1224,6 @@
                 text.match(
                     /\b\d{1,2}SMn(?:Pb)?\d+(?:\+C)?\b/i
                 );
-
         }
 
 
@@ -708,7 +1233,6 @@
                 text.match(
                     /\bS\d{3}[A-Za-z0-9+-]*\b/i
                 );
-
         }
 
 
@@ -718,7 +1242,6 @@
                 text.match(
                     /\bX\d+[A-Za-z0-9+-]+\b/i
                 );
-
         }
 
 
@@ -728,7 +1251,6 @@
                 text.match(
                     /\bCuZn[A-Za-z0-9+-]*\b/i
                 );
-
         }
 
 
@@ -738,7 +1260,6 @@
                 text.match(
                     /\bEN\s*AW[-\s]?[A-Za-z0-9+-]+\b/i
                 );
-
         }
 
 
@@ -746,33 +1267,41 @@
 
             rozpoznanaJakost =
                 jakostMatch[0];
-
         }
 
 
         aktualizujNahled();
 
         prepocitej();
-
     }
 
+
+    /* =========================================================
+       NÁHLED
+       ========================================================= */
 
     function aktualizujNahled() {
 
         document
-            .getElementById("nahledMaterial")
+            .getElementById(
+                "nahledMaterial"
+            )
             .innerText =
             rozpoznanyMaterial || "—";
 
 
         document
-            .getElementById("nahledDruh")
+            .getElementById(
+                "nahledDruh"
+            )
             .innerText =
             rozpoznanyDruh || "—";
 
 
         document
-            .getElementById("nahledRozmer")
+            .getElementById(
+                "nahledRozmer"
+            )
             .innerText =
             rozpoznanyRozmer
                 ? rozpoznanyRozmer + " mm"
@@ -780,25 +1309,30 @@
 
 
         document
-            .getElementById("nahledJakost")
+            .getElementById(
+                "nahledJakost"
+            )
             .innerText =
             rozpoznanaJakost || "—";
 
 
         document
-            .getElementById("nahledTolerance")
+            .getElementById(
+                "nahledTolerance"
+            )
             .innerText =
             rozpoznanaTolerance || "—";
-
     }
 
+
+    /* =========================================================
+       DÉLKA
+       ========================================================= */
 
     function prevedDelkuNaMm(text) {
 
         if (!text) {
-
             return null;
-
         }
 
 
@@ -824,7 +1358,6 @@
             )
                 ? mm
                 : null;
-
         }
 
 
@@ -843,7 +1376,6 @@
             )
                 ? metry * 1000
                 : null;
-
         }
 
 
@@ -859,21 +1391,22 @@
         ) {
 
             return null;
-
         }
 
 
         if (hodnota <= 20) {
 
             return hodnota * 1000;
-
         }
 
 
         return hodnota;
-
     }
 
+
+    /* =========================================================
+       PRŮŘEZ
+       ========================================================= */
 
     function plochaPrurezu(
         druh,
@@ -890,7 +1423,6 @@
                 rozmer /
                 4
             );
-
         }
 
 
@@ -904,14 +1436,16 @@
                 rozmer *
                 rozmer
             );
-
         }
 
 
         return 0;
-
     }
 
+
+    /* =========================================================
+       HMOTNOST TYČE
+       ========================================================= */
 
     function hmotnostTyce(
         druh,
@@ -930,7 +1464,6 @@
         if (!plochaMm2) {
 
             return 0;
-
         }
 
 
@@ -949,9 +1482,12 @@
             delkaM *
             hustota
         );
-
     }
 
+
+    /* =========================================================
+       PŘEPOČET
+       ========================================================= */
 
     function prepocitej() {
 
@@ -976,7 +1512,9 @@
 
 
         document
-            .getElementById("vypocetDelka")
+            .getElementById(
+                "vypocetDelka"
+            )
             .innerText =
             delka
                 ? delka.toLocaleString("cs-CZ") + " mm"
@@ -984,7 +1522,9 @@
 
 
         document
-            .getElementById("vypocetRozmer")
+            .getElementById(
+                "vypocetRozmer"
+            )
             .innerText =
             rozpoznanyRozmer
                 ? rozpoznanyRozmer + " mm"
@@ -998,7 +1538,9 @@
 
 
         document
-            .getElementById("vypocetHustota")
+            .getElementById(
+                "vypocetHustota"
+            )
             .innerText =
             hustota
                 ? hustota + " kg/m³"
@@ -1014,19 +1556,22 @@
         ) {
 
             document
-                .getElementById("vahaJedneTyce")
+                .getElementById(
+                    "vahaJedneTyce"
+                )
                 .innerText =
                 "—";
 
 
             document
-                .getElementById("automatickyPocet")
+                .getElementById(
+                    "automatickyPocet"
+                )
                 .innerText =
                 "—";
 
 
             return;
-
         }
 
 
@@ -1045,19 +1590,22 @@
         ) {
 
             document
-                .getElementById("vahaJedneTyce")
+                .getElementById(
+                    "vahaJedneTyce"
+                )
                 .innerText =
                 "—";
 
 
             document
-                .getElementById("automatickyPocet")
+                .getElementById(
+                    "automatickyPocet"
+                )
                 .innerText =
                 "—";
 
 
             return;
-
         }
 
 
@@ -1069,7 +1617,9 @@
 
 
         document
-            .getElementById("vahaJedneTyce")
+            .getElementById(
+                "vahaJedneTyce"
+            )
             .innerText =
             vaha
                 .toFixed(3)
@@ -1078,13 +1628,18 @@
 
 
         document
-            .getElementById("automatickyPocet")
+            .getElementById(
+                "automatickyPocet"
+            )
             .innerText =
             vypocitanyPocet +
             " ks";
-
     }
 
+
+    /* =========================================================
+       ZPRÁVA
+       ========================================================= */
 
     function nastavZpravu(
         text,
@@ -1103,9 +1658,12 @@
 
         zprava.className =
             typ || "";
-
     }
 
+
+    /* =========================================================
+       ULOŽENÍ PŘÍJMU
+       ========================================================= */
 
     async function ulozitPrijem() {
 
@@ -1163,7 +1721,6 @@
             );
 
             return;
-
         }
 
 
@@ -1175,7 +1732,6 @@
             );
 
             return;
-
         }
 
 
@@ -1190,7 +1746,6 @@
             );
 
             return;
-
         }
 
 
@@ -1205,7 +1760,6 @@
             );
 
             return;
-
         }
 
 
@@ -1221,7 +1775,6 @@
             );
 
             return;
-
         }
 
 
@@ -1238,7 +1791,6 @@
             );
 
             return;
-
         }
 
 
@@ -1250,7 +1802,6 @@
             );
 
             return;
-
         }
 
 
@@ -1319,9 +1870,10 @@
 
 
             return;
-
         }
 
+
+        /* VYČIŠTĚNÍ FORMULÁŘE */
 
         document
             .getElementById("nazev")
@@ -1361,6 +1913,52 @@
         prepocitej();
 
 
+        /* SMAZÁNÍ FOTKY PO ÚSPĚŠNÉM ULOŽENÍ */
+
+        if (cropper) {
+
+            cropper.destroy();
+
+            cropper = null;
+        }
+
+
+        orezanyObrazekBlob =
+            null;
+
+
+        document
+            .getElementById(
+                "fotoInput"
+            )
+            .value =
+            "";
+
+
+        document
+            .getElementById(
+                "fotoNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "orezNahledObal"
+            )
+            .style.display =
+            "none";
+
+
+        document
+            .getElementById(
+                "fotoStav"
+            )
+            .innerText =
+            "";
+
+
         nastavZpravu(
             "✅ Příjem uložen.",
             "uspech"
@@ -1374,9 +1972,12 @@
         document
             .getElementById("nazev")
             .focus();
-
     }
 
+
+    /* =========================================================
+       START
+       ========================================================= */
 
     zkontrolujPrihlaseni();
 
