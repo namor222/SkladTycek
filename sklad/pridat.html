@@ -126,6 +126,7 @@ input:focus{
 }
 
 .overeni-box{
+    display:none;
     margin-top:15px;
     padding:13px;
     border-radius:10px;
@@ -487,13 +488,8 @@ nebo dodacím listu.
 <span id="nahledJakost">—</span>
 </div>
 
-<div class="radek">
-<strong>ČSN:</strong>
+<div style="display:none">
 <span id="nahledCsn">—</span>
-</div>
-
-<div class="radek">
-<strong>EN/W.Nr.:</strong>
 <span id="nahledEnWnr">—</span>
 </div>
 
@@ -1319,53 +1315,40 @@ function vytvorIndicie(){
 
     const indicie=[];
 
-
-    /* JAKOST */
-
     if(rozpoznanaJakost){
-        indicie.push(
-            rozpoznanaJakost
-        );
+        indicie.push(rozpoznanaJakost);
     }
 
-
-    /* EN / W.Nr. */
-
-    const wnr =
-        text.match(
-            /\b1[.,]\d{4}\b/g
-        );
+    const wnr = text.match(/\b1[.,]\d{4}\b/g);
 
     if(wnr){
-
         for(const hodnota of wnr){
-
-            indicie.push(
-                hodnota.replace(",",".")
-            );
-
+            indicie.push(hodnota.replace(",","."));
         }
-
     }
 
-
-    /* ČSN – např. 41 1109 */
-
-    const csn =
-        text.match(
-            /\b\d{2}\s?\d{4}\b/g
-        );
+    const csn = text.match(/\b\d{2}\s?\d{4}\b/g);
 
     if(csn){
-
         for(const hodnota of csn){
-
             indicie.push(hodnota);
-
         }
-
     }
 
+    /*
+       Další kandidátní indicie z celého názvu.
+       Číselník sám rozhodne, které hodnoty skutečně zná.
+    */
+    const kandidati =
+        text
+        .replace(/[;|,/\\()[\]{}:]/g," ")
+        .split(/\s+/)
+        .map(hodnota=>hodnota.trim())
+        .filter(hodnota=>hodnota.length>=3);
+
+    for(const kandidat of kandidati){
+        indicie.push(kandidat);
+    }
 
     return [
         ...new Set(
@@ -2485,21 +2468,6 @@ async function ulozitPrijem(){
 
     try{
 
-        /*
-        -----------------------------------------------------
-        POZOR:
-        Zatím zachováváme současné RPC parametry,
-        aby se nerozbilo ukládání, které už funguje.
-
-        ČSN a EN/W.Nr. máme připravené v:
-        rozpoznaneCsn
-        rozpoznaneEnWnr
-
-        Do databáze je zapojíme v následujícím SQL kroku
-        úpravou pridat_material_prijem.
-        -----------------------------------------------------
-        */
-
 
         const {error} =
             await supabaseClient.rpc(
@@ -2537,7 +2505,13 @@ async function ulozitPrijem(){
                         vypocitanyPocet,
 
                     p_cislo_dodaciho_listu:
-                        cisloDodaku || null
+                        cisloDodaku || null,
+
+                    p_csn:
+                        rozpoznaneCsn || null,
+
+                    p_en_wnr:
+                        rozpoznaneEnWnr || null
 
                 }
             );
