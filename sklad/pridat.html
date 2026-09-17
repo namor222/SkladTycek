@@ -1302,6 +1302,12 @@ function rozpoznejNazev(){
 
     }
 
+    // POSLEDNÍ POJISTKA: 11SMn... je ocel i když v názvu není slovo OCEL.
+    // Tohle proběhne těsně před vykreslením náhledu.
+    if(!rozpoznanyMaterial && /\b11\s*SMN/i.test(t)){
+        rozpoznanyMaterial = "Ocel";
+    }
+
     aktualizujNahled();
     prepocitej();
 
@@ -2644,6 +2650,7 @@ async function ulozitPrijem(){
    START
 ========================================================= */
 
+console.log("PRIDAT BUILD: MATERIAL-FIX-3");
 zkontrolujPrihlaseni();
 
 </script>
