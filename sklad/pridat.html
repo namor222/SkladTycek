@@ -1136,7 +1136,8 @@ function rozpoznejNazev(){
     }
     else if(
         t.includes("OCEL") ||
-        /\bSMN/i.test(t)
+        /SMN/i.test(t) ||
+        /\b\d{1,2}SMN(?:PB)?\d+(?:\+C)?\b/i.test(t)
     ){
 
         rozpoznanyMaterial="Ocel";
@@ -1292,6 +1293,12 @@ function rozpoznejNazev(){
 
         rozpoznanaJakost =
             jakostMatch[0];
+
+        // Jakosti typu 11SMn30+C / 11SMnPb30 jsou ocel.
+        // Díky tomu web pozná materiál i z názvu bez slova „Ocel“.
+        if(/\b\d{1,2}SMn(?:Pb)?\d+(?:\+C)?\b/i.test(rozpoznanaJakost)){
+            rozpoznanyMaterial = "Ocel";
+        }
 
     }
 
