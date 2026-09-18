@@ -685,6 +685,11 @@ let jistotaMaterialu = "";
 let pocetShodMaterialu = 0;
 let pocetIndiciiMaterialu = 0;
 
+let stavRozpoznani = "";
+let druhaJakostRozpoznani = "";
+let druheSkoreRozpoznani = null;
+let nalezeneAliasyRozpoznani = "";
+
 let hustotaZCiselniku = null;
 
 let vypocitanyPocet = null;
@@ -1048,6 +1053,11 @@ function resetujOvereniMaterialu(){
     pocetShodMaterialu=0;
     pocetIndiciiMaterialu=0;
 
+    stavRozpoznani="";
+    druhaJakostRozpoznani="";
+    druheSkoreRozpoznani=null;
+    nalezeneAliasyRozpoznani="";
+
     hustotaZCiselniku=null;
 
 }
@@ -1323,16 +1333,10 @@ function vytvorIndicie(){
 
 async function overMaterialCiselnikem(extraIndicie=[]){
 
-    let indicie =
-        vytvorIndicie();
+    let indicie = vytvorIndicie();
 
     if(Array.isArray(extraIndicie)){
-
-        indicie =
-            indicie.concat(
-                extraIndicie
-            );
-
+        indicie = indicie.concat(extraIndicie);
     }
 
     indicie = [
@@ -1343,148 +1347,97 @@ async function overMaterialCiselnikem(extraIndicie=[]){
         )
     ];
 
-
     if(indicie.length===0){
-
         resetujOvereniMaterialu();
         aktualizujNahled();
         prepocitej();
         return null;
-
     }
 
+    /*
+       Novy scanner neposila pole indicii do stare funkce.
+       Posleme mu jeden text. Kazda indicie je na samostatnem radku,
+       aby funkce skener_jakost mohla pouzit aliasy, priority,
+       skore, jistotu i detekci konfliktu.
+    */
+    const textProSkener = indicie.join("\n");
 
     const {data,error} =
         await supabaseClient.rpc(
-            "najdi_material_z_indicii",
+            "skener_jakost",
             {
-                p_indicie:indicie
+                vstupni_text:textProSkener
             }
         );
 
-
     if(error){
-
-        console.error(
-            "Chyba číselníku:",
-            error
-        );
-
-        resetujOvereniMaterialu();
-        aktualizujNahled();
-
-        return null;
-
-    }
-
-
-    if(
-        !Array.isArray(data) ||
-        data.length===0
-    ){
+        console.error("Chyba skener_jakost:", error);
 
         resetujOvereniMaterialu();
         aktualizujNahled();
         prepocitej();
-
         return null;
-
     }
 
-
-    const vysledek =
-        data[0];
-
-
-    /* =====================================================
-       OCHRANA PŘED NEJEDNOZNAČNÝM VÝSLEDKEM
-    ===================================================== */
-
-    if(
-        data.length>1 &&
-        Number(data[0].pocet_shod) ===
-        Number(data[1].pocet_shod)
-    ){
-
+    if(!Array.isArray(data) || data.length===0){
         resetujOvereniMaterialu();
-
-        document
-        .getElementById("nahledJistota")
-        .innerText =
-        "⚠️ NEJEDNOZNAČNÉ";
-
-        document
-        .getElementById("nahledJistota")
-        .className =
-        "jistota jistota-nizka";
-
-        document
-        .getElementById("nahledShody")
-        .innerText =
-        "Více materiálů má stejný počet shod. Údaje se automaticky nedoplnily.";
-
+        aktualizujNahled();
+        prepocitej();
         return null;
-
     }
 
+    const vysledek = data[0];
 
-    rozpoznaneCsn =
-        vysledek.csn || "";
+    /* NENALEZENO = nic automaticky neprepisujeme. */
+    if(vysledek.nalezeno!==true || vysledek.stav==="NENALEZENO"){
+        resetujOvereniMaterialu();
+        stavRozpoznani="NENALEZENO";
+        jistotaMaterialu="OVERIT";
 
-    rozpoznaneEnWnr =
-        vysledek.en_wnr || "";
+        aktualizujNahled();
+        prepocitej();
+        return vysledek;
+    }
+
+    rozpoznaneEnWnr = vysledek.en_wnr || "";
+
+    /* Nova funkce zatim nevraci CSN. Nechame prazdne. */
+    rozpoznaneCsn = "";
 
     if(vysledek.jakost){
-
-        rozpoznanaJakost =
-            vysledek.jakost;
-
+        rozpoznanaJakost = vysledek.jakost;
     }
 
-    if(vysledek.material){
+    /* Kategorie z ciselniku prevedeme na nazvy pouzivane aplikaci. */
+    const materialPodleKategorie = {
+        "NEREZ":"Nerez",
+        "HLINIK":"Hliník",
+        "MOSAZ":"Mosaz",
+        "OCEL":"Ocel",
+        "OCEL AUTOMATOVA":"Ocel",
+        "MED":"Měď",
+        "BRONZ":"Bronz"
+    };
 
-        rozpoznanyMaterial =
-            vysledek.material;
-
+    if(vysledek.kategorie && materialPodleKategorie[vysledek.kategorie]){
+        rozpoznanyMaterial = materialPodleKategorie[vysledek.kategorie];
     }
 
-    if(
-        vysledek.hustota_kg_m3 !== null &&
-        vysledek.hustota_kg_m3 !== undefined
-    ){
-
-        const h =
-            Number(
-                vysledek.hustota_kg_m3
-            );
-
-        hustotaZCiselniku =
-            Number.isFinite(h)
-            ? h
-            : null;
-
-    }
-
-
-    jistotaMaterialu =
-        vysledek.jistota || "";
-
-    pocetShodMaterialu =
-        Number(
-            vysledek.pocet_shod || 0
-        );
-
-    pocetIndiciiMaterialu =
-        Number(
-            vysledek.pocet_indicii || 0
-        );
-
+    jistotaMaterialu = vysledek.jistota || "";
+    stavRozpoznani = vysledek.stav || "";
+    pocetShodMaterialu = Number(vysledek.pocet_shod || 0);
+    pocetIndiciiMaterialu = indicie.length;
+    druhaJakostRozpoznani = vysledek.druha_jakost || "";
+    druheSkoreRozpoznani =
+        vysledek.druhe_skore===null || vysledek.druhe_skore===undefined
+        ? null
+        : Number(vysledek.druhe_skore);
+    nalezeneAliasyRozpoznani = vysledek.nalezene_aliasy || "";
 
     aktualizujNahled();
     prepocitej();
 
     return vysledek;
-
 }
 
 
@@ -1551,54 +1504,57 @@ function aktualizujNahled(){
 
     if(!jistotaMaterialu){
 
-        jistota.innerText =
-            "—";
-
-        jistota.className =
-            "jistota";
-
-        shody.innerText =
-            "Materiál zatím nebyl ověřen číselníkem.";
-
+        jistota.innerText = "—";
+        jistota.className = "jistota";
+        shody.innerText = "Materiál zatím nebyl ověřen číselníkem.";
         return;
-
     }
 
-
-    jistota.innerText =
-        "● "+jistotaMaterialu;
-
-
-    if(
-        jistotaMaterialu==="VELMI VYSOKÁ" ||
-        jistotaMaterialu==="VYSOKÁ"
-    ){
-
-        jistota.className =
-            "jistota jistota-vysoka";
-
+    if(stavRozpoznani==="NENALEZENO"){
+        jistota.innerText = "● NENALEZENO";
+        jistota.className = "jistota jistota-nizka";
+        shody.innerText = "Na štítku nebyla nalezena známá jakost. Údaj zkontroluj ručně.";
+        return;
     }
-    else if(
-        jistotaMaterialu==="JEDNA INDICIE"
-    ){
 
-        jistota.className =
-            "jistota jistota-stredni";
+    if(stavRozpoznani==="KONFLIKT"){
+        jistota.innerText = "⚠️ KONFLIKT – OVERIT";
+        jistota.className = "jistota jistota-nizka";
 
+        let textKonfliktu =
+            "Nalezeno více možných jakostí. Hlavní: "+
+            (rozpoznanaJakost || "—");
+
+        if(druhaJakostRozpoznani){
+            textKonfliktu += " | Druhá: "+druhaJakostRozpoznani;
+        }
+
+        shody.innerText = textKonfliktu;
+        return;
+    }
+
+    jistota.innerText = "● "+jistotaMaterialu;
+
+    if(jistotaMaterialu==="JISTE"){
+        jistota.className = "jistota jistota-vysoka";
+    }
+    else if(jistotaMaterialu==="PRAVDEPODOBNE"){
+        jistota.className = "jistota jistota-stredni";
     }
     else{
-
-        jistota.className =
-            "jistota jistota-nizka";
-
+        jistota.className = "jistota jistota-nizka";
     }
 
-
-    shody.innerText =
+    let textShod =
         pocetShodMaterialu+
-        " shod z "+
-        pocetIndiciiMaterialu+
-        " nalezených indicií.";
+        " nalezených shod. Stav: "+
+        (stavRozpoznani || "OK")+".";
+
+    if(nalezeneAliasyRozpoznani){
+        textShod += " Alias: "+nalezeneAliasyRozpoznani+".";
+    }
+
+    shody.innerText = textShod;
 
 }
 
@@ -2593,7 +2549,7 @@ async function ulozitPrijem(){
    START
 ========================================================= */
 
-console.log("PRIDAT BUILD: MATERIAL-FIX-3");
+console.log("PRIDAT BUILD: SKENER-JAKOST-1");
 zkontrolujPrihlaseni();
 
 </script>
