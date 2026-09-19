@@ -6,10 +6,6 @@
 
 <title>Přidat materiál</title>
 
-<link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css"
->
 
 <style>
 
@@ -333,7 +329,7 @@ button:disabled{
 
 
 <!-- =========================
-     FOTO
+     FOTO – BEZ VÝŘEZU
 ========================= -->
 
 <div class="foto-box">
@@ -341,13 +337,8 @@ button:disabled{
 <h3>📷 Vyfotit štítek / dodací list</h3>
 
 <p>
-Primárně vyfoť štítek, který je přímo na materiálu.
-Pokud materiál štítek nemá, můžeš vyfotit dodací list.
-</p>
-
-<p>
-U dodacího listu označ pouze část, která patří
-k jednomu konkrétnímu materiálu.
+Vyfoť štítek zblízka tak, aby byl co nejčitelnější.
+Fotografie se použije celá – žádný výřez už není potřeba.
 </p>
 
 <input
@@ -366,12 +357,10 @@ k jednomu konkrétnímu materiálu.
 📷 VYFOTIT / VYBRAT FOTKU
 </button>
 
-
 <div id="fotoNahledObal">
 
     <div class="napoveda">
-        Označ oblast se štítkem nebo údaji jednoho materiálu.
-        U štítku můžeš klidně označit celý štítek.
+        Vyfocený štítek / dokument:
     </div>
 
     <div class="foto-editor">
@@ -382,41 +371,11 @@ k jednomu konkrétnímu materiálu.
     </div>
 
     <button
-        type="button"
-        class="foto-tlacitko-sekundarni"
-        onclick="potvrdOrez()"
-    >
-        ✂️ POUŽÍT TENTO VÝŘEZ
-    </button>
-
-    <button
-        type="button"
-        class="foto-tlacitko-sekundarni"
-        onclick="zrusFoto()"
-    >
-        🔄 VYFOTIT ZNOVU
-    </button>
-
-</div>
-
-
-<div id="orezNahledObal">
-
-    <div class="napoveda">
-        Vybraný štítek / část dokumentu:
-    </div>
-
-    <img
-        id="orezNahled"
-        alt="Vybraný výřez"
-    >
-
-    <button
         id="precistDodakTlacitko"
         type="button"
         onclick="precistDodakAI()"
     >
-        🤖 PŘEČÍST ÚDAJE
+        🤖 PŘEČÍST BOTEM
     </button>
 
     <button
@@ -424,7 +383,7 @@ k jednomu konkrétnímu materiálu.
         class="foto-tlacitko-sekundarni"
         onclick="zrusFoto()"
     >
-        🔄 VYFOTIT JINÝ ŠTÍTEK / VÝŘEZ
+        🔄 VYFOTIT JINÝ ŠTÍTEK
     </button>
 
 </div>
@@ -648,7 +607,6 @@ Počet kusů:
 </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
@@ -700,7 +658,6 @@ let hustotaZCiselniku = null;
 
 let vypocitanyPocet = null;
 
-let cropper = null;
 let orezanyObrazekBlob = null;
 
 
@@ -753,227 +710,54 @@ async function zkontrolujPrihlaseni(){
 
 
 /* =========================================================
-   FOTO
+   FOTO – BEZ VÝŘEZU
 ========================================================= */
 
 function otevriFotoaparat(){
-
-    const input =
-        document.getElementById("fotoInput");
-
+    const input = document.getElementById("fotoInput");
     input.value="";
     input.click();
-
 }
-
 
 document
 .getElementById("fotoInput")
-.addEventListener(
-    "change",
-    function(event){
+.addEventListener("change", function(event){
 
-        const soubor =
-            event.target.files[0];
+    const soubor = event.target.files[0];
 
-        if(!soubor){
-            return;
-        }
+    if(!soubor){
+        return;
+    }
 
-        if(
-            !soubor.type ||
-            !soubor.type.startsWith("image/")
-        ){
-
-            document
-            .getElementById("fotoStav")
-            .innerText =
+    if(!soubor.type || !soubor.type.startsWith("image/")){
+        document.getElementById("fotoStav").innerText =
             "❌ Vybraný soubor není fotografie.";
-
-            return;
-
-        }
-
-        zobrazFotkuProOrez(soubor);
-
-    }
-);
-
-
-function zobrazFotkuProOrez(soubor){
-
-    if(cropper){
-
-        cropper.destroy();
-        cropper=null;
-
+        return;
     }
 
-    orezanyObrazekBlob=null;
+    orezanyObrazekBlob = soubor;
 
-    const obrazek =
-        document.getElementById("fotoNahled");
+    const obrazek = document.getElementById("fotoNahled");
+    const url = URL.createObjectURL(soubor);
 
-    const url =
-        URL.createObjectURL(soubor);
-
-    obrazek.onload=function(){
-
-        if(cropper){
-            cropper.destroy();
-        }
-
-        cropper =
-            new Cropper(
-                obrazek,
-                {
-                    viewMode:1,
-                    dragMode:"move",
-                    autoCropArea:0.9,
-                    responsive:true,
-                    background:false,
-                    movable:true,
-                    zoomable:true,
-                    rotatable:true,
-                    scalable:false,
-                    guides:true,
-                    center:true,
-                    highlight:true,
-                    cropBoxMovable:true,
-                    cropBoxResizable:true,
-                    toggleDragModeOnDblclick:false
-                }
-            );
-
+    obrazek.onload = function(){
         URL.revokeObjectURL(url);
-
     };
 
-    obrazek.src=url;
+    obrazek.src = url;
 
-    document
-    .getElementById("fotoNahledObal")
-    .style.display="block";
-
-    document
-    .getElementById("orezNahledObal")
-    .style.display="none";
-
-    document
-    .getElementById("fotoStav")
-    .innerText =
-    "Označ štítek nebo část dokumentu patřící jednomu materiálu.";
-
-}
-
-
-function potvrdOrez(){
-
-    if(!cropper){
-
-        document
-        .getElementById("fotoStav")
-        .innerText =
-        "❌ Nejdřív vyfoť nebo vyber fotografii.";
-
-        return;
-
-    }
-
-    const canvas =
-        cropper.getCroppedCanvas({
-            maxWidth:1800,
-            maxHeight:1800,
-            imageSmoothingEnabled:true,
-            imageSmoothingQuality:"high"
-        });
-
-    if(!canvas){
-
-        document
-        .getElementById("fotoStav")
-        .innerText =
-        "❌ Výřez se nepodařilo vytvořit.";
-
-        return;
-
-    }
-
-    const nahled =
-        document.getElementById("orezNahled");
-
-    nahled.src =
-        canvas.toDataURL(
-            "image/jpeg",
-            0.92
-        );
-
-    canvas.toBlob(
-        function(blob){
-
-            orezanyObrazekBlob=blob;
-
-        },
-        "image/jpeg",
-        0.92
-    );
-
-    document
-    .getElementById("fotoNahledObal")
-    .style.display="none";
-
-    document
-    .getElementById("orezNahledObal")
-    .style.display="block";
-
-    document
-    .getElementById("fotoStav")
-    .innerText =
-    "✅ Fotografie je připravená. Klikni na PŘEČÍST ÚDAJE.";
-
-    cropper.destroy();
-    cropper=null;
-
-}
-
+    document.getElementById("fotoNahledObal").style.display="block";
+    document.getElementById("fotoStav").innerText =
+        "✅ Fotografie je připravená. Chceš ji přečíst botem?";
+});
 
 function zrusFoto(){
-
-    if(cropper){
-
-        cropper.destroy();
-        cropper=null;
-
-    }
-
     orezanyObrazekBlob=null;
-
-    document
-    .getElementById("fotoInput")
-    .value="";
-
-    document
-    .getElementById("fotoNahled")
-    .removeAttribute("src");
-
-    document
-    .getElementById("orezNahled")
-    .removeAttribute("src");
-
-    document
-    .getElementById("fotoNahledObal")
-    .style.display="none";
-
-    document
-    .getElementById("orezNahledObal")
-    .style.display="none";
-
-    document
-    .getElementById("fotoStav")
-    .innerText="";
-
+    document.getElementById("fotoInput").value="";
+    document.getElementById("fotoNahled").removeAttribute("src");
+    document.getElementById("fotoNahledObal").style.display="none";
+    document.getElementById("fotoStav").innerText="";
     otevriFotoaparat();
-
 }
 
 
@@ -1544,7 +1328,7 @@ async function precistDodakAI(){
     if(!orezanyObrazekBlob){
 
         stav.innerText =
-            "❌ Nejdřív vytvoř výřez fotografie.";
+            "❌ Nejdřív vyfoť nebo vyber fotografii.";
 
         return;
 
@@ -2441,14 +2225,6 @@ async function ulozitPrijem(){
         prepocitej();
 
 
-        if(cropper){
-
-            cropper.destroy();
-            cropper=null;
-
-        }
-
-
         orezanyObrazekBlob=null;
 
 
@@ -2459,11 +2235,6 @@ async function ulozitPrijem(){
 
         document
         .getElementById("fotoNahledObal")
-        .style.display="none";
-
-
-        document
-        .getElementById("orezNahledObal")
         .style.display="none";
 
 
