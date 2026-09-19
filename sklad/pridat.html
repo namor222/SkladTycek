@@ -498,6 +498,11 @@ nebo dodacím listu.
 <span id="nahledTolerance">—</span>
 </div>
 
+<div class="radek">
+<strong>Stav:</strong>
+<span id="nahledStav">—</span>
+</div>
+
 
 <div class="overeni-box">
 
@@ -677,6 +682,7 @@ let rozpoznanyDruh = "";
 let rozpoznanyRozmer = null;
 let rozpoznanaJakost = "";
 let rozpoznanaTolerance = "";
+let rozpoznanyStav = "";
 
 let rozpoznaneCsn = "";
 let rozpoznaneEnWnr = "";
@@ -1092,12 +1098,7 @@ function zmenaNazvu(){
 
 function rozpoznejNazev(){
 
-    const text =
-        document
-        .getElementById("nazev")
-        .value
-        .trim();
-
+    const text = document.getElementById("nazev").value.trim();
     const bezDiakritiky = odstranDiakritiku(text);
     const t = bezDiakritiky.toUpperCase();
 
@@ -1106,166 +1107,124 @@ function rozpoznejNazev(){
     rozpoznanyRozmer=null;
     rozpoznanaJakost="";
     rozpoznanaTolerance="";
+    rozpoznanyStav="";
+    rozpoznaneCsn="";
+    rozpoznaneEnWnr="";
 
     resetujOvereniMaterialu();
 
-    /* =====================================================
-       DRUH / TVAR
-       Pokrývá názvy z našich štítků:
-       Kr, Kruh, Tyč Kr..., SK, 6HR, E 22, Esagono.
-    ===================================================== */
+    /* Scanner Parser 2.0 – vícejazyčné názvy tvarů */
+    const sestih = /\b(?:6\s*HR|SK|HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE)\b/i.test(bezDiakritiky)
+        || /\bE\s*\d+(?:[.,]\d+)?\b/i.test(text)
+        || t.includes("SESTIHR");
 
-    if(
-        /\b6\s*HR\b/i.test(text) ||
-        /\bSK\b/i.test(text) ||
-        /\bE\s*\d+(?:[.,]\d+)?\b/i.test(text) ||
-        t.includes("SESTIHR") ||
-        t.includes("HEXAGON") ||
-        t.includes("ESAGONO") ||
-        /\bHEX\b/.test(t)
-    ){
-        rozpoznanyDruh="Šestihran";
-    }
-    else if(
-        /\bKR\b/.test(t) ||
-        /\bRD\b/.test(t) ||
-        t.includes("KRUH") ||
-        t.includes("KULAT") ||
-        t.includes("PRUM")
-    ){
-        rozpoznanyDruh="Kulatina";
-    }
+    const kulatina = /\b(?:KR|RD|ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL)?|RONDO|TONDO|KRUH|KULATINA|KULATY|KULATA)\b/i.test(bezDiakritiky)
+        || t.includes("KULAT")
+        || t.includes("PRUM");
 
-    /* =====================================================
-       TOLERANCE
-       h9 / h11 atd. – mezera nevadí.
-    ===================================================== */
+    const plochac = /\b(?:FLAT(?:\s*BAR)?|FLACH(?:STAHL)?|PIATTO|PLAT|PLOCHAC)\b/i.test(bezDiakritiky);
+    const ctverec = /\b(?:SQUARE(?:\s*BAR)?|VIERKANT|QUADRO|CTVER(?:EC|HRAN))\b/i.test(bezDiakritiky);
 
-    const toleranceMatch = text.match(/\b[hH]\s*\d{1,2}\b/);
-    if(toleranceMatch){
-        rozpoznanaTolerance = toleranceMatch[0]
-            .replace(/\s/g,"")
-            .toLowerCase();
+    if(sestih) rozpoznanyDruh="Šestihran";
+    else if(kulatina) rozpoznanyDruh="Kulatina";
+    else if(plochac) rozpoznanyDruh="Plochá tyč";
+    else if(ctverec) rozpoznanyDruh="Čtyřhran";
+
+    /* Tolerance: h9, h11, H9, k10, f8... */
+    const toleranceMatch = text.match(/\b([a-zA-Z])\s*(\d{1,2})\b/);
+    if(toleranceMatch && /^[a-zA-Z]$/.test(toleranceMatch[1])){
+        const kandidat = toleranceMatch[1] + toleranceMatch[2];
+        if(/^[a-zA-Z]\d{1,2}$/.test(kandidat)){
+            rozpoznanaTolerance = kandidat;
+        }
     }
 
-    /* =====================================================
-       ROZMĚR
-       Příklady z reálných štítků:
-       Tyč Kr Ta 30...
-       KR 32 h9...
-       15,00 SK
-       22,00 SK
-       24,00 SK
-       6HR 22 h11...
-       E 22 / h11
-    ===================================================== */
+    /* Stav / provedení držíme odděleně od jakosti. */
+    const stavy = [];
+    const stavRegex = /(?:^|[\s,;/])\+(C|SH|SR|A|N|QT|FP|AR|AT|AC|LC|CR|M)(?=$|[\s,;/])/gi;
+    let sm;
+    while((sm=stavRegex.exec(text))!==null) stavy.push("+"+sm[1].toUpperCase());
+    if(/\bANNEALED\b/i.test(text)) stavy.push("annealed");
+    rozpoznanyStav=[...new Set(stavy)].join(" ");
 
-    let rozmerMatch = null;
-
+    /* Rozměr – podporuje české, EN, DE i IT zápisy. */
     const rozmerVzory = [
-        /\b(?:KR|RD)\s*(?:TA\s*)?(\d+(?:[.,]\d+)?)/i,
-        /\b6\s*HR\s*(\d+(?:[.,]\d+)?)/i,
+        /\b(?:ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL)?|RONDO|TONDO|KR|RD)\s*(?:MM\.?\s*)?(?:DIA(?:METER)?\.?\s*)?(?:Ø|⌀)?\s*(\d+(?:[.,]\d+)?)/i,
+        /\b(?:HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|6\s*HR)\s*(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i,
         /\bE\s*(\d+(?:[.,]\d+)?)/i,
-        /\b(\d+(?:[.,]\d+)?)\s*SK\b/i,
-        /(?:Ø|⌀|PR[UŮ]M(?:ĚR)?\.?)\s*(\d+(?:[.,]\d+)?)\s*(?:MM)?/i
+        /\b(\d+(?:[.,]\d+)?)\s*(?:MM\.?\s*)?SK\b/i,
+        /(?:Ø|⌀|DIA(?:METER)?\.?|PR[UŮ]M(?:ĚR)?\.?)\s*(\d+(?:[.,]\d+)?)\s*(?:MM)?/i,
+        /\b(?:SIZE|ABM\.?|MISURA)\s*[:\-]?\s*(?:ROUND\s*)?(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i
     ];
 
+    let rozmerMatch=null;
     for(const vzor of rozmerVzory){
-        rozmerMatch = text.match(vzor);
+        rozmerMatch=text.match(vzor);
         if(rozmerMatch) break;
     }
-
     if(rozmerMatch){
-        rozpoznanyRozmer = Number(
-            rozmerMatch[1].replace(",",".")
-        );
+        const n=Number(rozmerMatch[1].replace(",","."));
+        if(Number.isFinite(n) && n>0 && n<2000) rozpoznanyRozmer=n;
     }
 
-    /* =====================================================
-       JAKOST
-       Pokrývá naše aktuální štítky:
-       11SMn30+C
-       11SMnPb30+C
-       16MnCrS5 +FP+C
-       CuZn39Pb3
-       X... nerez
-       S... konstrukční ocel
-       EN AW... hliník
-    ===================================================== */
+    /* W.Nr. a ČSN jsou vlastní identifikátory. */
+    const wnrMatch=text.match(/\b1[.,]\d{4}\b/);
+    if(wnrMatch) rozpoznaneEnWnr=wnrMatch[0].replace(",",".");
 
-    let jakostMatch = null;
+    const csnMatch=text.match(/\b\d{2}\s\d{4}\b/);
+    if(csnMatch) rozpoznaneCsn=csnMatch[0].replace(/\s+/g," ");
 
+    /* Chemické / normové označení jakosti – bez +C/+FP atd. */
     const jakostVzory = [
-        /\b\d{1,2}\s*SMn(?:Pb)?\s*\d+(?:\s*\+\s*[A-Za-z0-9]+)*\b/i,
-        /\b\d{1,2}\s*MnCrS\s*\d+(?:\s*\+\s*[A-Za-z0-9]+)*\b/i,
+        /\b\d{1,2}\s*SMn(?:Pb)?\s*\d+\b/i,
+        /\b\d{1,2}\s*MnCrS\s*\d+\b/i,
+        /\b\d{1,2}\s*CrMo\s*\d+\b/i,
+        /\b\d{1,2}\s*CrNiMo\s*[A-Za-z0-9-]*\b/i,
         /\bCuZn[A-Za-z0-9+-]*\b/i,
-        /\bX\d+[A-Za-z0-9+-]+\b/i,
-        /\bS\d{3}[A-Za-z0-9+-]*\b/i,
-        /\bEN\s*AW[-\s]?[A-Za-z0-9+-]+\b/i
+        /\bX\d+[A-Za-z0-9-]+\b/i,
+        /\bS\d{3}[A-Za-z0-9-]*\b/i,
+        /\bC\d{2,3}[A-Za-z0-9-]*\b/i,
+        /\bEN\s*AW[-\s]?[A-Za-z0-9-]+\b/i,
+        /\b(?:AISI|SAE)\s*[-:]?\s*\d{3,4}[A-Za-z]?\b/i
     ];
 
+    let jakostMatch=null;
     for(const vzor of jakostVzory){
-        jakostMatch = text.match(vzor);
+        jakostMatch=text.match(vzor);
         if(jakostMatch) break;
     }
-
     if(jakostMatch){
-        // sjednotíme jen mezery kolem +, vlastní označení zachováme
-        rozpoznanaJakost = jakostMatch[0]
-            .replace(/\s*\+\s*/g,"+")
+        rozpoznanaJakost=jakostMatch[0]
+            .replace(/^(?:AISI|SAE)\s*[-:]?\s*/i,"")
             .replace(/\s+/g,"")
             .trim();
+    } else if(rozpoznaneEnWnr){
+        /* Dokud číselník nedodá EN název, zobrazíme bezpečně přečtené W.Nr. */
+        rozpoznanaJakost=rozpoznaneEnWnr;
     }
 
-    /* =====================================================
-       MATERIÁL
-       Nejdřív explicitní text, potom odvození z jakosti.
-       ČSN a EN/W.Nr. se dál dohledávají číselníkem na pozadí.
-    ===================================================== */
-
-    if(
-        t.includes("NEREZ") ||
-        t.includes("INOX") ||
-        t.includes("STAINLESS")
-    ){
+    /* Materiál: explicitní text -> známé označení -> číselník. */
+    if(t.includes("NEREZ") || t.includes("INOX") || t.includes("STAINLESS")){
         rozpoznanyMaterial="Nerez";
     }
-    else if(
-        t.includes("HLIN") ||
-        t.includes("ALUMIN") ||
-        t.includes("EN AW")
-    ){
+    else if(t.includes("HLIN") || t.includes("ALUMIN") || /\bEN\s*AW/i.test(text)){
         rozpoznanyMaterial="Hliník";
     }
-    else if(
-        t.includes("MOSAZ") ||
-        t.includes("CUZN") ||
-        t.includes("BRASS")
-    ){
+    else if(t.includes("MOSAZ") || /\bCUZN/i.test(text) || t.includes("BRASS")){
         rozpoznanyMaterial="Mosaz";
     }
-    else if(
-        t.includes("OCEL") ||
-        /\b\d{1,2}\s*SMN(?:PB)?\s*\d+/i.test(t) ||
-        /\b\d{1,2}\s*MNCRS\s*\d+/i.test(t) ||
-        /^S\d{3}/i.test(rozpoznanaJakost)
-    ){
+    else if(t.includes("OCEL") || t.includes("STEEL") || t.includes("STAHL") || t.includes("ACCIAIO") ||
+            /\b\d{1,2}\s*SMN(?:PB)?\s*\d+/i.test(t) || /\b\d{1,2}\s*MNCRS\s*\d+/i.test(t) ||
+            /^S\d{3}/i.test(rozpoznanaJakost)){
         rozpoznanyMaterial="Ocel";
     }
-    else if(/^X\d+/i.test(rozpoznanaJakost)){
-        rozpoznanyMaterial="Nerez";
-    }
-    else if(/^CUZN/i.test(rozpoznanaJakost)){
-        rozpoznanyMaterial="Mosaz";
-    }
-    else if(/^ENAW/i.test(rozpoznanaJakost.replace(/[\s-]/g,""))){
-        rozpoznanyMaterial="Hliník";
-    }
+    else if(/^X\d+/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Nerez";
+    else if(/^CUZN/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Mosaz";
+    else if(/^ENAW/i.test(rozpoznanaJakost.replace(/[\s-]/g,""))) rozpoznanyMaterial="Hliník";
 
     aktualizujNahled();
     prepocitej();
 }
-
 
 /* =========================================================
    ZÍSKÁNÍ INDICIÍ
@@ -1489,6 +1448,12 @@ function aktualizujNahled(){
     .getElementById("nahledTolerance")
     .innerText =
     rozpoznanaTolerance || "—";
+
+
+    const nahledStav = document.getElementById("nahledStav");
+    if(nahledStav){
+        nahledStav.innerText = rozpoznanyStav || "—";
+    }
 
 
     const jistota =
