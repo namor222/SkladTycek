@@ -635,6 +635,7 @@ let rozpoznanyDruh = "";
 let rozpoznanyRozmer = null;
 let rozpoznanaJakost = "";
 let rozpoznanaTolerance = "";
+let rozpoznanyStav = "";
 
 let rozpoznaneCsn = "";
 let rozpoznaneEnWnr = "";
@@ -885,7 +886,7 @@ function rozpoznejNazev(){
     rozpoznanyRozmer=null;
     rozpoznanaJakost="";
     rozpoznanaTolerance="";
-
+    rozpoznanyStav="";
     rozpoznaneCsn="";
     rozpoznaneEnWnr="";
 
@@ -923,6 +924,7 @@ function rozpoznejNazev(){
     let sm;
     while((sm=stavRegex.exec(text))!==null) stavy.push("+"+sm[1].toUpperCase());
     if(/\bANNEALED\b/i.test(text)) stavy.push("annealed");
+    rozpoznanyStav=[...new Set(stavy)].join(" ");
 
     /* Rozměr – podporuje české, EN, DE i IT zápisy. */
     const rozmerVzory = [
@@ -1225,12 +1227,7 @@ function aktualizujNahled(){
     .getElementById("nahledTolerance")
     .innerText =
     rozpoznanaTolerance || "—";
-
-
-    }
-
-
-    const jistota =
+const jistota =
         document.getElementById(
             "nahledJistota"
         );
