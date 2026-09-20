@@ -1758,85 +1758,54 @@ function zmenaVypoctu(){
 function rozsahDelkyZTextu(text){
     if(!text) return null;
 
-    let t=String(text).trim().toLowerCase();
-    if(!t) return null;
-
-    // Normalizace různých typografických zápisů délkového rozsahu.
-    t=t
+    let t=String(text)
+        .trim()
+        .toLowerCase()
         .replace(/\u00a0/g," ")
         .replace(/[−–—]/g,"-")
         .replace(/…/g,"...")
         .replace(/\s+/g," ")
         .trim();
 
-    const cislo = String.raw`(\d+(?:[.,]\d+)?)`;
+    if(!t) return null;
 
-    // 1) Přímý rozsah:
-    // 3000/3100, 3000 / 3100, 3000-3100, 3000 – 3100,
-    // 3000 až 3100, 3000 to 3100, 3000 bis 3100,
-    // 3000...3100, 3000…3100.
-    // Symbol ÷ záměrně nepoužíváme - mohl by znamenat dělení.
-    const rozsahVzory=[
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\/\\s*${cislo}\\s*(?:mm)?\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*-\\s*${cislo}\\s*(?:mm)?\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s+(?:až|az|to|bis)\\s+${cislo}\\s*(?:mm)?\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\.{2,3}\\s*${cislo}\\s*(?:mm)?\\s*$`,"i")
+    const n = String.raw`(\d+(?:[.,]\d+)?)`;
+
+    // Přímé rozsahy délky: 3000/3100, 3000-3100, 3000 až 3100,
+    // 3000 to 3100, 3000 bis 3100, 3000...3100 (+ volitelné mm).
+    const primeVzory = [
+        new RegExp(`^${n}\\s*\\/\\s*${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s*-\\s*${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s+(?:až|az|to|bis)\\s+${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s*\\.{2,3}\\s*${n}\\s*(?:mm)?$`,"i")
     ];
 
-    for(const vzor of rozsahVzory){
-        const m=t.match(vzor);
+    for(const re of primeVzory){
+        const m=t.match(re);
         if(!m) continue;
-
-        let minMm=parseEvropskeCislo(m[1]);
-        let maxMm=parseEvropskeCislo(m[2]);
-
-        if(!Number.isFinite(minMm) || !Number.isFinite(maxMm) || minMm<=0 || maxMm<=0) continue;
-        if(maxMm<minMm) [minMm,maxMm]=[maxMm,minMm];
-        if(maxMm===minMm) return null;
-
-        // Pojistka: rozsah délky hutní tyče musí v tomto formuláři dávat smysl.
-        // Nechceme např. rozměr 20/22 omylem považovat za délku.
-        if(minMm<100 || maxMm>20000) return null;
-
-        return {
-            minMm,
-            maxMm,
-            stredMm:(minMm+maxMm)/2,
-            typ:"rozsah"
-        };
+        let a=parseEvropskeCislo(m[1]);
+        let b=parseEvropskeCislo(m[2]);
+        if(!Number.isFinite(a) || !Number.isFinite(b) || a<=0 || b<=0) continue;
+        if(b<a) [a,b]=[b,a];
+        if(a===b) return null;
+        // Ochrana proti záměně rozměru 20/22 za délku.
+        if(a<100 || b>20000) return null;
+        return {minMm:a,maxMm:b,stredMm:(a+b)/2,typ:"rozsah"};
     }
 
-    // 2) Jmenovitá délka + kladná tolerance:
-    // 3000 +100, 3000+100 mm, 3000 mm +100,
-    // 3000 +100/-0, 3000 +100/0, 3000 +100 -0,
-    // 3000 (-0/+100), 3000 (+100/-0), 3000 +0/+100.
-    const toleranceVzory=[
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\+\\s*${cislo}\\s*(?:mm)?(?:\\s*\\/\\s*-?\\s*0)?\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\+\\s*${cislo}\\s*(?:mm)?\\s*-\\s*0\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\(\\s*-?\\s*0\\s*\\/\\s*\\+\\s*${cislo}\\s*(?:mm)?\\s*\\)\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\(\\s*\\+\\s*${cislo}\\s*(?:mm)?\\s*\\/\\s*-?\\s*0\\s*\\)\\s*$`,"i"),
-        new RegExp(`^\\s*${cislo}\\s*(?:mm)?\\s*\\+\\s*0\\s*\\/\\s*\\+\\s*${cislo}\\s*(?:mm)?\\s*$`,"i")
-    ];
+    // Jmenovitá délka + kladná tolerance. Nejdřív explicitní zápisy v závorkách.
+    let m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\(\\s*-?0\\s*\\/\\s*\\+\\s*${n}\\s*(?:mm)?\\s*\\)$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\(\\s*\\+\\s*${n}\\s*(?:mm)?\\s*\\/\\s*-?0\\s*\\)$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\+\\s*${n}\\s*(?:mm)?(?:\\s*\\/\\s*-?0|\\s*-\\s*0)?$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\+\\s*0\\s*\\/\\s*\\+\\s*${n}\\s*(?:mm)?$`,"i"));
 
-    for(const vzor of toleranceVzory){
-        const m=t.match(vzor);
-        if(!m) continue;
-
-        const zaklad=parseEvropskeCislo(m[1]);
-        // podle konkrétního vzoru je + hodnota vždy poslední zachycená číselná skupina
-        const plus=parseEvropskeCislo(m[m.length-1]);
-
-        if(!Number.isFinite(zaklad) || zaklad<=0 || !Number.isFinite(plus) || plus<=0) continue;
-        if(zaklad<100 || zaklad+plus>20000) return null;
-
-        return {
-            minMm:zaklad,
-            maxMm:zaklad+plus,
-            stredMm:zaklad+(plus/2),
-            zakladMm:zaklad,
-            plusMm:plus,
-            typ:"tolerance_plus"
-        };
+    if(m){
+        const nums=(m.slice(1).filter(v=>v!==undefined).map(parseEvropskeCislo).filter(Number.isFinite));
+        const zaklad=nums[0];
+        const plus=nums[nums.length-1];
+        if(Number.isFinite(zaklad) && Number.isFinite(plus) && zaklad>=100 && plus>0 && zaklad+plus<=20000){
+            return {minMm:zaklad,maxMm:zaklad+plus,stredMm:zaklad+plus/2,zakladMm:zaklad,plusMm:plus,typ:"tolerance_plus"};
+        }
     }
 
     return null;
@@ -2014,7 +1983,7 @@ function prepocitej(){
     const infoEl=document.getElementById("odhadInfo");
     const pocetInput=document.getElementById("pocetKusu");
 
-    if(!rozpoznanyDruh || !rozpoznanyRozmer || !delka || !hmotnost || !hustota){
+    if(!rozpoznanyDruh || !rozpoznanyRozmer || (!rozsah && !delka) || !hmotnost || !hustota){
         vahaEl.innerText="—";
         pocetEl.innerText="—";
         infoEl.innerText="";
