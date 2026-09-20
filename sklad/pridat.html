@@ -653,6 +653,9 @@ let hustotaZCiselniku = null;
 
 let vypocitanyPocet = null;
 
+// Jednoznačná délka vrácená AI; používá se jako bezpečná záloha pro výpočet.
+let aiDelkaMm = null;
+
 let orezanyObrazekBlob = null;
 
 
@@ -875,9 +878,11 @@ function zmenaNazvu(){
    LOKÁLNÍ ROZPOZNÁNÍ NÁZVU
 ========================================================= */
 
-function rozpoznejNazev(){
+function rozpoznejNazev(doplnkovyText=""){
 
-    const text = document.getElementById("nazev").value.trim();
+    const nazev = document.getElementById("nazev").value.trim();
+    // Při AI čtení používáme i raw_text. Při ruční změně názvu zůstává parser stejný.
+    const text = [nazev, doplnkovyText].filter(Boolean).join("\n");
     const bezDiakritiky = odstranDiakritiku(text);
     const t = bezDiakritiky.toUpperCase();
 
@@ -892,33 +897,35 @@ function rozpoznejNazev(){
 
     resetujOvereniMaterialu();
 
-    /* Scanner Parser 2.0 – vícejazyčné názvy tvarů */
-    const sestih = /\b(?:6\s*HR|SK|HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE)\b/i.test(bezDiakritiky)
+    /* Scanner Parser 3.0 – rodiny běžných mezinárodních označení. */
+    const sestih = /\b(?:6\s*HR|SK|HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE|OK\s*\d)\b/i.test(bezDiakritiky)
         || /\bE\s*\d+(?:[.,]\d+)?\b/i.test(text)
         || t.includes("SESTIHR");
 
-    const kulatina = /\b(?:KR|RD|ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL)?|RONDO|TONDO|KRUH|KULATINA|KULATY|KULATA)\b/i.test(bezDiakritiky)
+    const kulatina = /\b(?:KR|RD|ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL|STAB)?|RONDO|TONDO|KRUH|KULATINA|KULATY|KULATA)\b/i.test(bezDiakritiky)
+        || /\bTYC\s+KR\b/i.test(bezDiakritiky)
         || t.includes("KULAT")
         || t.includes("PRUM");
 
     const plochac = /\b(?:FLAT(?:\s*BAR)?|FLACH(?:STAHL)?|PIATTO|PLAT|PLOCHAC)\b/i.test(bezDiakritiky);
-    const ctverec = /\b(?:SQUARE(?:\s*BAR)?|VIERKANT|QUADRO|CTVER(?:EC|HRAN))\b/i.test(bezDiakritiky);
+    const ctverec = /\b(?:SQUARE(?:\s*BAR)?|SQ|VIERKANT|QUADRO|CTVER(?:EC|HRAN)|4\s*HR)\b/i.test(bezDiakritiky);
 
     if(sestih) rozpoznanyDruh="Šestihran";
     else if(kulatina) rozpoznanyDruh="Kulatina";
     else if(plochac) rozpoznanyDruh="Plochá tyč";
     else if(ctverec) rozpoznanyDruh="Čtyřhran";
 
-    /* Tolerance: h9, h11, H9, k10, f8... */
-    const toleranceMatch = text.match(/\b([a-zA-Z])\s*(\d{1,2})\b/);
-    if(toleranceMatch && /^[a-zA-Z]$/.test(toleranceMatch[1])){
+    /* Tolerance – jen skutečné toleranční značky; +C sem nikdy nepatří. */
+    const toleranceMatch = text.match(/(?:^|[\s,;/()])([a-zA-Z])\s*(\d{1,2})(?=$|[\s,;/()])/);
+    if(toleranceMatch){
         const kandidat = toleranceMatch[1] + toleranceMatch[2];
-        if(/^[a-zA-Z]\d{1,2}$/.test(kandidat)){
+        // Odřízneme falešné C30 apod.; běžné ISO tolerance jsou např. h9, k10, f7.
+        if(/^[a-zA-Z]\d{1,2}$/.test(kandidat) && !/^c\d+$/i.test(kandidat)){
             rozpoznanaTolerance = kandidat;
         }
     }
 
-    /* Stav / provedení držíme odděleně od jakosti. */
+    /* Stav / provedení držíme odděleně od tolerance. */
     const stavy = [];
     const stavRegex = /(?:^|[\s,;/])\+(C|SH|SR|A|N|QT|FP|AR|AT|AC|LC|CR|M)(?=$|[\s,;/])/gi;
     let sm;
@@ -926,14 +933,17 @@ function rozpoznejNazev(){
     if(/\bANNEALED\b/i.test(text)) stavy.push("annealed");
     rozpoznanyStav=[...new Set(stavy)].join(" ");
 
-    /* Rozměr – podporuje české, EN, DE i IT zápisy. */
+    /* Rozměr – explicitní popisky a známé formáty mají přednost. */
     const rozmerVzory = [
-        /\b(?:ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL)?|RONDO|TONDO|KR|RD)\s*(?:MM\.?\s*)?(?:DIA(?:METER)?\.?\s*)?(?:Ø|⌀)?\s*(\d+(?:[.,]\d+)?)/i,
-        /\b(?:HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|6\s*HR)\s*(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i,
-        /\bE\s*(\d+(?:[.,]\d+)?)/i,
+        /\bOK\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,                              // OK22
+        /\b(?:SK|6\s*HR)\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,                 // SK 19,00
+        /\b(?:HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE)\s*(?:E\s*)?(\d+(?:[.,]\d+)?)/i,
+        /\bE\s*(\d+(?:[.,]\d+)?)/i,                                     // E 22
+        /\b(?:ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL|STAB)?|RONDO|TONDO|KR|RD)\s*(?:MM\.?\s*)?(?:DIA(?:METER)?\.?\s*)?(?:Ø|⌀)?\s*(\d+(?:[.,]\d+)?)/i,
+        /\bTY[CČ]\s+KR(?:\s+TA)?\s+(\d+(?:[.,]\d+)?)/i,               // Tyč Kr Ta 30
         /\b(\d+(?:[.,]\d+)?)\s*(?:MM\.?\s*)?SK\b/i,
         /(?:Ø|⌀|DIA(?:METER)?\.?|PR[UŮ]M(?:ĚR)?\.?)\s*(\d+(?:[.,]\d+)?)\s*(?:MM)?/i,
-        /\b(?:SIZE|ABM\.?|MISURA)\s*[:\-]?\s*(?:ROUND\s*)?(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i
+        /\b(?:SIZE|ABM\.?|ABMESSUNG|MISURA|DIMENSIONE)\s*[:\-]?\s*(?:ROUND\s*)?(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i
     ];
 
     let rozmerMatch=null;
@@ -946,25 +956,32 @@ function rozpoznejNazev(){
         if(Number.isFinite(n) && n>0 && n<2000) rozpoznanyRozmer=n;
     }
 
-    /* W.Nr. a ČSN jsou vlastní identifikátory. */
+    /* Záchrana pro řádky typu "11SMN30+C 30,00 h9" – číslo před tolerancí je rozměr. */
+    if(!rozpoznanyRozmer && rozpoznanyDruh){
+        const predToleranci = text.match(/\b(\d{1,4}(?:[.,]\d+)?)\s+(?=[hHkKfFgGmMnNpPrRsStTuUxX]\s*\d{1,2}\b)/);
+        if(predToleranci){
+            const n=Number(predToleranci[1].replace(",","."));
+            if(Number.isFinite(n) && n>0 && n<2000) rozpoznanyRozmer=n;
+        }
+    }
+
     const wnrMatch=text.match(/\b1[.,]\d{4}\b/);
     if(wnrMatch) rozpoznaneEnWnr=wnrMatch[0].replace(",",".");
 
     const csnMatch=text.match(/\b\d{2}\s\d{4}\b/);
     if(csnMatch) rozpoznaneCsn=csnMatch[0].replace(/\s+/g," ");
 
-    /* Chemické / normové označení jakosti – bez +C/+FP atd. */
     const jakostVzory = [
         /\b\d{1,2}\s*SMn(?:Pb)?\s*\d+\b/i,
         /\b\d{1,2}\s*MnCrS\s*\d+\b/i,
-        /\b\d{1,2}\s*CrMo\s*\d+\b/i,
+        /\b\d{1,3}\s*CrMo\s*\d+\b/i,
         /\b\d{1,2}\s*CrNiMo\s*[A-Za-z0-9-]*\b/i,
-        /\bCuZn[A-Za-z0-9+-]*\b/i,
+        /\bCu(?:Zn|Sn|Ni|Cr)[A-Za-z0-9+-]*\b/i,
         /\bX\d+[A-Za-z0-9-]+\b/i,
         /\bS\d{3}[A-Za-z0-9-]*\b/i,
         /\bC\d{2,3}[A-Za-z0-9-]*\b/i,
         /\bEN\s*AW[-\s]?[A-Za-z0-9-]+\b/i,
-        /\b(?:AISI|SAE)\s*[-:]?\s*\d{3,4}[A-Za-z]?\b/i
+        /\b(?:AISI|SAE)\s*[-:]?\s*\d{3,5}[A-Za-z]?\b/i
     ];
 
     let jakostMatch=null;
@@ -978,25 +995,15 @@ function rozpoznejNazev(){
             .replace(/\s+/g,"")
             .trim();
     } else if(rozpoznaneEnWnr){
-        /* Dokud číselník nedodá EN název, zobrazíme bezpečně přečtené W.Nr. */
         rozpoznanaJakost=rozpoznaneEnWnr;
     }
 
-    /* Materiál: explicitní text -> známé označení -> číselník. */
-    if(t.includes("NEREZ") || t.includes("INOX") || t.includes("STAINLESS")){
-        rozpoznanyMaterial="Nerez";
-    }
-    else if(t.includes("HLIN") || t.includes("ALUMIN") || /\bEN\s*AW/i.test(text)){
-        rozpoznanyMaterial="Hliník";
-    }
-    else if(t.includes("MOSAZ") || /\bCUZN/i.test(text) || t.includes("BRASS")){
-        rozpoznanyMaterial="Mosaz";
-    }
+    if(t.includes("NEREZ") || t.includes("INOX") || t.includes("STAINLESS")) rozpoznanyMaterial="Nerez";
+    else if(t.includes("HLIN") || t.includes("ALUMIN") || /\bEN\s*AW/i.test(text)) rozpoznanyMaterial="Hliník";
+    else if(t.includes("MOSAZ") || /\bCUZN/i.test(text) || t.includes("BRASS")) rozpoznanyMaterial="Mosaz";
     else if(t.includes("OCEL") || t.includes("STEEL") || t.includes("STAHL") || t.includes("ACCIAIO") ||
             /\b\d{1,2}\s*SMN(?:PB)?\s*\d+/i.test(t) || /\b\d{1,2}\s*MNCRS\s*\d+/i.test(t) ||
-            /^S\d{3}/i.test(rozpoznanaJakost)){
-        rozpoznanyMaterial="Ocel";
-    }
+            /^S\d{3}/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Ocel";
     else if(/^X\d+/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Nerez";
     else if(/^CUZN/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Mosaz";
     else if(/^ENAW/i.test(rozpoznanaJakost.replace(/[\s-]/g,""))) rozpoznanyMaterial="Hliník";
@@ -1004,7 +1011,6 @@ function rozpoznejNazev(){
     aktualizujNahled();
     prepocitej();
 }
-
 /* =========================================================
    ZÍSKÁNÍ INDICIÍ
 ========================================================= */
@@ -1504,11 +1510,66 @@ async function precistDodakAI(){
 
 
         /* -------------------------
-           LOKÁLNÍ ROZPOZNÁNÍ
+           PARSER 3.0 + PŘÍMÉ HODNOTY OD AI
         ------------------------- */
 
-        rozpoznejNazev();
+        // Lokální parser používá název i raw text jako záchrannou vrstvu.
+        rozpoznejNazev(vysledek.raw_text || "");
 
+        // Jednoznačně přečtené strukturované hodnoty od AI nesmíme zahodit.
+        const conf = vysledek.confidence || {};
+        const dostJiste = (klic, minimum=60) => Number(conf[klic] || 0) >= minimum;
+
+        const normalizujMaterialAI = (hodnota) => {
+            const x = odstranDiakritiku(String(hodnota || "")).toUpperCase();
+            if(!x) return "";
+            if(x.includes("STAINLESS") || x.includes("NEREZ") || x.includes("INOX")) return "Nerez";
+            if(x.includes("ALUMIN") || x.includes("HLIN")) return "Hliník";
+            if(x.includes("BRASS") || x.includes("MOSAZ")) return "Mosaz";
+            if(x.includes("COPPER") || x.includes("MED")) return "Měď";
+            if(x.includes("BRONZ")) return "Bronz";
+            if(x.includes("STEEL") || x.includes("OCEL") || x.includes("STAHL") || x.includes("ACCIAIO")) return "Ocel";
+            return "";
+        };
+
+        const normalizujDruhAI = (hodnota) => {
+            const x = odstranDiakritiku(String(hodnota || "")).toUpperCase();
+            if(/SESTI|HEX|6HR|SECHSKANT|ESAGON/.test(x)) return "Šestihran";
+            if(/KULAT|ROUND|ROD|RUND|TONDO|RONDO/.test(x)) return "Kulatina";
+            if(/CTVER|SQUARE|VIERKANT/.test(x)) return "Čtyřhran";
+            if(/PLOCH|FLAT|FLACH|PIATTO/.test(x)) return "Plochá tyč";
+            return "";
+        };
+
+        if(vysledek.material && dostJiste("material")){
+            const m = normalizujMaterialAI(vysledek.material);
+            if(m) rozpoznanyMaterial = m;
+        }
+        if(vysledek.druh && dostJiste("druh")){
+            const d = normalizujDruhAI(vysledek.druh);
+            if(d) rozpoznanyDruh = d;
+        }
+        if(vysledek.rozmer!==null && vysledek.rozmer!==undefined && dostJiste("rozmer")){
+            const r = Number(vysledek.rozmer);
+            if(Number.isFinite(r) && r>0 && r<2000) rozpoznanyRozmer = r;
+        }
+        if(vysledek.tolerance && dostJiste("tolerance")){
+            const tol = String(vysledek.tolerance).replace(/\s+/g, "");
+            if(/^[a-zA-Z]\d{1,2}$/.test(tol) && !/^c\d+$/i.test(tol)) rozpoznanaTolerance = tol;
+        }
+        if(vysledek.stav && dostJiste("stav")) rozpoznanyStav = vysledek.stav;
+        if(vysledek.csn && dostJiste("csn")) rozpoznaneCsn = vysledek.csn;
+        if(vysledek.en_wnr && dostJiste("en_wnr")) rozpoznaneEnWnr = String(vysledek.en_wnr).replace(",", ".");
+        if(vysledek.jakost && dostJiste("jakost")) rozpoznanaJakost = vysledek.jakost;
+
+        aiDelkaMm = null;
+        if(vysledek.delka_mm!==null && vysledek.delka_mm!==undefined && dostJiste("delka")){
+            const dmm = Number(vysledek.delka_mm);
+            if(Number.isFinite(dmm) && dmm>0) aiDelkaMm = dmm;
+        }
+
+        aktualizujNahled();
+        prepocitej();
 
         /* -------------------------
            INDICIE PŘÍMO OD AI
@@ -1656,77 +1717,65 @@ async function precistDodakAI(){
 
 function prevedDelkuNaMm(text){
 
-    if(!text){
-        return null;
+    if(!text) return aiDelkaMm || null;
+
+    let t = String(text).trim().toLowerCase();
+    if(!t) return aiDelkaMm || null;
+
+    // Dvě alternativní délky (např. 3000/3100) nejsou jedna jednoznačná délka.
+    if(/\d\s*\/\s*\d/.test(t)) return aiDelkaMm || null;
+
+    // Výrobní přídavek/tolerance: pro skladový výpočet používáme základní délku.
+    // 3000 +100, 3000mm (-0/+100mm) => 3000 mm.
+    const zakladSPřidavkem = t.match(/^\s*([\d.,\s]+)\s*(?:mm)?\s*(?:\(|\s)*(?:[-+]?\s*\d+\s*\/\s*)?\+\s*\d+/i);
+    if(zakladSPřidavkem){
+        const mm = parseEvropskeCislo(zakladSPřidavkem[1]);
+        if(mm && mm>0) return mm;
     }
 
+    const jednotkaM = /(?:^|\s)m\s*$/.test(t) && !/mm\s*$/.test(t);
+    const cisloMatch = t.match(/[\d][\d\s.,]*/);
+    if(!cisloMatch) return aiDelkaMm || null;
 
-    let t =
-        String(text)
-        .trim()
-        .toLowerCase()
-        .replace(/\s/g,"");
+    const hodnota = parseEvropskeCislo(cisloMatch[0]);
+    if(!Number.isFinite(hodnota) || hodnota<=0) return aiDelkaMm || null;
 
+    if(jednotkaM) return hodnota*1000;
 
-    if(t.endsWith("mm")){
-
-        const mm =
-            Number(
-                t.slice(0,-2)
-                .replace(",",".")
-            );
-
-        return(
-            Number.isFinite(mm) &&
-            mm>0
-        )
-        ? mm
-        : null;
-
-    }
-
-
-    if(t.endsWith("m")){
-
-        const metry =
-            Number(
-                t.slice(0,-1)
-                .replace(",",".")
-            );
-
-        return(
-            Number.isFinite(metry) &&
-            metry>0
-        )
-        ? metry*1000
-        : null;
-
-    }
-
-
-    const hodnota =
-        Number(
-            t.replace(",",".")
-        );
-
-
-    if(
-        !Number.isFinite(hodnota) ||
-        hodnota<=0
-    ){
-        return null;
-    }
-
-
-    if(hodnota<=20){
-        return hodnota*1000;
-    }
-
+    // Bez jednotky malé hodnoty chápeme jako metry stejně jako dosud.
+    if(!/mm/i.test(t) && hodnota<=20) return hodnota*1000;
 
     return hodnota;
-
 }
 
+function parseEvropskeCislo(text){
+    let x = String(text || "").trim().replace(/\s+/g, "");
+    if(!x) return null;
+
+    const posledniTecka = x.lastIndexOf(".");
+    const posledniCarka = x.lastIndexOf(",");
+
+    if(posledniTecka>=0 && posledniCarka>=0){
+        // 3.050,00 nebo 3,050.00 – poslední oddělovač je desetinný.
+        const decimal = posledniTecka > posledniCarka ? "." : ",";
+        const thousands = decimal === "." ? "," : ".";
+        x = x.split(thousands).join("");
+        if(decimal === ",") x = x.replace(",", ".");
+    }
+    else if(posledniCarka>=0){
+        const casti=x.split(",");
+        if(casti.length===2 && casti[1].length===3 && casti[0].length<=3) x=casti.join("");
+        else x=x.replace(",", ".");
+    }
+    else if(posledniTecka>=0){
+        const casti=x.split(".");
+        if(casti.length===2 && casti[1].length===3 && casti[0].length<=3) x=casti.join("");
+        else if(casti.length>2) x=casti.join("");
+    }
+
+    const n=Number(x);
+    return Number.isFinite(n) ? n : null;
+}
 
 /* =========================================================
    PRŮŘEZ
