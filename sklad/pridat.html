@@ -174,6 +174,21 @@ input:focus{
     margin-top:5px;
 }
 
+.pocet-edit{
+    margin-top:10px;
+}
+
+.pocet-edit label{
+    margin-top:8px;
+}
+
+.odhad-info{
+    margin-top:6px;
+    font-size:14px;
+    color:#666;
+    line-height:1.4;
+}
+
 button{
     width:100%;
     padding:18px;
@@ -524,12 +539,12 @@ Délka jedné tyče *
     type="text"
     inputmode="decimal"
     id="delka"
-    placeholder="např. 3m nebo 3026mm"
-    oninput="prepocitej()"
+    placeholder="např. 3m, 3026mm nebo 3000 +100"
+    oninput="zmenaVypoctu()"
 >
 
 <div class="napoveda">
-Můžeš napsat 3m, 3,005m, 3000mm nebo 3026mm.
+Můžeš napsat 3m, 3,005m, 3000mm, 3026mm nebo 3000 +100.
 </div>
 
 
@@ -542,7 +557,7 @@ Celková hmotnost (kg) *
     inputmode="decimal"
     id="hmotnost"
     placeholder="např. 1836"
-    oninput="prepocitej()"
+    oninput="zmenaVypoctu()"
 >
 
 
@@ -583,6 +598,24 @@ Počet kusů:
     class="pocet-vysledek"
 >
 —
+</div>
+
+<div id="odhadInfo" class="odhad-info"></div>
+
+<div class="pocet-edit">
+<label for="pocetKusu">Skutečný počet kusů *</label>
+<input
+    type="number"
+    inputmode="numeric"
+    id="pocetKusu"
+    min="1"
+    step="1"
+    placeholder="Doplň nebo oprav podle dodacího listu"
+    oninput="pocetRucneUpraven=true"
+>
+<div class="napoveda">
+Výpočet je pomůcka. Pokud zjistíš skutečný počet z dodacího listu, přepiš ho sem. U délky s tolerancí, např. 3000 +100, se zobrazuje pouze odhad.
+</div>
 </div>
 
 </div>
@@ -652,6 +685,7 @@ let nalezeneAliasyRozpoznani = "";
 let hustotaZCiselniku = null;
 
 let vypocitanyPocet = null;
+let pocetRucneUpraven = false;
 
 // Jednoznačná délka vrácená AI; používá se jako bezpečná záloha pro výpočet.
 let aiDelkaMm = null;
@@ -859,6 +893,7 @@ let casovacNazvu=null;
 
 function zmenaNazvu(){
 
+    pocetRucneUpraven=false;
     rozpoznejNazev();
 
     clearTimeout(casovacNazvu);
@@ -1712,6 +1747,33 @@ async function precistDodakAI(){
 
 
 /* =========================================================
+   ZMĚNA VSTUPŮ VÝPOČTU
+========================================================= */
+
+function zmenaVypoctu(){
+    pocetRucneUpraven=false;
+    prepocitej();
+}
+
+function rozsahDelkyZTextu(text){
+    if(!text) return null;
+
+    const t=String(text).trim().toLowerCase();
+
+    // Délková tolerance typu 3000 +100 / 3000mm +100.
+    // Neříká skutečnou délku; pouze rozsah 3000 až 3100 mm.
+    const m=t.match(/^\s*([\d.,\s]+)\s*(?:mm)?\s*(?:\(|\s)*\+\s*([\d.,\s]+)\s*(?:mm)?/i);
+    if(!m) return null;
+
+    const zaklad=parseEvropskeCislo(m[1]);
+    const plus=parseEvropskeCislo(m[2]);
+
+    if(!Number.isFinite(zaklad) || zaklad<=0 || !Number.isFinite(plus) || plus<=0) return null;
+
+    return {minMm:zaklad,maxMm:zaklad+plus,zakladMm:zaklad,plusMm:plus};
+}
+
+/* =========================================================
    DÉLKA
 ========================================================= */
 
@@ -1865,125 +1927,80 @@ function prepocitej(){
 
     vypocitanyPocet=null;
 
+    const delkaText=document.getElementById("delka").value;
+    const rozsah=rozsahDelkyZTextu(delkaText);
+    const delka=prevedDelkuNaMm(delkaText);
+    const hmotnost=cisloZTextu(document.getElementById("hmotnost").value);
 
-    const delka =
-        prevedDelkuNaMm(
-            document
-            .getElementById("delka")
-            .value
-        );
+    document.getElementById("vypocetDelka").innerText = rozsah
+        ? rozsah.minMm.toLocaleString("cs-CZ")+"–"+rozsah.maxMm.toLocaleString("cs-CZ")+" mm"
+        : (delka ? delka.toLocaleString("cs-CZ")+" mm" : "—");
 
+    document.getElementById("vypocetRozmer").innerText =
+        rozpoznanyRozmer ? rozpoznanyRozmer+" mm" : "—";
 
-    const hmotnost =
-        cisloZTextu(
-            document
-            .getElementById("hmotnost")
-            .value
-        );
+    const hustota=hustotaZCiselniku || hustoty[rozpoznanyMaterial];
+    document.getElementById("vypocetHustota").innerText =
+        hustota ? hustota+" kg/m³" : "—";
 
+    const vahaEl=document.getElementById("vahaJedneTyce");
+    const pocetEl=document.getElementById("automatickyPocet");
+    const infoEl=document.getElementById("odhadInfo");
+    const pocetInput=document.getElementById("pocetKusu");
 
-    document
-    .getElementById("vypocetDelka")
-    .innerText =
-    delka
-    ? delka.toLocaleString("cs-CZ")+" mm"
-    : "—";
-
-
-    document
-    .getElementById("vypocetRozmer")
-    .innerText =
-    rozpoznanyRozmer
-    ? rozpoznanyRozmer+" mm"
-    : "—";
-
-
-    const hustota =
-        hustotaZCiselniku ||
-        hustoty[
-            rozpoznanyMaterial
-        ];
-
-
-    document
-    .getElementById("vypocetHustota")
-    .innerText =
-    hustota
-    ? hustota+" kg/m³"
-    : "—";
-
-
-    if(
-        !rozpoznanyDruh ||
-        !rozpoznanyRozmer ||
-        !delka ||
-        !hmotnost ||
-        !hustota
-    ){
-
-        document
-        .getElementById("vahaJedneTyce")
-        .innerText="—";
-
-        document
-        .getElementById("automatickyPocet")
-        .innerText="—";
-
+    if(!rozpoznanyDruh || !rozpoznanyRozmer || !delka || !hmotnost || !hustota){
+        vahaEl.innerText="—";
+        pocetEl.innerText="—";
+        infoEl.innerText="";
+        if(!pocetRucneUpraven) pocetInput.value="";
         return;
-
     }
 
+    if(rozsah){
+        const vahaMin=hmotnostTyce(rozpoznanyDruh,rozpoznanyRozmer,rozsah.minMm,hustota);
+        const vahaMax=hmotnostTyce(rozpoznanyDruh,rozpoznanyRozmer,rozsah.maxMm,hustota);
 
-    const vaha =
-        hmotnostTyce(
-            rozpoznanyDruh,
-            rozpoznanyRozmer,
-            delka,
-            hustota
-        );
+        if(!vahaMin || !vahaMax || vahaMin<=0 || vahaMax<=0){
+            vahaEl.innerText="—";
+            pocetEl.innerText="—";
+            infoEl.innerText="";
+            if(!pocetRucneUpraven) pocetInput.value="";
+            return;
+        }
 
+        const kusuPriMinDelce=Math.round(hmotnost/vahaMin);
+        const kusuPriMaxDelce=Math.round(hmotnost/vahaMax);
+        const minKusu=Math.min(kusuPriMinDelce,kusuPriMaxDelce);
+        const maxKusu=Math.max(kusuPriMinDelce,kusuPriMaxDelce);
+        const stredMm=(rozsah.minMm+rozsah.maxMm)/2;
+        const vahaStred=hmotnostTyce(rozpoznanyDruh,rozpoznanyRozmer,stredMm,hustota);
+        const navrh=Math.max(1,Math.round(hmotnost/vahaStred));
 
-    if(
-        !vaha ||
-        vaha<=0
-    ){
+        vahaEl.innerText = vahaMin.toFixed(3).replace(".",",")+"–"+vahaMax.toFixed(3).replace(".",",")+" kg";
+        pocetEl.innerText = minKusu===maxKusu ? "≈ "+minKusu+" ks" : "≈ "+minKusu+"–"+maxKusu+" ks";
+        infoEl.innerText = "Odhad podle délky "+rozsah.minMm.toLocaleString("cs-CZ")+"–"+rozsah.maxMm.toLocaleString("cs-CZ")+" mm. Skutečný počet ověř podle dodacího listu.";
 
-        document
-        .getElementById("vahaJedneTyce")
-        .innerText="—";
-
-        document
-        .getElementById("automatickyPocet")
-        .innerText="—";
-
+        vypocitanyPocet=navrh;
+        if(!pocetRucneUpraven) pocetInput.value=String(navrh);
         return;
-
     }
 
+    const vaha=hmotnostTyce(rozpoznanyDruh,rozpoznanyRozmer,delka,hustota);
+    if(!vaha || vaha<=0){
+        vahaEl.innerText="—";
+        pocetEl.innerText="—";
+        infoEl.innerText="";
+        if(!pocetRucneUpraven) pocetInput.value="";
+        return;
+    }
 
-    vypocitanyPocet =
-        Math.round(
-            hmotnost /
-            vaha
-        );
-
-
-    document
-    .getElementById("vahaJedneTyce")
-    .innerText =
-    vaha
-    .toFixed(3)
-    .replace(".",",")+
-    " kg";
-
-
-    document
-    .getElementById("automatickyPocet")
-    .innerText =
-    vypocitanyPocet+
-    " ks";
-
+    vypocitanyPocet=Math.round(hmotnost/vaha);
+    vahaEl.innerText=vaha.toFixed(3).replace(".",",")+" kg";
+    pocetEl.innerText=vypocitanyPocet+" ks";
+    infoEl.innerText="";
+    if(!pocetRucneUpraven) pocetInput.value=String(vypocitanyPocet);
 }
+
 
 
 /* =========================================================
@@ -2053,6 +2070,8 @@ async function ulozitPrijem(){
 
 
     prepocitej();
+
+    const skutecnyPocet = Number(document.getElementById("pocetKusu").value);
 
 
     if(!nazev){
@@ -2125,15 +2144,10 @@ async function ulozitPrijem(){
     }
 
 
-    if(
-        !Number.isInteger(
-            vypocitanyPocet
-        ) ||
-        vypocitanyPocet<=0
-    ){
+    if(!Number.isInteger(skutecnyPocet) || skutecnyPocet<=0){
 
         nastavZpravu(
-            "Nepodařilo se vypočítat počet kusů.",
+            "Vyplň skutečný počet kusů. Výpočet je pouze pomůcka a můžeš ho upravit podle dodacího listu.",
             "chyba"
         );
 
@@ -2199,7 +2213,7 @@ async function ulozitPrijem(){
                         hmotnost,
 
                     p_pocet:
-                        vypocitanyPocet,
+                        skutecnyPocet,
 
                     p_cislo_dodaciho_listu:
                         cisloDodaku || null,
@@ -2244,6 +2258,12 @@ async function ulozitPrijem(){
         document
         .getElementById("hmotnost")
         .value="";
+
+        document
+        .getElementById("pocetKusu")
+        .value="";
+
+        pocetRucneUpraven=false;
 
 
         rozpoznanyMaterial="";
