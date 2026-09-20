@@ -1760,9 +1760,19 @@ function rozsahDelkyZTextu(text){
 
     const t=String(text).trim().toLowerCase();
 
-    // Délková tolerance typu 3000 +100 / 3000mm +100.
-    // Neříká skutečnou délku; pouze rozsah 3000 až 3100 mm.
-    const m=t.match(/^\s*([\d.,\s]+)\s*(?:mm)?\s*(?:\(|\s)*\+\s*([\d.,\s]+)\s*(?:mm)?/i);
+    // Délková tolerance / přídavek:
+    // 3000 +100, 3000+100 mm, 3000 mm + 100, 3000 (-0/+100), 3000mm (-0/+100mm)
+    // znamená rozsah skutečné délky 3000 až 3100 mm.
+    const vzory=[
+        /^\s*(\d+(?:[.,]\d+)?)\s*(?:mm)?\s*\+\s*(\d+(?:[.,]\d+)?)\s*(?:mm)?\s*$/i,
+        /^\s*(\d+(?:[.,]\d+)?)\s*(?:mm)?\s*\(?(?:-\s*0\s*\/\s*)?\+\s*(\d+(?:[.,]\d+)?)\s*(?:mm)?\)?\s*$/i
+    ];
+
+    let m=null;
+    for(const vzor of vzory){
+        m=t.match(vzor);
+        if(m) break;
+    }
     if(!m) return null;
 
     const zaklad=parseEvropskeCislo(m[1]);
@@ -1770,7 +1780,12 @@ function rozsahDelkyZTextu(text){
 
     if(!Number.isFinite(zaklad) || zaklad<=0 || !Number.isFinite(plus) || plus<=0) return null;
 
-    return {minMm:zaklad,maxMm:zaklad+plus,zakladMm:zaklad,plusMm:plus};
+    return {
+        minMm:zaklad,
+        maxMm:zaklad+plus,
+        zakladMm:zaklad,
+        plusMm:plus
+    };
 }
 
 /* =========================================================
