@@ -478,23 +478,62 @@
                 return "";
             }
 
+            const textDatum =
+                String(datum).trim();
 
-            const casti =
-                datum.split("-");
+            /*
+                Supabase může vrátit:
+                2026-09-20
+                2026-09-20T12:34:56...
+                případně jiný řetězec data.
 
+                Nejdřív bezpečně přečteme YYYY-MM-DD.
+                Tím nevznikne NaN ani v případě času za datem.
+            */
+            const shoda =
+                textDatum.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
 
-            if (casti.length !== 3) {
-                return datum;
+            if (shoda) {
+
+                const rok = Number(shoda[1]);
+                const mesic = Number(shoda[2]);
+                const den = Number(shoda[3]);
+
+                if (
+                    Number.isInteger(rok) &&
+                    Number.isInteger(mesic) &&
+                    Number.isInteger(den) &&
+                    mesic >= 1 &&
+                    mesic <= 12 &&
+                    den >= 1 &&
+                    den <= 31
+                ) {
+                    return den + ". " + mesic + ". " + rok;
+                }
             }
 
+            /*
+                Záložní varianta pro jiné validní datumové formáty.
+            */
+            const parsed =
+                new Date(textDatum);
 
-            return (
-                Number(casti[2]) +
-                ". " +
-                Number(casti[1]) +
-                ". " +
-                casti[0]
-            );
+            if (!Number.isNaN(parsed.getTime())) {
+
+                return (
+                    parsed.getDate() +
+                    ". " +
+                    (parsed.getMonth() + 1) +
+                    ". " +
+                    parsed.getFullYear()
+                );
+            }
+
+            /*
+                Když datum nejde bezpečně rozpoznat,
+                zobrazíme původní hodnotu místo "NaN".
+            */
+            return textDatum;
         }
 
 
