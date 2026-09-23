@@ -332,6 +332,12 @@ button:disabled{
 .ai-polozka-radek strong{display:inline-block;min-width:110px}
 .ai-polozka-prvni{border-color:#2e8b57;background:#f5fff7}
 .ai-polozka-info{font-size:13px;color:#666;margin-top:8px}.ai-polozka-ulozena{border-color:#1b8f3a;background:#eefaf1;opacity:.88}.ai-polozka-ulozena .ai-polozka-nadpis{color:#1b8f3a}
+
+/* Informační ikona u pole Tavba */
+.label-s-info{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.info-tavba{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1.5px solid #6b7280;border-radius:50%;font-size:12px;font-weight:700;color:#4b5563;cursor:help;flex:0 0 auto;user-select:none;}
+.info-tavba .info-bublina{visibility:hidden;opacity:0;position:absolute;right:0;bottom:calc(100% + 8px);width:245px;padding:9px 11px;background:#222;color:#fff;border-radius:7px;font-size:12px;font-weight:400;line-height:1.35;z-index:100;box-shadow:0 3px 10px rgba(0,0,0,.22);transition:opacity .15s;}
+.info-tavba:hover .info-bublina,.info-tavba:focus .info-bublina,.info-tavba:focus-within .info-bublina{visibility:visible;opacity:1;}
 </style>
 </head>
 
@@ -473,7 +479,7 @@ nebo dodacím listu.
      DALŠÍ ÚDAJE
 ========================= -->
 
-<label for="tavba">Tavba *</label>
+<label for="tavba" class="label-s-info"><span>Tavba *</span><span class="info-tavba" tabindex="0" aria-label="Informace k tavbě">i<span class="info-bublina">Pokud není tavba uvedena na dodacím listu, opište ji ze štítku materiálu.</span></span></label>
 <input type="text" id="tavba" placeholder="např. X40809" autocomplete="off" required oninput="aktualizujAktivniPolozkuZFormulare()">
 <div class="napoveda">Povinné. Pokud tavba není na dodacím listu, zjisti ji ze štítku materiálu a doplň ručně.</div>
 
@@ -1575,6 +1581,31 @@ function aktualizujAktivniPolozkuZFormulare(){
     }
 }
 
+// ALMIO / obecně dodací listy: explicitně vytištěný počet typu "51ks" má
+// absolutní přednost před počtem dopočítaným z hmotnosti.
+// Čteme pouze zápis s jednotkou ks, takže se nemůže splést s kg, rozměrem ani tavbou.
+function najdiExplicitniPocetKusu(p){
+    const zdroje = [
+        p?.raw_text,
+        p?.nazev,
+        p?.nazev_materialu,
+        p?.popis,
+        p?.oznaceni,
+        p?.rozmer_text,
+        p?.delka_text
+    ].filter(v => v !== null && v !== undefined && String(v).trim() !== "");
+
+    for(const zdroj of zdroje){
+        const text = String(zdroj);
+        const shody = [...text.matchAll(/(?:^|[\s\/|,;])([1-9]\d{0,5})\s*(?:ks|kus(?:y|ů)?)\b/gi)];
+        if(shody.length){
+            const n = Number(shody[shody.length-1][1]);
+            if(Number.isInteger(n) && n > 0) return n;
+        }
+    }
+    return null;
+}
+
 function vykresliAIPolozky(vysledek){
     const box=document.getElementById("aiPolozkyBox");
     const seznam=document.getElementById("aiPolozkySeznam");
@@ -1585,6 +1616,18 @@ function vykresliAIPolozky(vysledek){
     // má tento údaj přednost před chybným rozmerem vráceným AI (např. 11 z 11SMnPb30).
     // Saháme pouze na rozmer/rozmer_mm; ostatní načtená data zůstávají beze změny.
     for(const p of polozky){
+        // V8: pokud je na dodáku přímo napsáno např. 51ks / 52ks / 9ks,
+        // přepíšeme případný AI odhad a označíme hodnotu jako přesnou.
+        const explicitniPocet = najdiExplicitniPocetKusu(p);
+        if(Number.isInteger(explicitniPocet) && explicitniPocet > 0){
+            p.pocet = explicitniPocet;
+            p.pocet_kusu = explicitniPocet;
+            p.kusy = explicitniPocet;
+            p.pocet_min = explicitniPocet;
+            p.pocet_max = explicitniPocet;
+            p.pocet_presny = true;
+        }
+
         const nazevProRozmer = String(hodnotaPolozky(p,"nazev","nazev_materialu","popis") || "");
         const m = nazevProRozmer.match(/(?:pr[ůu]m(?:ěr)?\.?|Ø|⌀)\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i);
         if(m){
@@ -2908,7 +2951,7 @@ async function ulozitPrijem(){
    START
 ========================================================= */
 
-console.log("PRIDAT BUILD: ASYNC-RACE-V7");
+console.log("PRIDAT BUILD: ALMIO-EXACT-COUNT-V8");
 zkontrolujPrihlaseni();
 
 </script>
