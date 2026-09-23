@@ -366,8 +366,8 @@ button:disabled{
 ========================= -->
 
 <div class="foto-box">
-<h3>📷 Vyfotit štítek / dodací list</h3>
-<p>Vyfoť štítek zblízka tak, aby byl co nejčitelnější.</p>
+<h3>📷 Vyfotit dodací list</h3>
+<p>Vyfoť dodací list zblízka tak, aby byl co nejčitelnější.</p>
 <input id="fotoInput" type="file" accept="image/*" capture="environment" hidden>
 <button type="button" class="foto-tlacitko" onclick="otevriFotoaparat()">📷 PŘIDAT FOTKU</button>
 <div id="fotoNahledObal">
@@ -392,9 +392,7 @@ button:disabled{
      NÁZEV
 ========================= -->
 
-<label for="nazev">
-Název materiálu *
-</label>
+<label for="nazev" class="label-s-info"><span>Název materiálu *</span><span class="info-tavba" tabindex="0" aria-label="Informace k názvu materiálu">i<span class="info-bublina">Název ponecháváme celý tak, jak je uvedený na dodacím listu.</span></span></label>
 
 <input
     type="text"
@@ -405,10 +403,6 @@ Název materiálu *
     oninput="zmenaNazvu()"
 >
 
-<div class="napoveda">
-Název ponecháváme celý tak, jak je uvedený na štítku
-nebo dodacím listu.
-</div>
 
 
 <!-- =========================
@@ -481,7 +475,7 @@ nebo dodacím listu.
 
 <label for="tavba" class="label-s-info"><span>Tavba *</span><span class="info-tavba" tabindex="0" aria-label="Informace k tavbě">i<span class="info-bublina">Pokud není tavba uvedena na dodacím listu, opište ji ze štítku materiálu.</span></span></label>
 <input type="text" id="tavba" placeholder="např. X40809" autocomplete="off" required oninput="aktualizujAktivniPolozkuZFormulare()">
-<div class="napoveda">Povinné. Pokud tavba není na dodacím listu, zjisti ji ze štítku materiálu a doplň ručně.</div>
+<div class="napoveda"></div>
 
 <label for="cisloDodaku">Číslo dodacího listu *</label>
 
@@ -507,7 +501,7 @@ Délka jedné tyče *
 >
 
 <div class="napoveda">
-Můžeš napsat 3m, 3,005m, 3000mm, 3026mm nebo 3000 +100.
+
 </div>
 
 
