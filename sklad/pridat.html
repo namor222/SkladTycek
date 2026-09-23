@@ -1694,7 +1694,15 @@ async function nactiAIPolozku(index){
 
     pocetRucneUpraven=false;
     pocetPredvyplnenyOdhad=false;
+
+    // Parser může použít název/raw_text jako pomocnou vrstvu, ale nesmí
+    // přepsat jednoznačný rozměr konkrétní strukturované AI položky
+    // (např. 7/8/15/18/10 mm číslem 11 z jakosti 11SMn30).
+    const aiRozmerKliknutePolozky = Number(hodnotaPolozky(p,"rozmer","rozmer_mm"));
     rozpoznejNazev(p.raw_text || "");
+    if(Number.isFinite(aiRozmerKliknutePolozky) && aiRozmerKliknutePolozky>0 && aiRozmerKliknutePolozky<2000){
+        rozpoznanyRozmer = aiRozmerKliknutePolozky;
+    }
 
     const normMat=(x)=>{x=odstranDiakritiku(String(x||"")).toUpperCase();if(x.includes("STAINLESS")||x.includes("NEREZ")||x.includes("INOX"))return "Nerez";if(x.includes("ALUMIN")||x.includes("HLIN"))return "Hliník";if(x.includes("BRASS")||x.includes("MOSAZ"))return "Mosaz";if(x.includes("COPPER")||x.includes("MED"))return "Měď";if(x.includes("BRONZ"))return "Bronz";if(x.includes("STEEL")||x.includes("OCEL")||x.includes("STAHL")||x.includes("ACCIAIO"))return "Ocel";return ""};
     const normDruh=(x)=>{x=odstranDiakritiku(String(x||"")).toUpperCase();if(/SESTI|HEX|6HR|SECHSKANT|ESAGON/.test(x))return "Šestihran";if(/KULAT|ROUND|ROD|RUND|TONDO|RONDO/.test(x))return "Kulatina";if(/CTVER|SQUARE|VIERKANT/.test(x))return "Čtyřhran";if(/PLOCH|FLAT|FLACH|PIATTO/.test(x))return "Plochá tyč";return ""};
