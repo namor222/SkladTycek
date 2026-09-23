@@ -652,6 +652,7 @@ let aiDelkaMm = null;
 
 let fotkyDokumentu = [];
 let aiNalezenePolozky = [];
+let aiNacitaniGenerace = 0; // V7: ruší zastaralé async načítání po přepnutí položky
 let aiCisloDodaku = "";
 let aiVybranaPolozkaIndex = 0;
 let aiUlozenePolozky = new Set();
@@ -1033,10 +1034,26 @@ function rozpoznejNazev(doplnkovyText=""){
     ];
 
     let jakostMatch=null;
+
+    // Nejdřív hledej jakost přímo v názvu položky.
+    // raw_text může obsahovat tavbu typu X40809/X40810, která jinak odpovídá
+    // obecnému vzoru X... pro nerezovou jakost a přepíše správnou jakost z názvu.
     for(const vzor of jakostVzory){
-        jakostMatch=text.match(vzor);
+        jakostMatch=nazev.match(vzor);
         if(jakostMatch) break;
     }
+
+    // Teprve když název žádnou jakost neobsahuje, použij celý OCR/raw text.
+    if(!jakostMatch){
+        const aktualniTavba = String(document.getElementById("tavba")?.value || "").trim().toUpperCase();
+
+        for(const vzor of jakostVzory){
+            const kandidati = [...text.matchAll(new RegExp(vzor.source, vzor.flags.includes("g") ? vzor.flags : vzor.flags + "g"))];
+            jakostMatch = kandidati.find(m => String(m[0] || "").trim().toUpperCase() !== aktualniTavba) || null;
+            if(jakostMatch) break;
+        }
+    }
+
     if(jakostMatch){
         rozpoznanaJakost=jakostMatch[0]
             .replace(/^(?:AISI|SAE)\s*[-:]?\s*/i,"")
@@ -1123,7 +1140,8 @@ function vytvorIndicie(){
    OVĚŘENÍ PŘES ČÍSELNÍK
 ========================================================= */
 
-async function overMaterialCiselnikem(extraIndicie=[]){
+async function overMaterialCiselnikem(extraIndicie=[], ocekavanaGenerace=null){
+    const jeZastarale = () => ocekavanaGenerace !== null && ocekavanaGenerace !== aiNacitaniGenerace;
 
     let indicie = vytvorIndicie();
 
@@ -1147,38 +1165,100 @@ async function overMaterialCiselnikem(extraIndicie=[]){
     }
 
     /*
-       Novy scanner neposila pole indicii do stare funkce.
-       Posleme mu jeden text. Kazda indicie je na samostatnem radku,
-       aby funkce skener_jakost mohla pouzit aliasy, priority,
-       skore, jistotu i detekci konfliktu.
+       DŮLEŽITÉ:
+       Nejdřív ověříme nejsilnější indicii samostatně – jakost, kterou
+       AI přečetla přímo z položky. To je nutné např. pro "C45E/C45".
+       Kdybychom ji hned smíchali se slovy z celého názvu, pomocné
+       kandidáty mohou změnit skóre / vyvolat konflikt a materiál se
+       pak nedoplní, i když samotná jakost je v číselníku známá.
     */
-    const textProSkener = indicie.join("\n");
+    const silneIndicie = [];
 
-    const {data,error} =
-        await supabaseClient.rpc(
-            "skener_jakost",
-            {
-                vstupni_text:textProSkener
+    /*
+       Nejdřív vždy přesná jakost z právě vybrané položky.
+       U zápisů s lomítkem přidáme i jednotlivé části jako záložní pokusy.
+       Příklad: C45E/C45 -> nejdřív "C45E/C45", potom "C45E", potom "C45".
+       To je důležité, protože C45 je v číselníku jednoznačně OCEL.
+    */
+    function pridejSilnouIndicii(hodnota){
+        const v=String(hodnota || "").trim();
+        if(!v) return;
+
+        if(!silneIndicie.includes(v)) silneIndicie.push(v);
+
+        if(v.includes("/")){
+            for(const cast of v.split("/")){
+                const c=String(cast || "").trim();
+                if(c && !silneIndicie.includes(c)) silneIndicie.push(c);
             }
+        }
+    }
+
+    if(rozpoznanaJakost){
+        pridejSilnouIndicii(rozpoznanaJakost);
+    }
+
+    if(Array.isArray(extraIndicie)){
+        for(const x of extraIndicie){
+            pridejSilnouIndicii(x);
+        }
+    }
+
+    async function zavolejSkener(text){
+        const {data,error} = await supabaseClient.rpc(
+            "skener_jakost",
+            { vstupni_text:text }
         );
 
-    if(error){
-        console.error("Chyba skener_jakost:", error);
+        if(error){
+            console.error("Chyba skener_jakost:", error);
+            return {vysledek:null,error};
+        }
 
+        if(!Array.isArray(data) || data.length===0){
+            return {vysledek:null,error:null};
+        }
+
+        return {vysledek:data[0],error:null};
+    }
+
+    let vysledek = null;
+
+    // 1) Nejprve zkoušíme silné indicie jednu po druhé.
+    for(const silna of silneIndicie){
+        const pokus = await zavolejSkener(silna);
+        if(jeZastarale()) return null;
+        if(pokus.error) continue;
+
+        const r=pokus.vysledek;
+        if(r && r.nalezeno===true && r.stav!=="NENALEZENO" && r.stav!=="KONFLIKT"){
+            vysledek=r;
+            break;
+        }
+    }
+
+    // 2) Když samotná jakost nestačí, použijeme původní kombinovaný text.
+    if(!vysledek){
+        const textProSkener = indicie.join("\n");
+        const pokus = await zavolejSkener(textProSkener);
+        if(jeZastarale()) return null;
+
+        if(pokus.error){
+            resetujOvereniMaterialu();
+            aktualizujNahled();
+            prepocitej();
+            return null;
+        }
+
+        vysledek=pokus.vysledek;
+    }
+
+    if(!vysledek){
         resetujOvereniMaterialu();
         aktualizujNahled();
         prepocitej();
         return null;
     }
-
-    if(!Array.isArray(data) || data.length===0){
-        resetujOvereniMaterialu();
-        aktualizujNahled();
-        prepocitej();
-        return null;
-    }
-
-    const vysledek = data[0];
 
     /* NENALEZENO = nic automaticky neprepisujeme. */
     if(vysledek.nalezeno!==true || vysledek.stav==="NENALEZENO"){
@@ -1196,7 +1276,14 @@ async function overMaterialCiselnikem(extraIndicie=[]){
     /* Nova funkce zatim nevraci CSN. Nechame prazdne. */
     rozpoznaneCsn = "";
 
-    if(vysledek.jakost){
+    /*
+       Původní text jakosti z dodacího listu zachováme ve formuláři.
+       Kanonickou jakost z číselníku použijeme jen tehdy, když formulář
+       žádnou jakost nemá. Tím např. C45E/C45 zůstane viditelné tak,
+       jak bylo skutečně na dodacím listu, ale číselník jej může interně
+       rozpoznat jako C45.
+    */
+    if(!rozpoznanaJakost && vysledek.jakost){
         rozpoznanaJakost = vysledek.jakost;
     }
 
@@ -1211,9 +1298,52 @@ async function overMaterialCiselnikem(extraIndicie=[]){
         "BRONZ":"Bronz"
     };
 
-    if(vysledek.kategorie && materialPodleKategorie[vysledek.kategorie]){
-        rozpoznanyMaterial = materialPodleKategorie[vysledek.kategorie];
+    /*
+       Kategorie může přijít s jinou velikostí písmen nebo mezerami.
+       Proto ji před mapováním sjednotíme.
+    */
+    
+    // V4: Pro určení základního MATERIÁLU je rozhodující jednoznačný úspěšný výsledek číselníku.
+    // Jistota OVERIT znamená "ověřit jakost", nikoli "zahodit známou kategorii materiálu".
+    // Příklad: C45E/C45 -> nalezeno=true, stav=OK, kategorie=OCEL, jistota=OVERIT.
+    if (
+        vysledek &&
+        vysledek.nalezeno === true &&
+        String(vysledek.stav || "").trim().toUpperCase() === "OK" &&
+        String(vysledek.kategorie || "").trim()
+    ) {
+        const kat = String(vysledek.kategorie).trim().toUpperCase();
+        const mapaMaterialuV4 = {
+            "OCEL": "Ocel",
+            "OCEL AUTOMATOVA": "Ocel",
+            "NEREZ": "Nerez",
+            "HLINIK": "Hliník",
+            "MOSAZ": "Mosaz",
+            "MED": "Měď",
+            "BRONZ": "Bronz"
+        };
+        if (mapaMaterialuV4[kat]) {
+            rozpoznanyMaterial = mapaMaterialuV4[kat];
+        }
     }
+
+    const kategorieNormalizovana =
+        String(vysledek.kategorie || "")
+        .trim()
+        .toUpperCase();
+
+    if(kategorieNormalizovana && materialPodleKategorie[kategorieNormalizovana]){
+        rozpoznanyMaterial = materialPodleKategorie[kategorieNormalizovana];
+    }
+
+    console.log("Číselník – vybraná položka:", {
+        vstupniJakost: rozpoznanaJakost,
+        vysledekJakost: vysledek.jakost || "",
+        kategorie: vysledek.kategorie || "",
+        material: rozpoznanyMaterial || "",
+        stav: vysledek.stav || "",
+        jistota: vysledek.jistota || ""
+    });
 
     jistotaMaterialu = vysledek.jistota || "";
     stavRozpoznani = vysledek.stav || "";
@@ -1225,6 +1355,8 @@ async function overMaterialCiselnikem(extraIndicie=[]){
         ? null
         : Number(vysledek.druhe_skore);
     nalezeneAliasyRozpoznani = vysledek.nalezene_aliasy || "";
+
+    if(jeZastarale()) return null;
 
     aktualizujNahled();
     prepocitej();
@@ -1514,6 +1646,26 @@ function aktualizujUkladaciTlacitko(){
 
 
 async function nactiAIPolozku(index){
+    const mojeGenerace = ++aiNacitaniGenerace;
+    console.log("V7 KLIK POLOZKA:", {index, generace:mojeGenerace, puvodniJakost: aiNalezenePolozky[index]?.jakost || ""});
+    // V6: aktivní položka MUSÍ odpovídat kartě, na kterou uživatel klikl.
+    // Dříve se RPC opakovaně volalo s jakostí první položky.
+    // Nejprve zkusíme určit index přímo z argumentu funkce.
+    let __v6Index = null;
+    try {
+        const __args = Array.from(arguments);
+        for (const __a of __args) {
+            if (Number.isInteger(__a) && __a >= 0 && Array.isArray(aiNalezenePolozky) && __a < aiNalezenePolozky.length) {
+                __v6Index = __a;
+                break;
+            }
+        }
+    } catch (_) {}
+
+    if (__v6Index !== null && Array.isArray(aiNalezenePolozky) && aiNalezenePolozky[__v6Index]) {
+        aktivniAIPolozka = __v6Index;
+    }
+
     const p=aiNalezenePolozky[index];
     if(!p) return;
 
@@ -1578,11 +1730,81 @@ async function nactiAIPolozku(index){
     }
 
     const indicie=[p.jakost,p.csn,p.en_wnr,p.wnr,p.materialove_cislo].filter(Boolean);
-    await overMaterialCiselnikem(indicie);
+    await overMaterialCiselnikem(indicie, mojeGenerace);
+    if(mojeGenerace !== aiNacitaniGenerace) return;
     prepocitej();
 
     // DŮLEŽITÉ: parser/číselník mohl právě doplnit Materiál, Druh, Jakost atd.
     // Okamžitě je proto propíšeme do aktivní zelené AI karty.
+    
+    // V5: PŘÍMÉ ověření materiálu při kliknutí na položku.
+    // Nevoláme zde pomocnou overMaterialCiselnikem(), aby výsledek nemohla
+    // zahodit žádná její větev. Posíláme přesně p.jakost do RPC.
+    // V7: p je přímo aiNalezenePolozky[index] z kliknuté karty.
+    // Nepoužíváme žádný globální "aktivní" objekt, který může změnit jiné async volání.
+    if (p && p.jakost) {
+        const puvodniJakostPolozky = String(p.jakost).trim();
+        console.log("V7 RPC VSTUP:", {index, generace:mojeGenerace, jakost:puvodniJakostPolozky});
+
+        try {
+            const { data: dataJakost, error: errorJakost } =
+                await supabaseClient.rpc("skener_jakost", {
+                    vstupni_text: puvodniJakostPolozky
+                });
+            if(mojeGenerace !== aiNacitaniGenerace) return;
+
+            if (errorJakost) {
+                console.error("V5 skener_jakost RPC chyba:", errorJakost);
+            } else {
+                const rJakost =
+                    Array.isArray(dataJakost) && dataJakost.length
+                    ? dataJakost[0]
+                    : null;
+
+                console.log("V5 PŘÍMÉ RPC:", {
+                    vstup: puvodniJakostPolozky,
+                    vysledek: rJakost
+                });
+
+                if (rJakost && rJakost.nalezeno === true) {
+                    const kat = String(rJakost.kategorie || "")
+                        .trim()
+                        .toUpperCase();
+
+                    const mapa = {
+                        "OCEL": "Ocel",
+                        "OCEL AUTOMATOVA": "Ocel",
+                        "NEREZ": "Nerez",
+                        "HLINIK": "Hliník",
+                        "MOSAZ": "Mosaz",
+                        "MED": "Měď",
+                        "BRONZ": "Bronz"
+                    };
+
+                    if (mapa[kat]) {
+                        rozpoznanyMaterial = mapa[kat];
+                    }
+
+                    rozpoznaneEnWnr = rJakost.en_wnr || rozpoznaneEnWnr || "";
+                    jistotaMaterialu = rJakost.jistota || jistotaMaterialu || "";
+                    stavRozpoznani = rJakost.stav || stavRozpoznani || "";
+                    pocetShodMaterialu = Number(rJakost.pocet_shod || 0);
+                    nalezeneAliasyRozpoznani =
+                        rJakost.nalezene_aliasy || nalezeneAliasyRozpoznani || "";
+                }
+            }
+        } catch (e) {
+            console.error("V5 přímé ověření materiálu selhalo:", e);
+        }
+
+        // Vždy zachováme přesný zápis jakosti z dodacího listu.
+        rozpoznanaJakost = puvodniJakostPolozky;
+
+        // A hlavně překreslíme modrý box AŽ po přímém RPC.
+        aktualizujNahled();
+        prepocitej();
+    }
+
     aktualizujAktivniPolozkuZFormulare();
 
     // overMaterial/prepocet nesmí přepsat skutečný počet z dokladu.
@@ -2651,7 +2873,7 @@ async function ulozitPrijem(){
    START
 ========================================================= */
 
-console.log("PRIDAT BUILD: SKENER-JAKOST-1");
+console.log("PRIDAT BUILD: ASYNC-RACE-V7");
 zkontrolujPrihlaseni();
 
 </script>

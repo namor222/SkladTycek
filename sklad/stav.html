@@ -244,7 +244,9 @@
                 await supabaseClient
                     .from("prijmy_materialu")
                     .select("*")
-                    .or("pocet_zbyva.gt.0,pocet_max.gt.0")
+                    .or(
+                        "pocet_zbyva.gt.0,pocet_zbyva_max.gt.0"
+                    )
                     .order(
                         "datum_prijmu",
                         {
@@ -271,6 +273,11 @@
             }
 
 
+            /*
+                Necháme pouze příjmy,
+                na kterých skutečně něco zbývá.
+            */
+
             skladData =
                 (data || []).filter(
                     polozka => {
@@ -278,23 +285,31 @@
                         const jePresny =
                             polozka.pocet_presny === true;
 
+
                         const minKs = jePresny
-                            ? Number(polozka.pocet_zbyva || 0)
+                            ? Number(
+                                polozka.pocet_zbyva || 0
+                            )
                             : Number(
-                                polozka.pocet_min ??
+                                polozka.pocet_zbyva_min ??
                                 polozka.pocet_zbyva ??
                                 0
                             );
+
 
                         const maxKs = jePresny
-                            ? Number(polozka.pocet_zbyva || 0)
+                            ? Number(
+                                polozka.pocet_zbyva || 0
+                            )
                             : Number(
-                                polozka.pocet_max ??
+                                polozka.pocet_zbyva_max ??
                                 polozka.pocet_zbyva ??
                                 0
                             );
 
+
                         return maxKs > 0;
+
                     }
                 );
 
@@ -479,7 +494,7 @@
                         STEJNÁ TAVBA SE PRO ZOBRAZENÍ
                         SEČTE.
 
-                        PŮVODNÍ PŘÍJMY ALE ZŮSTÁVAJÍ
+                        PŮVODNÍ PŘÍJMY ZŮSTÁVAJÍ
                         V DATABÁZI SAMOSTATNĚ KVŮLI FIFO.
                     */
 
@@ -513,26 +528,53 @@
                             .tavby[tavba];
 
 
-                    // Přesný příjem používá aktuální pocet_zbyva.
-                    // Odhadovaný příjem používá pocet_min/pocet_max.
-                    // Dokud ještě nebyl odběr předělán na rozsahy, zobrazujeme
-                    // u odhadu uložený rozsah z příjmu.
+                    /*
+                        Přesný příjem:
+                        používáme aktuální pocet_zbyva.
+
+                        Odhadovaný příjem:
+                        používáme AKTUÁLNÍ zbývající
+                        rozsah pocet_zbyva_min/max.
+                    */
+
                     const jePresny =
                         polozka.pocet_presny === true;
 
+
                     const minKs = jePresny
-                        ? Number(polozka.pocet_zbyva || 0)
-                        : Number(polozka.pocet_min ?? polozka.pocet_zbyva ?? 0);
+                        ? Number(
+                            polozka.pocet_zbyva || 0
+                        )
+                        : Number(
+                            polozka.pocet_zbyva_min ??
+                            polozka.pocet_zbyva ??
+                            0
+                        );
+
 
                     const maxKs = jePresny
-                        ? Number(polozka.pocet_zbyva || 0)
-                        : Number(polozka.pocet_max ?? polozka.pocet_zbyva ?? 0);
+                        ? Number(
+                            polozka.pocet_zbyva || 0
+                        )
+                        : Number(
+                            polozka.pocet_zbyva_max ??
+                            polozka.pocet_zbyva ??
+                            0
+                        );
 
-                    tavbaObj.pocetMin += minKs;
-                    tavbaObj.pocetMax += maxKs;
 
-                    skupiny[klic].celkemMin += minKs;
-                    skupiny[klic].celkemMax += maxKs;
+                    tavbaObj.pocetMin +=
+                        minKs;
+
+                    tavbaObj.pocetMax +=
+                        maxKs;
+
+
+                    skupiny[klic].celkemMin +=
+                        minKs;
+
+                    skupiny[klic].celkemMax +=
+                        maxKs;
 
 
                     /*
@@ -618,9 +660,12 @@
             serazeneSkupiny.forEach(
                 skupina => {
 
-                    if (skupina.celkemMax <= 0) {
+                    if (
+                        skupina.celkemMax <= 0
+                    ) {
                         return;
                     }
+
 
                     celkemVsechnoMin +=
                         skupina.celkemMin;
@@ -659,17 +704,22 @@
                     tavby.forEach(
                         tavba => {
 
-                            if (tavba.pocetMax <= 0) {
+                            if (
+                                tavba.pocetMax <= 0
+                            ) {
                                 return;
                             }
+
 
                             const trida =
                                 tridaPoctu(
                                     tavba.pocetMin
                                 );
 
+
                             const pocetText =
-                                tavba.pocetMin === tavba.pocetMax
+                                tavba.pocetMin ===
+                                tavba.pocetMax
                                     ? `${tavba.pocetMin}`
                                     : `${tavba.pocetMin}–${tavba.pocetMax}`;
 
@@ -705,14 +755,17 @@
                             skupina.celkemMin
                         );
 
+
                     const celkemText =
-                        skupina.celkemMin === skupina.celkemMax
+                        skupina.celkemMin ===
+                        skupina.celkemMax
                             ? `${skupina.celkemMin}`
                             : `${skupina.celkemMin}–${skupina.celkemMax}`;
 
 
                     const rozmerText =
-                        skupina.rozmer === "Neuvedeno"
+                        skupina.rozmer ===
+                        "Neuvedeno"
                             ? "Neuvedeno"
                             : escapeHtml(
                                 skupina.rozmer
@@ -768,7 +821,12 @@
                 <div class="celkem">
 
                     Celkem zobrazených tyček:
-                    ${celkemVsechnoMin === celkemVsechnoMax ? celkemVsechnoMin : `${celkemVsechnoMin}–${celkemVsechnoMax}`} ks
+                    ${
+                        celkemVsechnoMin ===
+                        celkemVsechnoMax
+                            ? celkemVsechnoMin
+                            : `${celkemVsechnoMin}–${celkemVsechnoMax}`
+                    } ks
 
                 </div>
 
