@@ -1579,6 +1579,23 @@ function vykresliAIPolozky(vysledek){
     const box=document.getElementById("aiPolozkyBox");
     const seznam=document.getElementById("aiPolozkySeznam");
     const polozky=polozkyZAI(vysledek).filter(Boolean);
+
+    // OPRAVA ROZMĚRU Z NÁZVU POLOŽKY:
+    // Pokud název obsahuje jednoznačný údaj „prům. 7mm“ / „prům.8mm“ / Ø10 mm,
+    // má tento údaj přednost před chybným rozmerem vráceným AI (např. 11 z 11SMnPb30).
+    // Saháme pouze na rozmer/rozmer_mm; ostatní načtená data zůstávají beze změny.
+    for(const p of polozky){
+        const nazevProRozmer = String(hodnotaPolozky(p,"nazev","nazev_materialu","popis") || "");
+        const m = nazevProRozmer.match(/(?:pr[ůu]m(?:ěr)?\.?|Ø|⌀)\s*[:=-]?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i);
+        if(m){
+            const n = Number(m[1].replace(",","."));
+            if(Number.isFinite(n) && n>0 && n<2000){
+                p.rozmer = n;
+                p.rozmer_mm = n;
+            }
+        }
+    }
+
     aiNalezenePolozky = polozky;
 
     if(!polozky.length){
@@ -1699,9 +1716,19 @@ async function nactiAIPolozku(index){
     // přepsat jednoznačný rozměr konkrétní strukturované AI položky
     // (např. 7/8/15/18/10 mm číslem 11 z jakosti 11SMn30).
     const aiRozmerKliknutePolozky = Number(hodnotaPolozky(p,"rozmer","rozmer_mm"));
+    const aiRozmerPuvodni = p.rozmer;
+    const aiRozmerMmPuvodni = p.rozmer_mm;
     rozpoznejNazev(p.raw_text || "");
+    // rozpoznejNazev() uvnitř volá aktualizujAktivniPolozkuZFormulare(),
+    // takže během parsování mohl omylem zapsat např. 11 z 11SMn30 zpět do karty.
+    // Obnovíme proto rozměr kliknuté AI položky i v jejím datovém objektu.
     if(Number.isFinite(aiRozmerKliknutePolozky) && aiRozmerKliknutePolozky>0 && aiRozmerKliknutePolozky<2000){
         rozpoznanyRozmer = aiRozmerKliknutePolozky;
+        p.rozmer = aiRozmerKliknutePolozky;
+        p.rozmer_mm = aiRozmerKliknutePolozky;
+    }else{
+        p.rozmer = aiRozmerPuvodni;
+        p.rozmer_mm = aiRozmerMmPuvodni;
     }
 
     const normMat=(x)=>{x=odstranDiakritiku(String(x||"")).toUpperCase();if(x.includes("STAINLESS")||x.includes("NEREZ")||x.includes("INOX"))return "Nerez";if(x.includes("ALUMIN")||x.includes("HLIN"))return "Hliník";if(x.includes("BRASS")||x.includes("MOSAZ"))return "Mosaz";if(x.includes("COPPER")||x.includes("MED"))return "Měď";if(x.includes("BRONZ"))return "Bronz";if(x.includes("STEEL")||x.includes("OCEL")||x.includes("STAHL")||x.includes("ACCIAIO"))return "Ocel";return ""};
