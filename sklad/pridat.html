@@ -2768,12 +2768,11 @@ async function ulozitPrijem(){
         !rozpoznanyMaterial ||
         !rozpoznanyDruh ||
         !rozpoznanyRozmer ||
-        !String(rozpoznanaJakost || "").trim() ||
-        !String(rozpoznanaTolerance || "").trim()
+        !String(rozpoznanaJakost || "").trim()
     ){
 
         nastavZpravu(
-            "Před uložením musí být vyplněn materiál, druh, rozměr, jakost a tolerance. Tavba je povinná.",
+            "Před uložením musí být vyplněn materiál, druh, rozměr a jakost. Tavba je povinná.",
             "chyba"
         );
 
