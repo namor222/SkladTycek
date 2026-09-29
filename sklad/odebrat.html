@@ -174,33 +174,7 @@
             font-weight: bold;
             margin-top: 12px;
         }
-
-        .zpresneni {
-            display: none;
-            margin-top: 16px;
-            padding: 16px;
-            background: #fff3cd;
-            border: 1px solid #e0b84f;
-            border-radius: 10px;
-        }
-
-        .zpresneni input {
-            box-sizing: border-box;
-            width: 100%;
-            margin-top: 10px;
-            padding: 14px;
-            font-size: 18px;
-        }
-
-        .zpresneni button {
-            width: 100%;
-            margin-top: 12px;
-            padding: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        @media (max-width: 500px) {
+@media (max-width: 500px) {
 
             .hlavicka h1 {
                 font-size: 22px;
@@ -353,43 +327,25 @@
 
 
         /*
-            NAČTENÍ SKLADU
-
-            DŮLEŽITÉ:
-            U nepřesného příjmu používáme AKTUÁLNÍ
-            pocet_zbyva_min / pocet_zbyva_max.
+            NAČTENÍ SKLADU – pouze přesný počet kusů
         */
 
         async function nactiSklad() {
 
             const seznam =
-                document.getElementById(
-                    "seznam"
-                );
-
+                document.getElementById("seznam");
 
             const { data, error } =
                 await supabaseClient
-                    .from("prijmy_materialu")
+                    .from("web_stav_skladu")
                     .select(
-                        "id, material, druh, rozmer, tavba, pocet_zbyva, pocet_zbyva_min, pocet_zbyva_max, pocet_presny, datum_prijmu"
+                        "material, druh, rozmer, tavba, delka_mm, pocet"
                     )
-                    .or(
-                        "pocet_zbyva.gt.0,pocet_zbyva_max.gt.0"
-                    )
-                    .order(
-                        "datum_prijmu",
-                        {
-                            ascending: true
-                        }
-                    )
-                    .order(
-                        "id",
-                        {
-                            ascending: true
-                        }
-                    );
-
+                    .gt("pocet", 0)
+                    .order("material", { ascending: true })
+                    .order("druh", { ascending: true })
+                    .order("rozmer", { ascending: true })
+                    .order("tavba", { ascending: true });
 
             if (error) {
 
@@ -399,43 +355,19 @@
                     "</p>";
 
                 return;
-
             }
 
-
             /*
-                Ponecháme pouze řádky,
-                kde skutečně něco zbývá.
+                Pracujeme už pouze s přesným počtem kusů.
+                Staré MIN/MAX sloupce se ve výdeji nepoužívají.
             */
-
             ulozenySklad =
                 (data || []).filter(
-                    polozka => {
-
-                        const jePresny =
-                            polozka.pocet_presny === true;
-
-
-                        const maxKs =
-                            jePresny
-                                ? Number(
-                                    polozka.pocet_zbyva || 0
-                                )
-                                : Number(
-                                    polozka.pocet_zbyva_max ??
-                                    polozka.pocet_zbyva ??
-                                    0
-                                );
-
-
-                        return maxKs > 0;
-
-                    }
+                    polozka =>
+                        Number(polozka.pocet || 0) > 0
                 );
 
-
             zobrazSklad();
-
         }
 
 
@@ -446,388 +378,165 @@
         function zobrazSklad() {
 
             const seznam =
-                document.getElementById(
-                    "seznam"
-                );
-
+                document.getElementById("seznam");
 
             const hledanaTavba =
                 document
-                    .getElementById(
-                        "hledatTavbu"
-                    )
+                    .getElementById("hledatTavbu")
                     .value
                     .trim()
                     .toLowerCase();
 
+            let filtrovanySklad = ulozenySklad;
 
-            let filtrovanySklad =
-                ulozenySklad;
-
-
-            /*
-                HLEDÁNÍ PODLE TAVBY
-            */
-
-            if (
-                hledanaTavba !== ""
-            ) {
+            if (hledanaTavba !== "") {
 
                 filtrovanySklad =
                     ulozenySklad.filter(
                         polozka =>
-
-                            String(
-                                polozka.tavba || ""
-                            )
-                            .toLowerCase()
-                            .includes(
-                                hledanaTavba
-                            )
-
+                            String(polozka.tavba || "")
+                                .toLowerCase()
+                                .includes(hledanaTavba)
                     );
-
             }
 
-
-            if (
-                filtrovanySklad.length === 0
-            ) {
+            if (filtrovanySklad.length === 0) {
 
                 seznam.innerHTML =
                     "<p>Žádný materiál nebyl nalezen.</p>";
 
                 zobrazeneTavby = [];
-
                 return;
-
             }
 
-
             /*
-                HLAVNÍ SKUPINA:
+                Hlavní skupina:
+                materiál + druh + rozměr.
 
-                materiál
-                druh
-                rozměr
-
-                Délka sklad NEROZDĚLUJE.
+                Jednotlivé příjmy stejné tavby zůstávají
+                v databázi samostatně kvůli FIFO, ale na
+                obrazovce se jejich přesné zůstatky sečtou.
             */
-
             const skupiny = {};
-
 
             filtrovanySklad.forEach(
                 polozka => {
 
                     const material =
-                        String(
-                            polozka.material || "Neuvedeno"
-                        );
-
+                        String(polozka.material || "Neuvedeno");
 
                     const druh =
-                        String(
-                            polozka.druh || "Neuvedeno"
-                        );
+                        String(polozka.druh || "Neuvedeno");
 
+                    const rozmer = polozka.rozmer;
 
-                    const rozmer =
-                        polozka.rozmer;
-
+                    const delkaMm = Number(polozka.delka_mm);
 
                     const hlavniKlic =
                         material + "|" +
                         druh + "|" +
-                        String(rozmer);
-
+                        String(rozmer) + "|" +
+                        String(delkaMm);
 
                     if (!skupiny[hlavniKlic]) {
 
                         skupiny[hlavniKlic] = {
-
-                            material:
-                                material,
-
-                            druh:
-                                druh,
-
-                            rozmer:
-                                rozmer,
-
-                            celkemMin:
-                                0,
-
-                            celkemMax:
-                                0,
-
-                            tavby:
-                                {}
-
+                            material: material,
+                            druh: druh,
+                            rozmer: rozmer,
+                            delka_mm: delkaMm,
+                            celkem: 0,
+                            tavby: {}
                         };
-
                     }
-
 
                     const tavba =
-                        String(
-                            polozka.tavba || ""
-                        );
+                        String(polozka.tavba || "");
 
+                    if (!skupiny[hlavniKlic].tavby[tavba]) {
 
-                    if (
-                        !skupiny[hlavniKlic]
-                            .tavby[tavba]
-                    ) {
-
-                        skupiny[hlavniKlic]
-                            .tavby[tavba] = {
-
-                                material:
-                                    material,
-
-                                druh:
-                                    druh,
-
-                                rozmer:
-                                    rozmer,
-
-                                tavba:
-                                    tavba,
-
-                                pocetMin:
-                                    0,
-
-                                pocetMax:
-                                    0,
-
-                                nejstarsiDatum:
-                                    polozka.datum_prijmu,
-
-                                nejstarsiId:
-                                    Number(polozka.id)
-
-                            };
-
+                        skupiny[hlavniKlic].tavby[tavba] = {
+                            material: material,
+                            druh: druh,
+                            rozmer: rozmer,
+                            tavba: tavba,
+                            delka_mm: delkaMm,
+                            pocet: 0
+                        };
                     }
 
-
                     const tavbaObj =
-                        skupiny[hlavniKlic]
-                            .tavby[tavba];
+                        skupiny[hlavniKlic].tavby[tavba];
 
+                    const radekPocet =
+                        Number(polozka.pocet || 0);
 
-                    /*
-                        Přesný příjem:
-                        aktuální pocet_zbyva.
-
-                        Nepřesný příjem:
-                        aktuální zbývající rozsah.
-                    */
-
-                    const jePresny =
-                        polozka.pocet_presny === true;
-
-
-                    const radekMin =
-                        jePresny
-                            ? Number(
-                                polozka.pocet_zbyva || 0
-                            )
-                            : Number(
-                                polozka.pocet_zbyva_min ??
-                                polozka.pocet_zbyva ??
-                                0
-                            );
-
-
-                    const radekMax =
-                        jePresny
-                            ? Number(
-                                polozka.pocet_zbyva || 0
-                            )
-                            : Number(
-                                polozka.pocet_zbyva_max ??
-                                polozka.pocet_zbyva ??
-                                0
-                            );
-
-
-                    /*
-                        Řádek s nulovým maximem už
-                        do zobrazení nezapočítáme.
-                    */
-
-                    if (radekMax <= 0) {
+                    if (radekPocet <= 0) {
                         return;
                     }
 
+                    tavbaObj.pocet += radekPocet;
+                    skupiny[hlavniKlic].celkem += radekPocet;
 
-                    tavbaObj.pocetMin +=
-                        radekMin;
-
-                    tavbaObj.pocetMax +=
-                        radekMax;
-
-
-                    skupiny[hlavniKlic].celkemMin +=
-                        radekMin;
-
-                    skupiny[hlavniKlic].celkemMax +=
-                        radekMax;
-
-
-                    /*
-                        U TAVBY UCHOVÁME NEJSTARŠÍ
-                        PŘÍJEM PRO FIFO POŘADÍ.
-                    */
-
-                    const datumAktualni =
-                        new Date(
-                            polozka.datum_prijmu
-                        );
-
-
-                    const datumNejstarsi =
-                        new Date(
-                            tavbaObj.nejstarsiDatum
-                        );
-
-
-                    if (
-                        datumAktualni <
-                        datumNejstarsi
-                    ) {
-
-                        tavbaObj.nejstarsiDatum =
-                            polozka.datum_prijmu;
-
-                        tavbaObj.nejstarsiId =
-                            Number(polozka.id);
-
-                    } else if (
-                        datumAktualni.getTime() ===
-                        datumNejstarsi.getTime() &&
-                        Number(polozka.id) <
-                        tavbaObj.nejstarsiId
-                    ) {
-
-                        tavbaObj.nejstarsiId =
-                            Number(polozka.id);
-
-                    }
 
                 }
             );
 
-
-            /*
-                SEŘAZENÍ HLAVNÍCH SKUPIN
-            */
-
             const serazeneSkupiny =
-                Object.values(
-                    skupiny
-                )
-                .filter(
-                    skupina =>
-                        skupina.celkemMax > 0
-                )
-                .sort(
-                    (a, b) => {
+                Object.values(skupiny)
+                    .filter(
+                        skupina => skupina.celkem > 0
+                    )
+                    .sort(
+                        (a, b) => {
 
-                        const material =
-                            String(a.material)
-                                .localeCompare(
-                                    String(b.material),
-                                    "cs"
-                                );
+                            const material =
+                                String(a.material)
+                                    .localeCompare(
+                                        String(b.material),
+                                        "cs"
+                                    );
 
+                            if (material !== 0) {
+                                return material;
+                            }
 
-                        if (material !== 0) {
-                            return material;
+                            const druh =
+                                String(a.druh)
+                                    .localeCompare(
+                                        String(b.druh),
+                                        "cs"
+                                    );
+
+                            if (druh !== 0) {
+                                return druh;
+                            }
+
+                            return (
+                                Number(a.rozmer) -
+                                Number(b.rozmer)
+                            );
                         }
-
-
-                        const druh =
-                            String(a.druh)
-                                .localeCompare(
-                                    String(b.druh),
-                                    "cs"
-                                );
-
-
-                        if (druh !== 0) {
-                            return druh;
-                        }
-
-
-                        return (
-                            Number(a.rozmer) -
-                            Number(b.rozmer)
-                        );
-
-                    }
-                );
-
-
-            /*
-                ZNOVU VYTVOŘÍME SEZNAM TAVEB,
-                PODLE KTERÉHO TLAČÍTKO POZNÁ,
-                CO MÁ ODEBRAT.
-            */
+                    );
 
             zobrazeneTavby = [];
-
-
-            seznam.innerHTML =
-                "";
-
+            seznam.innerHTML = "";
 
             serazeneSkupiny.forEach(
                 skupina => {
 
                     /*
-                        TAVBY JSOU SEŘAZENÉ FIFO.
+                        Tavby zobrazujeme v pořadí
+                        nejstaršího příjmu.
                     */
-
                     const tavby =
-                        Object.values(
-                            skupina.tavby
-                        )
-                        .filter(
-                            tavba =>
-                                tavba.pocetMax > 0
-                        )
-                        .sort(
-                            (a, b) => {
+                        Object.values(skupina.tavby)
+                            .filter(tavba => tavba.pocet > 0)
+                            .sort((a, b) =>
+                                String(a.tavba).localeCompare(String(b.tavba), "cs")
+                            );
 
-                                const rozdilDat =
-                                    new Date(
-                                        a.nejstarsiDatum
-                                    ) -
-                                    new Date(
-                                        b.nejstarsiDatum
-                                    );
-
-
-                                if (rozdilDat !== 0) {
-                                    return rozdilDat;
-                                }
-
-
-                                return (
-                                    a.nejstarsiId -
-                                    b.nejstarsiId
-                                );
-
-                            }
-                        );
-
-
-                    let htmlAtesty =
-                        "";
-
+                    let htmlAtesty = "";
 
                     tavby.forEach(
                         tavba => {
@@ -835,28 +544,10 @@
                             const index =
                                 zobrazeneTavby.length;
 
-
-                            zobrazeneTavby.push(
-                                tavba
-                            );
-
+                            zobrazeneTavby.push(tavba);
 
                             const trida =
-                                tridaPoctu(
-                                    tavba.pocetMin
-                                );
-
-
-                            const pocetText =
-                                tavba.pocetMin ===
-                                tavba.pocetMax
-                                    ? String(
-                                        tavba.pocetMin
-                                    )
-                                    : tavba.pocetMin +
-                                      "–" +
-                                      tavba.pocetMax;
-
+                                tridaPoctu(tavba.pocet);
 
                             htmlAtesty += `
 
@@ -866,31 +557,20 @@
                                 >
 
                                     <h3>
-
                                         Tavba:
-
                                         <span class="cislo-tavby">
-                                            ${escapeHtml(
-                                                tavba.tavba
-                                            )}
+                                            ${escapeHtml(tavba.tavba)}
                                         </span>
-
                                     </h3>
 
-
                                     <p>
-
                                         Na skladě:
-
                                         <span class="${trida}">
-                                            ${pocetText} ks
+                                            ${tavba.pocet} ks
                                         </span>
-
                                     </p>
 
-
                                     <br>
-
 
                                     <label>
                                         Kolik kusů odebrat?
@@ -898,20 +578,17 @@
 
                                     <br><br>
 
-
                                     <input
                                         type="number"
                                         id="odebrat${index}"
                                         min="1"
-                                        max="${tavba.pocetMax}"
+                                        max="${tavba.pocet}"
                                         step="1"
                                         inputmode="numeric"
                                         placeholder="např. 10"
                                     >
 
-
                                     <br><br>
-
 
                                     <label>
                                         Objednávka
@@ -919,16 +596,13 @@
 
                                     <br><br>
 
-
                                     <input
                                         type="text"
                                         id="objednavka${index}"
                                         placeholder="např. 123/ABC"
                                     >
 
-
                                     <br>
-
 
                                     <button
                                         id="tlacitko${index}"
@@ -937,84 +611,25 @@
                                         ➖ ODEBRAT
                                     </button>
 
-
                                     <div
                                         class="chyba"
                                         id="chyba${index}"
                                     ></div>
 
-
-                                    <div
-                                        class="zpresneni"
-                                        id="zpresneni${index}"
-                                        style="display:none;"
-                                    >
-
-                                        <strong
-                                            id="zpresneniText${index}"
-                                        >
-                                            ⚠️ Stav této tavby je pouze odhad.
-                                            Zadej skutečný počet tyčí na skladě.
-                                        </strong>
-
-
-                                        <div style="margin-top:12px;">
-                                            Skutečný počet na skladě:
-                                        </div>
-
-
-                                        <input
-                                            type="number"
-                                            id="skutecnyPocet${index}"
-                                            min="0"
-                                            step="1"
-                                            inputmode="numeric"
-                                            placeholder="např. 8"
-                                        >
-
-
-                                        <button
-                                            id="zpresnitTlacitko${index}"
-                                            type="button"
-                                            onclick="zpresnitAOpakovat(${index})"
-                                        >
-                                            ✓ POTVRDIT SKUTEČNÝ POČET
-                                        </button>
-
-                                    </div>
-
                                 </div>
-
                             `;
-
                         }
                     );
-
 
                     const automatickyOtevrit =
                         hledanaTavba !== ""
                             ? "open"
                             : "";
 
-
                     const rozmerText =
                         skupina.rozmer == null
                             ? "Neuvedeno"
-                            : escapeHtml(
-                                skupina.rozmer
-                            ) + " mm";
-
-
-                    const celkemText =
-                        skupina.celkemMin ===
-                        skupina.celkemMax
-                            ? String(
-                                skupina.celkemMin
-                            )
-                            : skupina.celkemMin +
-                              "–" +
-                              skupina.celkemMax;
-
+                            : escapeHtml(skupina.rozmer) + " mm";
 
                     seznam.innerHTML += `
 
@@ -1026,32 +641,19 @@
                             <summary>
 
                                 <div class="nazev">
-                                    ${escapeHtml(
-                                        skupina.material
-                                    )}
+                                    ${escapeHtml(skupina.material)}
                                 </div>
-
 
                                 <div class="parametry">
-
-                                    ${escapeHtml(
-                                        skupina.druh
-                                    )}
-
+                                    ${escapeHtml(skupina.druh)}
                                     |
-
                                     ${rozmerText}
-
                                 </div>
-
 
                                 <div class="celkem">
-
                                     Celkem:
-                                    ${celkemText} ks
-
+                                    ${skupina.celkem} ks
                                 </div>
-
 
                                 <div>
                                     ▼ Klikni pro výběr Tavby
@@ -1059,27 +661,18 @@
 
                             </summary>
 
-
                             ${htmlAtesty}
 
-
                         </details>
-
                     `;
-
                 }
             );
 
-
-            if (
-                serazeneSkupiny.length === 0
-            ) {
+            if (serazeneSkupiny.length === 0) {
 
                 seznam.innerHTML =
                     "<p>Žádný materiál nebyl nalezen.</p>";
-
             }
-
         }
 
 
@@ -1159,7 +752,7 @@
 
             /*
                 Web nedovolí zadat víc,
-                než je aktuální horní hranice.
+                než je přesný aktuální stav tavby.
 
                 Definitivní kontrolu stejně
                 provede databázová FIFO funkce.
@@ -1168,12 +761,12 @@
             if (
                 pocetOdebrat >
                 Number(
-                    tavba.pocetMax
+                    tavba.pocet
                 )
             ) {
 
                 chyba.textContent =
-                    "Nelze odebrat více kusů, než je horní hranice stavu této tavby.";
+                    "Nelze odebrat více kusů, než je aktuálně na skladě.";
 
                 return;
 
@@ -1228,6 +821,11 @@
                                     tavba.tavba
                                 ),
 
+                            p_delka_mm:
+                                Number(
+                                    tavba.delka_mm
+                                ),
+
                             p_pocet:
                                 pocetOdebrat,
 
@@ -1257,56 +855,6 @@
 
                 tlacitko.innerText =
                     "➖ ODEBRAT";
-
-
-                /*
-                    DATABÁZE POŽADUJE
-                    FYZICKÉ PŘEPOČÍTÁNÍ.
-                */
-
-                if (
-                    zprava.includes(
-                        "NUTNO_PREPOCITAT|"
-                    )
-                ) {
-
-                    chyba.textContent =
-                        "";
-
-
-                    document
-                        .getElementById(
-                            "zpresneniText" + index
-                        )
-                        .textContent =
-                            zprava
-                                .split(
-                                    "NUTNO_PREPOCITAT|"
-                                )[1]
-                            ||
-                            "Je potřeba fyzicky přepočítat tuto tavbu.";
-
-
-                    document
-                        .getElementById(
-                            "zpresneni" + index
-                        )
-                        .style.display =
-                            "block";
-
-
-                    document
-                        .getElementById(
-                            "skutecnyPocet" + index
-                        )
-                        .focus();
-
-
-                    return;
-
-                }
-
-
                 chyba.textContent =
                     "Odebrání se nepodařilo: " +
                     zprava;
@@ -1330,141 +878,6 @@
         }
 
 
-        /*
-            ZPŘESNĚNÍ SKUTEČNÉHO POČTU
-        */
-
-        async function zpresnitAOpakovat(index) {
-
-            const tavba =
-                zobrazeneTavby[index];
-
-
-            if (!tavba) {
-                return;
-            }
-
-
-            const skutecnyInput =
-                document.getElementById(
-                    "skutecnyPocet" + index
-                );
-
-
-            const tlacitko =
-                document.getElementById(
-                    "zpresnitTlacitko" + index
-                );
-
-
-            const chyba =
-                document.getElementById(
-                    "chyba" + index
-                );
-
-
-            const skutecnyPocet =
-                Number(
-                    skutecnyInput.value
-                );
-
-
-            if (
-                !Number.isInteger(
-                    skutecnyPocet
-                ) ||
-                skutecnyPocet < 0
-            ) {
-
-                chyba.textContent =
-                    "Zadej skutečný počet tyčí na skladě.";
-
-                return;
-
-            }
-
-
-            chyba.textContent =
-                "";
-
-
-            skutecnyInput.disabled =
-                true;
-
-            tlacitko.disabled =
-                true;
-
-            tlacitko.innerText =
-                "UKLÁDÁM PŘEPOČET...";
-
-
-            const { error } =
-                await supabaseClient
-                    .rpc(
-                        "zpresnit_pocet_tavby",
-                        {
-
-                            p_material:
-                                String(
-                                    tavba.material
-                                ),
-
-                            p_druh:
-                                String(
-                                    tavba.druh
-                                ),
-
-                            p_rozmer:
-                                Number(
-                                    tavba.rozmer
-                                ),
-
-                            p_tavba:
-                                String(
-                                    tavba.tavba
-                                ),
-
-                            p_skutecny_pocet:
-                                skutecnyPocet
-
-                        }
-                    );
-
-
-            if (error) {
-
-                chyba.textContent =
-                    "Zpřesnění se nepodařilo: " +
-                    error.message;
-
-
-                skutecnyInput.disabled =
-                    false;
-
-                tlacitko.disabled =
-                    false;
-
-                tlacitko.innerText =
-                    "✓ POTVRDIT SKUTEČNÝ POČET";
-
-
-                return;
-
-            }
-
-
-            /*
-                Po zpřesnění znovu načteme sklad.
-
-                Původní požadovaný odběr se
-                automaticky neprovede.
-                Zaměstnanec znovu zadá počet
-                a potvrdí odběr.
-            */
-
-            await nactiSklad();
-
-        }
 
 
         zkontrolujPrihlaseni();

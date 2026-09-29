@@ -83,12 +83,7 @@
         }
 
         .tavba {
-            padding: 10px 5px;
-            border-bottom: 1px solid #e5e5e5;
-        }
-
-        .tavba:last-child {
-            border-bottom: none;
+            padding: 7px 5px;
         }
 
         .cislo-tavby {
@@ -111,10 +106,35 @@
             font-weight: bold;
         }
 
+        details.polozka {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        details.polozka > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 20px;
+            user-select: none;
+        }
+
+        details.polozka > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .rozbalit {
+            margin-top: 8px;
+            font-size: 16px;
+            color: #444;
+        }
+
+        .obsah-taveb {
+            padding: 0 20px 20px 20px;
+        }
+
         .souhrn {
-            margin-top: 15px;
-            padding-top: 12px;
-            border-top: 2px solid #ddd;
+            margin-top: 12px;
+            padding-top: 6px;
             font-size: 18px;
         }
 
@@ -235,87 +255,34 @@
         async function nactiSklad() {
 
             const seznam =
-                document.getElementById(
-                    "seznam"
-                );
-
+                document.getElementById("seznam");
 
             const { data, error } =
                 await supabaseClient
-                    .from("prijmy_materialu")
-                    .select("*")
-                    .or(
-                        "pocet_zbyva.gt.0,pocet_zbyva_max.gt.0"
-                    )
-                    .order(
-                        "datum_prijmu",
-                        {
-                            ascending: true
-                        }
-                    )
-                    .order(
-                        "id",
-                        {
-                            ascending: true
-                        }
-                    );
-
+                    .from("web_stav_skladu")
+                    .select("material, druh, rozmer, tavba, pocet");
 
             if (error) {
-
                 seznam.innerHTML =
                     "<p>Chyba při načítání skladu:<br>" +
                     escapeHtml(error.message) +
                     "</p>";
-
                 return;
-
             }
 
-
-            /*
-                Necháme pouze příjmy,
-                na kterých skutečně něco zbývá.
-            */
-
-            skladData =
-                (data || []).filter(
-                    polozka => {
-
-                        const jePresny =
-                            polozka.pocet_presny === true;
-
-
-                        const minKs = jePresny
-                            ? Number(
-                                polozka.pocet_zbyva || 0
-                            )
-                            : Number(
-                                polozka.pocet_zbyva_min ??
-                                polozka.pocet_zbyva ??
-                                0
-                            );
-
-
-                        const maxKs = jePresny
-                            ? Number(
-                                polozka.pocet_zbyva || 0
-                            )
-                            : Number(
-                                polozka.pocet_zbyva_max ??
-                                polozka.pocet_zbyva ??
-                                0
-                            );
-
-
-                        return maxKs > 0;
-
-                    }
-                );
-
+            // Supabase už vrací hotový agregovaný stav skladu.
+            // Web nic nesčítá z jednotlivých fyzických příjmů.
+            skladData = (data || [])
+                .map(polozka => ({
+                    material: polozka.material,
+                    druh: polozka.druh,
+                    rozmer: polozka.rozmer,
+                    tavba: polozka.tavba,
+                    pocet: Number(polozka.pocet || 0)
+                }))
+                .filter(polozka => polozka.pocet > 0);
 
             zobrazSklad();
-
         }
 
 
@@ -369,470 +336,147 @@
         function zobrazSklad() {
 
             const seznam =
-                document.getElementById(
-                    "seznam"
-                );
-
+                document.getElementById("seznam");
 
             const hledanaTavba =
                 document
-                    .getElementById(
-                        "hledatTavbu"
-                    )
+                    .getElementById("hledatTavbu")
                     .value
                     .trim()
                     .toLowerCase();
 
+            let filtrovanaData = skladData;
 
-            let filtrovanaData =
-                skladData;
-
-
-            /*
-                HLEDÁNÍ PODLE TAVBY
-            */
-
-            if (
-                hledanaTavba !== ""
-            ) {
-
-                filtrovanaData =
-                    skladData.filter(
-                        polozka =>
-
-                            String(
-                                polozka.tavba || ""
-                            )
+            if (hledanaTavba !== "") {
+                filtrovanaData = skladData.filter(
+                    polozka =>
+                        String(polozka.tavba || "")
                             .toLowerCase()
-                            .includes(
-                                hledanaTavba
-                            )
-
-                    );
-
+                            .includes(hledanaTavba)
+                );
             }
 
-
-            if (
-                filtrovanaData.length === 0
-            ) {
-
+            if (filtrovanaData.length === 0) {
                 seznam.innerHTML =
                     "<p>Žádný materiál nebyl nalezen.</p>";
-
                 return;
-
             }
 
-
-            /*
-                SKUPINY:
-
-                materiál
-                druh
-                rozměr
-
-                Délka sklad NEROZDĚLUJE.
-            */
-
+            // web_stav_skladu už obsahuje jednu řádku na tavbu.
+            // Zde se pouze seskupují tavby pod kartu materiál + druh + rozměr
+            // kvůli zobrazení; skladová množství se zde nepřepočítávají.
             const skupiny = {};
 
+            filtrovanaData.forEach(polozka => {
+                const material = String(polozka.material || "Neuvedeno");
+                const druh = String(polozka.druh || "Neuvedeno");
+                const rozmer = polozka.rozmer ?? "Neuvedeno";
+                const klic = material + "|" + druh + "|" + String(rozmer);
+                const pocet = Number(polozka.pocet || 0);
 
-            filtrovanaData.forEach(
-                polozka => {
-
-                    const material =
-                        polozka.material || "Neuvedeno";
-
-                    const druh =
-                        polozka.druh || "Neuvedeno";
-
-                    const rozmer =
-                        polozka.rozmer ?? "Neuvedeno";
-
-
-                    const klic =
-                        material + "|" +
-                        druh + "|" +
-                        rozmer;
-
-
-                    if (!skupiny[klic]) {
-
-                        skupiny[klic] = {
-
-                            material:
-                                material,
-
-                            druh:
-                                druh,
-
-                            rozmer:
-                                rozmer,
-
-                            tavby:
-                                {},
-
-                            celkemMin:
-                                0,
-
-                            celkemMax:
-                                0
-
-                        };
-
-                    }
-
-
-                    const tavba =
-                        String(
-                            polozka.tavba || ""
-                        );
-
-
-                    /*
-                        STEJNÁ TAVBA SE PRO ZOBRAZENÍ
-                        SEČTE.
-
-                        PŮVODNÍ PŘÍJMY ZŮSTÁVAJÍ
-                        V DATABÁZI SAMOSTATNĚ KVŮLI FIFO.
-                    */
-
-                    if (
-                        !skupiny[klic]
-                            .tavby[tavba]
-                    ) {
-
-                        skupiny[klic]
-                            .tavby[tavba] = {
-
-                                tavba:
-                                    tavba,
-
-                                pocetMin:
-                                    0,
-
-                                pocetMax:
-                                    0,
-
-                                nejstarsiDatum:
-                                    polozka.datum_prijmu
-
-                            };
-
-                    }
-
-
-                    const tavbaObj =
-                        skupiny[klic]
-                            .tavby[tavba];
-
-
-                    /*
-                        Přesný příjem:
-                        používáme aktuální pocet_zbyva.
-
-                        Odhadovaný příjem:
-                        používáme AKTUÁLNÍ zbývající
-                        rozsah pocet_zbyva_min/max.
-                    */
-
-                    const jePresny =
-                        polozka.pocet_presny === true;
-
-
-                    const minKs = jePresny
-                        ? Number(
-                            polozka.pocet_zbyva || 0
-                        )
-                        : Number(
-                            polozka.pocet_zbyva_min ??
-                            polozka.pocet_zbyva ??
-                            0
-                        );
-
-
-                    const maxKs = jePresny
-                        ? Number(
-                            polozka.pocet_zbyva || 0
-                        )
-                        : Number(
-                            polozka.pocet_zbyva_max ??
-                            polozka.pocet_zbyva ??
-                            0
-                        );
-
-
-                    tavbaObj.pocetMin +=
-                        minKs;
-
-                    tavbaObj.pocetMax +=
-                        maxKs;
-
-
-                    skupiny[klic].celkemMin +=
-                        minKs;
-
-                    skupiny[klic].celkemMax +=
-                        maxKs;
-
-
-                    /*
-                        U TAVBY SI PAMATUJEME
-                        NEJSTARŠÍ PŘÍJEM.
-                    */
-
-                    if (
-                        new Date(
-                            polozka.datum_prijmu
-                        ) <
-                        new Date(
-                            tavbaObj.nejstarsiDatum
-                        )
-                    ) {
-
-                        tavbaObj.nejstarsiDatum =
-                            polozka.datum_prijmu;
-
-                    }
-
+                if (!skupiny[klic]) {
+                    skupiny[klic] = {
+                        material,
+                        druh,
+                        rozmer,
+                        tavby: [],
+                        celkem: 0
+                    };
                 }
-            );
 
+                skupiny[klic].tavby.push({
+                    tavba: String(polozka.tavba || "Neuvedeno"),
+                    pocet
+                });
+                skupiny[klic].celkem += pocet;
+            });
 
-            seznam.innerHTML =
-                "";
+            seznam.innerHTML = "";
+            let celkemVsechno = 0;
 
+            const serazeneSkupiny = Object.values(skupiny)
+                .filter(skupina => skupina.celkem > 0)
+                .sort((a, b) => {
+                    const material = String(a.material)
+                        .localeCompare(String(b.material), "cs");
+                    if (material !== 0) return material;
 
-            let celkemVsechnoMin =
-                0;
+                    const druh = String(a.druh)
+                        .localeCompare(String(b.druh), "cs");
+                    if (druh !== 0) return druh;
 
-            let celkemVsechnoMax =
-                0;
+                    return Number(a.rozmer) - Number(b.rozmer);
+                });
 
+            serazeneSkupiny.forEach(skupina => {
+                celkemVsechno += skupina.celkem;
 
-            /*
-                SEŘAZENÍ MATERIÁLU
-            */
-
-            const serazeneSkupiny =
-                Object.values(
-                    skupiny
-                )
-                .sort(
-                    (a, b) => {
-
-                        const material =
-                            String(a.material)
-                                .localeCompare(
-                                    String(b.material),
-                                    "cs"
-                                );
-
-
-                        if (material !== 0) {
-                            return material;
-                        }
-
-
-                        const druh =
-                            String(a.druh)
-                                .localeCompare(
-                                    String(b.druh),
-                                    "cs"
-                                );
-
-
-                        if (druh !== 0) {
-                            return druh;
-                        }
-
-
-                        return (
-                            Number(a.rozmer) -
-                            Number(b.rozmer)
-                        );
-
-                    }
-                );
-
-
-            serazeneSkupiny.forEach(
-                skupina => {
-
-                    if (
-                        skupina.celkemMax <= 0
-                    ) {
-                        return;
-                    }
-
-
-                    celkemVsechnoMin +=
-                        skupina.celkemMin;
-
-                    celkemVsechnoMax +=
-                        skupina.celkemMax;
-
-
-                    /*
-                        FIFO POŘADÍ TAVEB:
-
-                        nejstarší příjem nahoře
-                    */
-
-                    const tavby =
-                        Object.values(
-                            skupina.tavby
-                        )
-                        .sort(
-                            (a, b) =>
-
-                                new Date(
-                                    a.nejstarsiDatum
-                                ) -
-                                new Date(
-                                    b.nejstarsiDatum
-                                )
-
-                        );
-
-
-                    let tavbyHTML =
-                        "";
-
-
-                    tavby.forEach(
-                        tavba => {
-
-                            if (
-                                tavba.pocetMax <= 0
-                            ) {
-                                return;
-                            }
-
-
-                            const trida =
-                                tridaPoctu(
-                                    tavba.pocetMin
-                                );
-
-
-                            const pocetText =
-                                tavba.pocetMin ===
-                                tavba.pocetMax
-                                    ? `${tavba.pocetMin}`
-                                    : `${tavba.pocetMin}–${tavba.pocetMax}`;
-
-
-                            tavbyHTML += `
-
-                                <div class="tavba">
-
-                                    Tavba:
-
-                                    <span class="cislo-tavby">
-                                        ${escapeHtml(
-                                            tavba.tavba
-                                        )}
-                                    </span>
-
-                                    —
-
-                                    <span class="${trida}">
-                                        ${pocetText} ks
-                                    </span>
-
-                                </div>
-
-                            `;
-
-                        }
+                const tavby = skupina.tavby
+                    .filter(tavba => tavba.pocet > 0)
+                    .sort((a, b) =>
+                        String(a.tavba).localeCompare(String(b.tavba), "cs")
                     );
 
+                let tavbyHTML = "";
 
-                    const tridaCelkem =
-                        tridaPoctu(
-                            skupina.celkemMin
-                        );
+                tavby.forEach(tavba => {
+                    const trida = tridaPoctu(tavba.pocet);
 
-
-                    const celkemText =
-                        skupina.celkemMin ===
-                        skupina.celkemMax
-                            ? `${skupina.celkemMin}`
-                            : `${skupina.celkemMin}–${skupina.celkemMax}`;
-
-
-                    const rozmerText =
-                        skupina.rozmer ===
-                        "Neuvedeno"
-                            ? "Neuvedeno"
-                            : escapeHtml(
-                                skupina.rozmer
-                            ) + " mm";
-
-
-                    seznam.innerHTML += `
-
-                        <div class="polozka">
-
-                            <h2>
-                                ${escapeHtml(
-                                    skupina.material
-                                )}
-                            </h2>
-
-                            <h3>
-
-                                ${escapeHtml(
-                                    skupina.druh
-                                )}
-
-                                |
-
-                                ${rozmerText}
-
-                            </h3>
-
-
-                            ${tavbyHTML}
-
-
-                            <div class="souhrn">
-
-                                Celkem:
-
-                                <span class="${tridaCelkem}">
-                                    ${celkemText} ks
-                                </span>
-
-                            </div>
-
+                    tavbyHTML += `
+                        <div class="tavba">
+                            Tavba:
+                            <span class="cislo-tavby">
+                                ${escapeHtml(tavba.tavba)}
+                            </span>
+                            —
+                            <span class="${trida}">
+                                ${tavba.pocet} ks
+                            </span>
                         </div>
-
                     `;
+                });
 
-                }
-            );
+                const tridaCelkem = tridaPoctu(skupina.celkem);
+                const rozmerText =
+                    skupina.rozmer === "Neuvedeno"
+                        ? "Neuvedeno"
+                        : escapeHtml(skupina.rozmer) + " mm";
+                const automatickyOtevrit =
+                    hledanaTavba !== "" ? "open" : "";
 
+                seznam.innerHTML += `
+                    <details class="polozka" ${automatickyOtevrit}>
+                        <summary>
+                            <h2>${escapeHtml(skupina.material)}</h2>
+                            <h3>
+                                ${escapeHtml(skupina.druh)} | ${rozmerText}
+                            </h3>
+                            <div class="souhrn">
+                                Celkem:
+                                <span class="${tridaCelkem}">
+                                    ${skupina.celkem} ks
+                                </span>
+                            </div>
+                            <div class="rozbalit">
+                                ▼ Klikni pro zobrazení taveb
+                            </div>
+                        </summary>
+                        <div class="obsah-taveb">
+                            ${tavbyHTML}
+                        </div>
+                    </details>
+                `;
+            });
 
             seznam.innerHTML += `
-
                 <div class="celkem">
-
                     Celkem zobrazených tyček:
-                    ${
-                        celkemVsechnoMin ===
-                        celkemVsechnoMax
-                            ? celkemVsechnoMin
-                            : `${celkemVsechnoMin}–${celkemVsechnoMax}`
-                    } ks
-
+                    ${celkemVsechno} ks
                 </div>
-
             `;
-
         }
+
+
 
 
         zkontrolujPrihlaseni();

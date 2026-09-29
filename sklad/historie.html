@@ -88,10 +88,6 @@
             border-left-color: #dc3545;
         }
 
-        .zaznam.zpresneno {
-            border-left-color: #f0ad4e;
-        }
-
         .akce {
             font-weight: bold;
             font-size: 18px;
@@ -104,10 +100,6 @@
 
         .akce.odebrano {
             color: #dc3545;
-        }
-
-        .akce.zpresneno {
-            color: #d58512;
         }
 
         .datum {
@@ -261,8 +253,8 @@
 
             const { data, error } =
                 await supabaseClient
-                    .from("historie")
-                    .select("*")
+                    .from("web_historie")
+                    .select("datum, osobni_cislo, akce, material, druh, rozmer, tavba, pocet, objednavka")
                     .order("datum", { ascending: false })
                     .order("id", { ascending: false });
 
@@ -289,11 +281,20 @@
             ZOBRAZENÍ HISTORIE
         */
 
+        function escapeHtml(hodnota) {
+            return String(hodnota ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+
         function zobrazHistorii() {
 
             const seznam =
                 document.getElementById("seznam");
-
 
             const hledanaTavba =
                 document
@@ -302,7 +303,6 @@
                     .trim()
                     .toLowerCase();
 
-
             const hledanaObjednavka =
                 document
                     .getElementById("hledatObjednavku")
@@ -310,218 +310,107 @@
                     .trim()
                     .toLowerCase();
 
-
-            let filtrovanaData =
-                historieData;
-
-
-            /*
-                HLEDÁNÍ PODLE TAVBY
-            */
+            let filtrovanaData = historieData;
 
             if (hledanaTavba !== "") {
-
                 filtrovanaData =
                     filtrovanaData.filter(zaznam =>
-
-                        String(
-                            zaznam.tavba ??
-                            zaznam.atest ??
-                            ""
-                        )
+                        String(zaznam.tavba || "")
                             .toLowerCase()
                             .includes(hledanaTavba)
-
                     );
             }
 
-
-            /*
-                HLEDÁNÍ PODLE OBJEDNÁVKY
-            */
-
             if (hledanaObjednavka !== "") {
-
                 filtrovanaData =
                     filtrovanaData.filter(zaznam =>
-
                         String(zaznam.objednavka || "")
                             .toLowerCase()
                             .includes(hledanaObjednavka)
-
                     );
             }
 
-
             /*
-                NIC NENALEZENO
+                Nová historie pracuje pouze s přesným počtem kusů.
+                Staré technické záznamy ZPŘESNĚNO zaměstnanci
+                ve skladu nepotřebují, proto je nezobrazujeme.
             */
+            filtrovanaData =
+                filtrovanaData.filter(zaznam =>
+                    zaznam.akce === "PŘIDÁNO" ||
+                    zaznam.akce === "ODEBRÁNO"
+                );
 
             if (filtrovanaData.length === 0) {
-
                 seznam.innerHTML =
                     "<p>Žádné záznamy nebyly nalezeny.</p>";
-
                 return;
             }
 
-
             seznam.innerHTML = "";
-
-
-            /*
-                VYKRESLENÍ HISTORIE
-            */
 
             filtrovanaData.forEach(zaznam => {
 
-                let trida = "";
-                let pocetHTML = "";
+                const jePrijem =
+                    zaznam.akce === "PŘIDÁNO";
 
+                const trida =
+                    jePrijem ? "pridano" : "odebrano";
 
-                if (zaznam.akce === "PŘIDÁNO") {
+                const pocet =
+                    Number(zaznam.pocet || 0);
 
-                    trida = "pridano";
-
-                    const min =
-                        zaznam.pocet_min;
-
-                    const max =
-                        zaznam.pocet_max;
-
-                    if (
-                        min !== null &&
-                        max !== null &&
-                        Number(min) !== Number(max)
-                    ) {
-
-                        pocetHTML =
-                            "+" + min + "–" + max + " ks";
-
-                    } else {
-
-                        const presnyPocet =
-                            min !== null
-                                ? min
-                                : zaznam.pocet;
-
-                        pocetHTML =
-                            "+" + presnyPocet + " ks";
-                    }
-
-                }
-
-
-                if (zaznam.akce === "ODEBRÁNO") {
-
-                    trida = "odebrano";
-
-                    pocetHTML =
-                        "-" + zaznam.pocet + " ks";
-
-                }
-
-
-                if (zaznam.akce === "ZPŘESNĚNO") {
-
-                    trida = "zpresneno";
-
-                    const puvodniMin =
-                        zaznam.puvodni_pocet_min;
-
-                    const puvodniMax =
-                        zaznam.puvodni_pocet_max;
-
-                    const novyPocet =
-                        zaznam.pocet;
-
-                    if (
-                        puvodniMin !== null &&
-                        puvodniMax !== null
-                    ) {
-
-                        const puvodniText =
-                            Number(puvodniMin) === Number(puvodniMax)
-                                ? String(puvodniMin)
-                                : puvodniMin + "–" + puvodniMax;
-
-                        pocetHTML =
-                            puvodniText +
-                            " → " +
-                            novyPocet +
-                            " ks";
-
-                    } else {
-
-                        pocetHTML =
-                            "→ " + novyPocet + " ks";
-                    }
-
-                }
-
-
-                /*
-                    OBJEDNÁVKA SE UKÁŽE JEN,
-                    KDYŽ JE VYPLNĚNÁ
-                */
+                const pocetHTML =
+                    (jePrijem ? "+" : "-") +
+                    pocet +
+                    " ks";
 
                 let objednavkaHTML = "";
-
 
                 if (
                     zaznam.objednavka &&
                     String(zaznam.objednavka).trim() !== ""
                 ) {
-
                     objednavkaHTML = `
-
                         <div class="objednavka">
-
                             Objednávka:
-
                             <span class="cislo-objednavky">
-                                ${zaznam.objednavka}
+                                ${escapeHtml(zaznam.objednavka)}
                             </span>
-
                         </div>
-
                     `;
                 }
 
+                const osobniCislo =
+                    zaznam.osobni_cislo != null &&
+                    String(zaznam.osobni_cislo).trim() !== ""
+                        ? ` | Os. č. ${escapeHtml(zaznam.osobni_cislo)}`
+                        : "";
 
                 seznam.innerHTML += `
-
                     <div class="zaznam ${trida}">
 
                         <div class="datum">
-
-                            ${formatDatum(zaznam.datum)}
-                            |
-                            Os. č. ${zaznam.osobni_cislo}
-
+                            ${escapeHtml(formatDatum(zaznam.datum))}
+                            ${osobniCislo}
                         </div>
-
 
                         <div class="akce ${trida}">
-                            ${zaznam.akce}
+                            ${escapeHtml(zaznam.akce)}
                         </div>
 
-
                         <div class="detail">
-
-                            ${zaznam.material}
+                            ${escapeHtml(zaznam.material)}
                             |
-                            ${zaznam.druh}
+                            ${escapeHtml(zaznam.druh)}
                             |
-                            ${zaznam.rozmer}
+                            ${escapeHtml(zaznam.rozmer)}
 
                             <br>
 
-
                             Tavba:
-
                             <span class="cislo-tavby">
-                                ${zaznam.tavba ?? zaznam.atest ?? ""}
+                                ${escapeHtml(zaznam.tavba)}
                             </span>
 
                             |
@@ -530,15 +419,11 @@
                                 ${pocetHTML}
                             </strong>
 
-
                             ${objednavkaHTML}
-
                         </div>
 
                     </div>
-
                 `;
-
             });
         }
 
