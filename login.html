@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
 
@@ -35,7 +36,7 @@
 
 
         /* =========================================================
-           PC VERZE
+           HLAVNÍ PLOCHA - PC
         ========================================================= */
 
         .stage {
@@ -64,14 +65,22 @@
 
 
         /* =========================================================
-           PŘIHLAŠOVACÍ FORMULÁŘ - PC
+           FORMULÁŘ - PC
+
+           POSUNUTO DOLŮ A VYCENTROVÁNO
+           DO MODRÉHO PANELU
         ========================================================= */
 
         .login-box {
             position: absolute;
 
             left: 50%;
-            top: 56%;
+
+            /*
+                Tohle je hlavní pozice formuláře.
+                Formulář je nyní níže a uprostřed panelu.
+            */
+            top: 61%;
 
             transform: translate(-50%, -50%);
 
@@ -84,31 +93,6 @@
 
 
         /* =========================================================
-           INTERNÍ SYSTÉM
-           POSUNUTO JEŠTĚ VÍCE DOLŮ
-        ========================================================= */
-
-        .login-subtitle {
-            position: relative;
-
-            /* NOVĚ 36px DOLŮ */
-            top: 36px;
-
-            margin-bottom: calc(7% + 36px);
-
-            color: #a9dfff;
-
-            font-size: clamp(
-                10px,
-                0.85vw,
-                15px
-            );
-
-            letter-spacing: 0.12em;
-        }
-
-
-        /* =========================================================
            POPISKY
         ========================================================= */
 
@@ -117,11 +101,7 @@
 
             width: 100%;
 
-            margin:
-                0
-                0
-                2%
-                0;
+            margin: 0 0 2% 0;
 
             text-align: left;
 
@@ -137,7 +117,7 @@
 
             text-shadow:
                 0 1px 3px
-                rgba(0,0,0,.7);
+                rgba(0, 0, 0, .7);
         }
 
 
@@ -267,14 +247,14 @@
 
             text-shadow:
                 0 1px 3px
-                rgba(0,0,0,.55);
+                rgba(0, 0, 0, .55);
 
             box-shadow:
                 inset 0 1px 0
-                rgba(255,255,255,.35),
+                rgba(255, 255, 255, .35),
 
                 0 0 15px
-                rgba(0,170,255,.25);
+                rgba(0, 170, 255, .25);
 
             transition:
                 transform .15s ease,
@@ -290,10 +270,10 @@
 
             box-shadow:
                 inset 0 1px 0
-                rgba(255,255,255,.4),
+                rgba(255, 255, 255, .4),
 
                 0 0 22px
-                rgba(0,190,255,.42);
+                rgba(0, 190, 255, .42);
         }
 
 
@@ -311,7 +291,7 @@
 
 
         /* =========================================================
-           CHYBA
+           CHYBOVÁ HLÁŠKA
         ========================================================= */
 
         .chyba {
@@ -334,7 +314,7 @@
 
             text-shadow:
                 0 1px 3px
-                rgba(0,0,0,.8);
+                rgba(0, 0, 0, .8);
         }
 
 
@@ -360,7 +340,7 @@
 
 
         /* =========================================================
-           MOBIL NA VÝŠKU
+           MOBILNÍ VERZE NA VÝŠKU
         ========================================================= */
 
         @media
@@ -399,6 +379,10 @@
 
             .login-box {
                 left: 50%;
+
+                /*
+                    Mobil má vlastní pozici.
+                */
                 top: 53%;
 
                 transform:
@@ -409,25 +393,6 @@
                 max-width: none;
 
                 padding: 0;
-            }
-
-
-            /* INTERNÍ SYSTÉM - TAKÉ 36px DOLŮ */
-
-            .login-subtitle {
-                position: relative;
-
-                top: 36px;
-
-                margin-bottom:
-                    calc(7% + 36px);
-
-                font-size:
-                    clamp(
-                        10px,
-                        3vw,
-                        14px
-                    );
             }
 
 
@@ -486,17 +451,14 @@
 
             .chyba {
                 margin-top: 5%;
-
                 font-size: 12px;
             }
 
 
             .info {
                 margin-top: 3%;
-
                 font-size: 10px;
             }
-
         }
 
 
@@ -514,14 +476,15 @@
                 width: 70%;
             }
 
+
             input {
                 min-height: 44px;
             }
 
+
             #prihlasitButton {
                 min-height: 46px;
             }
-
         }
 
 
@@ -535,33 +498,29 @@
         (orientation: landscape) {
 
             .login-box {
-                top: 55%;
+                top: 60%;
                 width: 27%;
             }
 
-            .login-subtitle {
-                top: 36px;
-
-                margin-bottom:
-                    calc(3% + 36px);
-            }
 
             label:not(:first-of-type) {
                 margin-top: 3%;
             }
 
+
             #prihlasitButton {
                 margin-top: 4%;
             }
+
 
             .chyba {
                 margin-top: 2%;
             }
 
+
             .info {
                 margin-top: 1%;
             }
-
         }
 
     </style>
@@ -581,14 +540,10 @@
             autocomplete="on"
         >
 
-            <div class="login-subtitle">
-                INTERNÍ SYSTÉM
-            </div>
-
-
             <label for="osobniCislo">
                 Osobní číslo
             </label>
+
 
             <input
                 type="text"
@@ -603,6 +558,7 @@
             <label for="heslo">
                 Heslo
             </label>
+
 
             <input
                 type="password"
@@ -736,6 +692,7 @@
                     chyba.textContent =
                         "Nesprávné osobní číslo nebo heslo.";
 
+
                     button.disabled = false;
 
                     button.textContent =
@@ -829,6 +786,7 @@
                     );
 
                 }
+
 
             } catch (error) {
 
