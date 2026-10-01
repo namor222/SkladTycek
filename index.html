@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="cs">
-
 <head>
     <meta charset="UTF-8">
 
@@ -14,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-
         /* =====================================================
            ZÁKLAD
            ===================================================== */
@@ -27,15 +25,22 @@
         body {
             margin: 0;
             padding: 0;
+
             width: 100%;
             height: 100%;
+
             overflow: hidden;
         }
 
         body {
             display: none;
+
             background: #071725;
-            font-family: Arial, Helvetica, sans-serif;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
         }
 
 
@@ -54,10 +59,17 @@
 
             overflow: hidden;
 
-            background-image: url("pozadi.png");
-            background-position: center center;
-            background-repeat: no-repeat;
-            background-size: 100% 100%;
+            background-image:
+                url("pozadi.png");
+
+            background-position:
+                center center;
+
+            background-repeat:
+                no-repeat;
+
+            background-size:
+                100% 100%;
 
             user-select: none;
         }
@@ -69,6 +81,7 @@
 
         .image-button {
             position: absolute;
+
             z-index: 10;
 
             display: block;
@@ -83,7 +96,8 @@
 
             cursor: pointer;
 
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color:
+                transparent;
 
             transition:
                 transform 0.16s ease,
@@ -115,7 +129,8 @@
 
             width: 48.5%;
 
-            transform: translateX(-50%);
+            transform:
+                translateX(-50%);
 
             text-decoration: none;
         }
@@ -126,7 +141,8 @@
                 translateY(-3px)
                 scale(1.015);
 
-            filter: brightness(1.04);
+            filter:
+                brightness(1.04);
         }
 
         .sklad-link:active {
@@ -139,11 +155,14 @@
 
         /* =====================================================
            ODHLÁSIT - PC
+
+           Posunuto více doprava a nahoru.
            ===================================================== */
 
         .logout-button {
-            top: 1.15%;
-            right: 1.85%;
+            top: 0.45%;
+            right: 0.45%;
+
             width: 12.3%;
         }
 
@@ -152,7 +171,8 @@
                 translateY(-2px)
                 scale(1.025);
 
-            filter: brightness(1.08);
+            filter:
+                brightness(1.08);
         }
 
         .logout-button:active {
@@ -163,134 +183,18 @@
 
 
         /* =====================================================
-           DATUM + ČAS - PC
-           ===================================================== */
-
-        .footer-value {
-            position: absolute;
-
-            z-index: 8;
-
-            top: 94.65%;
-
-            transform: translateY(-50%);
-
-            display: flex;
-            align-items: center;
-
-            height: 3%;
-
-            color: #e4ebf1;
-
-            font-size: clamp(
-                11px,
-                0.92vw,
-                16px
-            );
-
-            font-weight: 400;
-
-            line-height: 1;
-
-            white-space: nowrap;
-
-            text-shadow:
-                0 1px 2px
-                rgba(0, 0, 0, 0.55);
-
-            pointer-events: none;
-        }
-
-
-        /* =====================================================
-           DATUM - PC
-           ===================================================== */
-
-        #datum {
-            left: 72.15%;
-        }
-
-
-        /* =====================================================
-           ČAS - PC
-           ===================================================== */
-
-        #cas {
-            left: 84.05%;
-        }
-
-
-        /* =====================================================
-           UŽIVATEL - PC
-           ===================================================== */
-
-        .user-box {
-            position: absolute;
-
-            z-index: 8;
-
-            left: 93.55%;
-            top: 93.15%;
-
-            width: 6.1%;
-
-            color: #e4ebf1;
-
-            font-size: clamp(
-                10px,
-                0.88vw,
-                15px
-            );
-
-            line-height: 1;
-
-            text-align: left;
-
-            text-shadow:
-                0 1px 2px
-                rgba(0, 0, 0, 0.55);
-
-            pointer-events: none;
-        }
-
-        .user-label {
-            display: block;
-
-            margin: 0 0 4px 0;
-            padding: 0;
-
-            font-weight: 400;
-            line-height: 1;
-        }
-
-        #uzivatel {
-            display: block;
-
-            margin: 0;
-            padding: 0;
-
-            max-width: 100%;
-
-            overflow: hidden;
-
-            white-space: nowrap;
-
-            text-overflow: ellipsis;
-
-            font-weight: 700;
-
-            line-height: 1;
-        }
-
-
-        /* =====================================================
            FOCUS
            ===================================================== */
 
         .image-button:focus-visible {
-            outline: 2px solid #00b9ff;
-            outline-offset: 4px;
-            border-radius: 12px;
+            outline:
+                2px solid #00b9ff;
+
+            outline-offset:
+                4px;
+
+            border-radius:
+                12px;
         }
 
 
@@ -305,36 +209,21 @@
 
             .logout-button {
                 width: 14%;
-                top: 1.1%;
-                right: 1.5%;
+
+                top: 0.45%;
+                right: 0.6%;
             }
 
             .sklad-link {
                 width: 53%;
-            }
-
-            .footer-value {
-                font-size: clamp(
-                    9px,
-                    1.1vw,
-                    13px
-                );
-            }
-
-            .user-box {
-                font-size: clamp(
-                    8px,
-                    1vw,
-                    12px
-                );
             }
         }
 
 
         /* =====================================================
            MOBIL NA VÝŠKU
-           
-           TADY SE POUŽÍVÁ NOVÉ:
+
+           Používá:
            pozadi-mobil.png
            ===================================================== */
 
@@ -356,7 +245,7 @@
 
 
             /* =============================================
-               NOVÉ MOBILNÍ POZADÍ
+               MOBILNÍ POZADÍ
                ============================================= */
 
             .stage {
@@ -387,24 +276,21 @@
 
             /* =============================================
                ODHLÁSIT - MOBIL
-               
-               používáme stejné odhlasit.png
-               jako na PC
                ============================================= */
 
             .logout-button {
                 top:
                     calc(
                         env(safe-area-inset-top)
-                        + 1.5%
+                        + 1.2%
                     );
 
-                right: 3%;
+                right: 2.2%;
 
-                width: 32%;
+                width: 36%;
 
-                min-width: 108px;
-                max-width: 160px;
+                min-width: 125px;
+                max-width: 180px;
             }
 
             .logout-button:hover {
@@ -413,22 +299,21 @@
             }
 
             .logout-button:active {
-                transform: scale(0.97);
+                transform:
+                    scale(0.97);
             }
 
 
             /* =============================================
                SKLAD MATERIÁLU - MOBIL
-               
-               samostatné umístění pro mobilní pozadí
                ============================================= */
 
             .sklad-link {
                 left: 50%;
 
-                top: 71%;
+                top: 70%;
 
-                width: 91%;
+                width: 92%;
 
                 max-width: 600px;
 
@@ -448,146 +333,6 @@
                     translateX(-50%)
                     scale(0.98);
             }
-
-
-            /* =============================================
-               DATUM + ČAS - MOBIL
-               
-               Ikony jsou součástí pozadi-mobil.png.
-               Sem doplňujeme pouze živé hodnoty.
-               ============================================= */
-
-            .footer-value {
-                position: absolute;
-
-                z-index: 8;
-
-                top: auto;
-
-                bottom:
-                    calc(
-                        env(safe-area-inset-bottom)
-                        + 2.8%
-                    );
-
-                transform: none;
-
-                display: block;
-
-                height: auto;
-
-                color: #e4ebf1;
-
-                font-size:
-                    clamp(
-                        11px,
-                        3.3vw,
-                        15px
-                    );
-
-                font-weight: 400;
-
-                line-height: 1;
-
-                white-space: nowrap;
-
-                text-shadow:
-                    0 1px 2px
-                    rgba(0, 0, 0, 0.55);
-
-                pointer-events: none;
-            }
-
-
-            /* =============================================
-               DATUM - MOBIL
-               ============================================= */
-
-            #datum {
-                left: 17%;
-            }
-
-
-            /* =============================================
-               ČAS - MOBIL
-               ============================================= */
-
-            #cas {
-                left: 53%;
-            }
-
-
-            /* =============================================
-               UŽIVATEL - MOBIL
-               ============================================= */
-
-            .user-box {
-                position: absolute;
-
-                z-index: 8;
-
-                left: 80%;
-
-                top: auto;
-
-                bottom:
-                    calc(
-                        env(safe-area-inset-bottom)
-                        + 1.9%
-                    );
-
-                width: 18%;
-
-                color: #e4ebf1;
-
-                font-size:
-                    clamp(
-                        10px,
-                        3vw,
-                        14px
-                    );
-
-                line-height: 1.05;
-
-                text-align: left;
-
-                text-shadow:
-                    0 1px 2px
-                    rgba(0, 0, 0, 0.55);
-
-                pointer-events: none;
-            }
-
-            .user-label {
-                display: block;
-
-                margin: 0 0 4px 0;
-
-                padding: 0;
-
-                font-weight: 400;
-
-                line-height: 1;
-            }
-
-            #uzivatel {
-                display: block;
-
-                margin: 0;
-                padding: 0;
-
-                max-width: 100%;
-
-                overflow: hidden;
-
-                white-space: nowrap;
-
-                text-overflow: ellipsis;
-
-                font-weight: 700;
-
-                line-height: 1;
-            }
         }
 
 
@@ -601,34 +346,23 @@
         (orientation: portrait) {
 
             .logout-button {
-                width: 33%;
-                right: 2.5%;
+                width: 37%;
+
+                right: 2%;
             }
 
             .sklad-link {
                 width: 94%;
-                top: 71%;
-            }
 
-            #datum {
-                left: 17%;
-            }
-
-            #cas {
-                left: 53%;
-            }
-
-            .user-box {
-                left: 80%;
-                width: 18%;
+                top: 70%;
             }
         }
 
 
         /* =====================================================
            MOBIL NA ŠÍŘKU
-           
-           ZDE SE VRÁTÍME K PC POZADÍ.
+
+           Na šířku používáme PC pozadí.
            ===================================================== */
 
         @media
@@ -657,8 +391,9 @@
             /* ODHLÁSIT */
 
             .logout-button {
-                top: 1.2%;
-                right: 1.8%;
+                top: 0.4%;
+                right: 0.5%;
+
                 width: 13%;
             }
 
@@ -667,57 +402,13 @@
 
             .sklad-link {
                 left: 50%;
+
                 top: 58.3%;
 
                 width: 49%;
 
                 transform:
                     translateX(-50%);
-            }
-
-
-            /* DATUM + ČAS */
-
-            .footer-value {
-                top: 94.65%;
-                bottom: auto;
-
-                transform:
-                    translateY(-50%);
-
-                font-size:
-                    clamp(
-                        8px,
-                        1.15vw,
-                        13px
-                    );
-            }
-
-            #datum {
-                left: 72.15%;
-            }
-
-            #cas {
-                left: 84.05%;
-            }
-
-
-            /* UŽIVATEL */
-
-            .user-box {
-                left: 93.55%;
-
-                top: 93.15%;
-                bottom: auto;
-
-                width: 6.1%;
-
-                font-size:
-                    clamp(
-                        7px,
-                        1vw,
-                        11px
-                    );
             }
         }
 
@@ -770,43 +461,6 @@
         </a>
 
 
-        <!-- ==================================================
-             DATUM
-             ================================================== -->
-
-        <span
-            class="footer-value"
-            id="datum"
-        ></span>
-
-
-        <!-- ==================================================
-             ČAS
-             ================================================== -->
-
-        <span
-            class="footer-value"
-            id="cas"
-        ></span>
-
-
-        <!-- ==================================================
-             UŽIVATEL
-             ================================================== -->
-
-        <div class="user-box">
-
-            <span class="user-label">
-                Uživatel
-            </span>
-
-            <span id="uzivatel">
-                —
-            </span>
-
-        </div>
-
-
     </main>
 
 
@@ -829,51 +483,6 @@
                 SUPABASE_URL,
                 SUPABASE_KEY
             );
-
-
-        /* =====================================================
-           JMÉNO UŽIVATELE
-           ===================================================== */
-
-        function zobrazJmenoUzivatele(user) {
-
-            const el =
-                document.getElementById(
-                    "uzivatel"
-                );
-
-
-            if (!el || !user) {
-                return;
-            }
-
-
-            const meta =
-                user.user_metadata || {};
-
-
-            const emailName =
-                user.email
-                    ? user.email.split("@")[0]
-                    : "";
-
-
-            const jmeno =
-                meta.full_name ||
-                meta.name ||
-                meta.username ||
-                emailName ||
-                "Přihlášen";
-
-
-            el.textContent =
-                jmeno;
-
-
-            el.title =
-                user.email ||
-                jmeno;
-        }
 
 
         /* =====================================================
@@ -904,10 +513,10 @@
             }
 
 
-            zobrazJmenoUzivatele(
-                data.session.user
-            );
-
+            /*
+             * Uživatel je přihlášen.
+             * Teprve teď zobrazíme stránku.
+             */
 
             document.body.style.display =
                 "block";
@@ -932,53 +541,12 @@
 
 
         /* =====================================================
-           DATUM A ČAS
-           ===================================================== */
-
-        function aktualizujCas() {
-
-            const ted =
-                new Date();
-
-
-            document.getElementById(
-                "datum"
-            ).textContent =
-                ted.toLocaleDateString(
-                    "cs-CZ"
-                );
-
-
-            document.getElementById(
-                "cas"
-            ).textContent =
-                ted.toLocaleTimeString(
-                    "cs-CZ",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                    }
-                );
-        }
-
-
-        /* =====================================================
            START
            ===================================================== */
-
-        aktualizujCas();
-
-
-        setInterval(
-            aktualizujCas,
-            1000
-        );
-
 
         zkontrolujPrihlaseni();
 
     </script>
 
 </body>
-
 </html>
