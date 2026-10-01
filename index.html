@@ -2,664 +2,929 @@
 <html lang="cs">
 
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
-  <title>KOVOHLADIL | Firemní systém</title>
+    <title>KOVOHLADIL | Firemní systém</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
+    <style>
 
-    /* =====================================================
-       ZÁKLAD
-       ===================================================== */
+        /* =====================================================
+           ZÁKLAD
+           ===================================================== */
 
-    * {
-      box-sizing: border-box;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
 
-      width: 100%;
-      height: 100%;
+            width: 100%;
+            height: 100%;
 
-      overflow: hidden;
-    }
+            overflow: hidden;
+        }
 
-    body {
-      display: none;
+        body {
+            display: none;
 
-      background: #071725;
+            background: #071725;
 
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-    }
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
 
 
-    /* =====================================================
-       HLAVNÍ OBRAZOVKA
-       ===================================================== */
+        /* =====================================================
+           HLAVNÍ OBRAZOVKA - PC
+           ===================================================== */
 
-    .stage {
-      position: relative;
+        .stage {
+            position: relative;
 
-      width: 100vw;
-      height: 100vh;
+            width: 100vw;
+            height: 100vh;
 
-      margin: 0;
-      padding: 0;
+            margin: 0;
+            padding: 0;
 
-      overflow: hidden;
+            overflow: hidden;
 
-      background-image:
-        url("pozadi.png");
+            background-image:
+                url("pozadi.png");
 
-      background-position:
-        center center;
+            background-position:
+                center center;
 
-      background-repeat:
-        no-repeat;
+            background-repeat:
+                no-repeat;
 
-      background-size:
-        100% 100%;
+            background-size:
+                100% 100%;
 
-      user-select: none;
-    }
+            user-select: none;
+        }
 
 
-    /* =====================================================
-       OBRÁZKOVÁ TLAČÍTKA
-       ===================================================== */
+        /* =====================================================
+           OBRÁZKOVÁ TLAČÍTKA
+           ===================================================== */
 
-    .image-button {
-      position: absolute;
+        .image-button {
+            position: absolute;
 
-      z-index: 10;
+            z-index: 10;
 
-      display: block;
+            display: block;
 
-      margin: 0;
-      padding: 0;
+            margin: 0;
+            padding: 0;
 
-      border: 0;
-      outline: 0;
+            border: 0;
+            outline: 0;
 
-      background: transparent;
+            background: transparent;
 
-      cursor: pointer;
+            cursor: pointer;
 
-      -webkit-tap-highlight-color:
-        transparent;
+            -webkit-tap-highlight-color:
+                transparent;
 
-      transition:
-        transform 0.16s ease,
-        filter 0.16s ease;
-    }
+            transition:
+                transform 0.16s ease,
+                filter 0.16s ease;
+        }
 
+        .image-button img {
+            display: block;
 
-    .image-button img {
-      display: block;
+            width: 100%;
+            height: auto;
 
-      width: 100%;
-      height: auto;
+            margin: 0;
+            padding: 0;
 
-      margin: 0;
-      padding: 0;
+            border: 0;
 
-      border: 0;
+            pointer-events: none;
+        }
 
-      pointer-events: none;
-    }
 
+        /* =====================================================
+           SKLAD MATERIÁLU - PC
+           ===================================================== */
 
-    /* =====================================================
-       SKLAD MATERIÁLU
-       ===================================================== */
+        .sklad-link {
+            left: 50%;
 
-    .sklad-link {
-      left: 50%;
+            top: 58.3%;
 
-      top: 58.3%;
+            width: 48.5%;
 
-      width: 48.5%;
+            transform:
+                translateX(-50%);
 
-      transform:
-        translateX(-50%);
+            text-decoration: none;
+        }
 
-      text-decoration: none;
-    }
+        .sklad-link:hover {
+            transform:
+                translateX(-50%)
+                translateY(-3px)
+                scale(1.015);
 
+            filter:
+                brightness(1.04);
+        }
 
-    .sklad-link:hover {
-      transform:
-        translateX(-50%)
-        translateY(-3px)
-        scale(1.015);
+        .sklad-link:active {
+            transform:
+                translateX(-50%)
+                translateY(1px)
+                scale(0.995);
+        }
 
-      filter:
-        brightness(1.04);
-    }
 
+        /* =====================================================
+           ODHLÁSIT - PC
+           ===================================================== */
 
-    .sklad-link:active {
-      transform:
-        translateX(-50%)
-        translateY(1px)
-        scale(0.995);
-    }
+        .logout-button {
+            top: 1.15%;
 
+            right: 1.85%;
 
-    /* =====================================================
-       ODHLÁSIT
-       - necháváme beze změny
-       ===================================================== */
+            width: 12.3%;
+        }
 
-    .logout-button {
-      top: 1.15%;
+        .logout-button:hover {
+            transform:
+                translateY(-2px)
+                scale(1.025);
 
-      right: 1.85%;
+            filter:
+                brightness(1.08);
+        }
 
-      width: 12.3%;
-    }
+        .logout-button:active {
+            transform:
+                translateY(1px)
+                scale(0.98);
+        }
 
 
-    .logout-button:hover {
-      transform:
-        translateY(-2px)
-        scale(1.025);
+        /* =====================================================
+           DATUM + ČAS - PC
+           ===================================================== */
 
-      filter:
-        brightness(1.08);
-    }
+        .footer-value {
+            position: absolute;
 
+            z-index: 8;
 
-    .logout-button:active {
-      transform:
-        translateY(1px)
-        scale(0.98);
-    }
+            top: 94.65%;
 
+            transform:
+                translateY(-50%);
 
-    /* =====================================================
-       DATUM + ČAS
-       ===================================================== */
+            display: flex;
 
-    .footer-value {
-      position: absolute;
+            align-items: center;
 
-      z-index: 8;
+            height: 3%;
 
-      /*
-       * Posunuto výrazně DOLŮ.
-       */
+            color: #e4ebf1;
 
-      top: 94.65%;
+            font-size:
+                clamp(
+                    11px,
+                    0.92vw,
+                    16px
+                );
 
-      transform:
-        translateY(-50%);
+            font-weight: 400;
 
-      display: flex;
+            line-height: 1;
 
-      align-items: center;
+            white-space: nowrap;
 
-      height: 3%;
+            text-shadow:
+                0 1px 2px
+                rgba(0, 0, 0, 0.55);
 
-      color: #e4ebf1;
+            pointer-events: none;
+        }
 
-      font-size:
-        clamp(
-          11px,
-          0.92vw,
-          16px
-        );
 
-      font-weight: 400;
+        /* =====================================================
+           DATUM - PC
+           ===================================================== */
 
-      line-height: 1;
+        #datum {
+            left: 72.15%;
+        }
 
-      white-space: nowrap;
 
-      text-shadow:
-        0 1px 2px
-        rgba(0, 0, 0, 0.55);
+        /* =====================================================
+           ČAS - PC
+           ===================================================== */
 
-      pointer-events: none;
-    }
+        #cas {
+            left: 84.05%;
+        }
 
 
-    /* =====================================================
-       DATUM
-       ===================================================== */
+        /* =====================================================
+           UŽIVATEL - PC
+           ===================================================== */
 
-    #datum {
+        .user-box {
+            position: absolute;
 
-      /*
-       * Původně 71.55 %
-       *
-       * Posun trochu DOPRAVA.
-       */
+            z-index: 8;
 
-      left: 72.15%;
-    }
+            left: 93.55%;
 
+            top: 93.15%;
 
-    /* =====================================================
-       ČAS
-       ===================================================== */
+            width: 6.1%;
 
-    #cas {
+            color: #e4ebf1;
 
-      /*
-       * Původně 82.55 %
-       *
-       * Posun výrazně DOPRAVA.
-       */
+            font-size:
+                clamp(
+                    10px,
+                    0.88vw,
+                    15px
+                );
 
-      left: 84.05%;
-    }
+            line-height: 1;
 
+            text-align: left;
 
-    /* =====================================================
-       UŽIVATEL
-       ===================================================== */
+            text-shadow:
+                0 1px 2px
+                rgba(0, 0, 0, 0.55);
 
-    .user-box {
-      position: absolute;
+            pointer-events: none;
+        }
 
-      z-index: 8;
+        .user-label {
+            display: block;
 
-      /*
-       * Výraznější posun DOPRAVA.
-       */
+            margin: 0 0 4px 0;
 
-      left: 93.55%;
+            padding: 0;
 
-      /*
-       * Výraznější posun DOLŮ.
-       */
+            font-weight: 400;
 
-      top: 93.15%;
+            line-height: 1;
+        }
 
-      width: 6.1%;
+        #uzivatel {
+            display: block;
 
-      color: #e4ebf1;
+            margin: 0;
+            padding: 0;
 
-      font-size:
-        clamp(
-          10px,
-          0.88vw,
-          15px
-        );
+            max-width: 100%;
 
-      line-height: 1;
+            overflow: hidden;
 
-      text-align: left;
+            white-space: nowrap;
 
-      text-shadow:
-        0 1px 2px
-        rgba(0, 0, 0, 0.55);
+            text-overflow: ellipsis;
 
-      pointer-events: none;
-    }
+            font-weight: 700;
 
+            line-height: 1;
+        }
 
-    .user-label {
-      display: block;
 
-      margin: 0 0 4px 0;
+        /* =====================================================
+           FOCUS
+           ===================================================== */
 
-      padding: 0;
+        .image-button:focus-visible {
+            outline:
+                2px solid #00b9ff;
 
-      font-weight: 400;
+            outline-offset:
+                4px;
 
-      line-height: 1;
-    }
+            border-radius:
+                12px;
+        }
 
 
-    #uzivatel {
-      display: block;
+        /* =====================================================
+           TABLET / MENŠÍ NOTEBOOK
+           701px - 1000px
+           ===================================================== */
 
-      margin: 0;
-      padding: 0;
+        @media
+        (min-width: 701px)
+        and
+        (max-width: 1000px) {
 
-      max-width: 100%;
+            .logout-button {
+                width: 14%;
+                top: 1.1%;
+                right: 1.5%;
+            }
 
-      overflow: hidden;
+            .sklad-link {
+                width: 53%;
+            }
 
-      white-space: nowrap;
+            .footer-value {
+                font-size:
+                    clamp(
+                        9px,
+                        1.1vw,
+                        13px
+                    );
+            }
 
-      text-overflow: ellipsis;
+            .user-box {
+                font-size:
+                    clamp(
+                        8px,
+                        1vw,
+                        12px
+                    );
+            }
+        }
 
-      font-weight: 700;
 
-      line-height: 1;
-    }
+        /* =====================================================
+           MOBIL - NA VÝŠKU
+           ===================================================== */
 
+        @media
+        (max-width: 700px)
+        and
+        (orientation: portrait) {
 
-    /* =====================================================
-       FOCUS
-       ===================================================== */
+            html,
+            body {
+                width: 100%;
+                height: 100%;
 
-    .image-button:focus-visible {
-      outline:
-        2px solid #00b9ff;
+                min-height: 100dvh;
 
-      outline-offset:
-        4px;
+                overflow: hidden;
 
-      border-radius:
-        12px;
-    }
+                background: #071725;
+            }
 
 
-    /* =====================================================
-       MENŠÍ OBRAZOVKY
-       ===================================================== */
+            /* -------------------------------------------------
+               Pozadí
 
-    @media (max-width: 900px) {
+               Na mobilu ho zvětšíme tak, aby vyplnilo telefon.
+               ------------------------------------------------- */
 
-      .logout-button {
-        top: 1.1%;
+            .stage {
+                width: 100vw;
 
-        right: 1.5%;
+                height: 100dvh;
 
-        width: 13.5%;
-      }
+                min-height: 100dvh;
 
+                background-image:
+                    url("pozadi.png");
 
-      .sklad-link {
-        width: 52%;
-      }
+                background-repeat:
+                    no-repeat;
 
+                background-position:
+                    center center;
 
-      .footer-value {
-        font-size:
-          clamp(
-            8px,
-            1vw,
-            13px
-          );
-      }
+                background-size:
+                    cover;
+            }
 
 
-      .user-box {
-        font-size:
-          clamp(
-            8px,
-            0.9vw,
-            12px
-          );
-      }
-    }
+            /* -------------------------------------------------
+               ODHLÁSIT - MOBIL
+               ------------------------------------------------- */
 
-  </style>
+            .logout-button {
+                top:
+                    max(
+                        12px,
+                        calc(
+                            env(safe-area-inset-top)
+                            + 6px
+                        )
+                    );
+
+                right: 3%;
+
+                width: 30%;
+
+                max-width: 160px;
+
+                min-width: 105px;
+            }
+
+
+            /* -------------------------------------------------
+               SKLAD MATERIÁLU - MOBIL
+
+               Velké tlačítko vhodné na dotyk.
+               ------------------------------------------------- */
+
+            .sklad-link {
+                left: 50%;
+
+                top: 57%;
+
+                width: 92%;
+
+                max-width: 600px;
+
+                transform:
+                    translateX(-50%);
+            }
+
+            .sklad-link:hover {
+                transform:
+                    translateX(-50%);
+            }
+
+            .sklad-link:active {
+                transform:
+                    translateX(-50%)
+                    scale(0.98);
+            }
+
+
+            /* -------------------------------------------------
+               Spodní informace na mobilu
+
+               Protože původní ikonky jsou součástí pozadí,
+               hodnoty držíme ve spodní části obrazovky.
+               ------------------------------------------------- */
+
+            .footer-value {
+                top: auto;
+
+                bottom:
+                    calc(
+                        env(safe-area-inset-bottom)
+                        + 4.5%
+                    );
+
+                transform: none;
+
+                height: auto;
+
+                font-size:
+                    clamp(
+                        11px,
+                        3.3vw,
+                        16px
+                    );
+
+                font-weight: 400;
+            }
+
+
+            /* DATUM */
+
+            #datum {
+                left: 23%;
+            }
+
+
+            /* ČAS */
+
+            #cas {
+                left: 59%;
+            }
+
+
+            /* UŽIVATEL */
+
+            .user-box {
+                left: 81%;
+
+                top: auto;
+
+                bottom:
+                    calc(
+                        env(safe-area-inset-bottom)
+                        + 3.8%
+                    );
+
+                width: 17%;
+
+                font-size:
+                    clamp(
+                        10px,
+                        3vw,
+                        15px
+                    );
+
+                line-height: 1.05;
+            }
+
+            .user-label {
+                margin-bottom: 4px;
+            }
+        }
+
+
+        /* =====================================================
+           VELMI MALÝ MOBIL
+           ===================================================== */
+
+        @media
+        (max-width: 430px)
+        and
+        (orientation: portrait) {
+
+            .logout-button {
+                width: 32%;
+
+                right: 2.5%;
+            }
+
+            .sklad-link {
+                width: 94%;
+
+                top: 58%;
+            }
+
+            #datum {
+                left: 21%;
+            }
+
+            #cas {
+                left: 58%;
+            }
+
+            .user-box {
+                left: 80%;
+
+                width: 18%;
+            }
+        }
+
+
+        /* =====================================================
+           MOBIL - NA ŠÍŘKU
+           ===================================================== */
+
+        @media
+        (max-height: 600px)
+        and
+        (orientation: landscape) {
+
+            .stage {
+                width: 100vw;
+
+                height: 100dvh;
+
+                background-size:
+                    100% 100%;
+            }
+
+
+            /* Na šířku se držíme PC vzhledu. */
+
+            .logout-button {
+                top: 1.2%;
+
+                right: 1.8%;
+
+                width: 13%;
+            }
+
+            .sklad-link {
+                left: 50%;
+
+                top: 58.3%;
+
+                width: 49%;
+
+                transform:
+                    translateX(-50%);
+            }
+
+            .footer-value {
+                top: 94.65%;
+
+                bottom: auto;
+
+                transform:
+                    translateY(-50%);
+
+                font-size:
+                    clamp(
+                        8px,
+                        1.15vw,
+                        13px
+                    );
+            }
+
+            #datum {
+                left: 72.15%;
+            }
+
+            #cas {
+                left: 84.05%;
+            }
+
+            .user-box {
+                left: 93.55%;
+
+                top: 93.15%;
+
+                bottom: auto;
+
+                width: 6.1%;
+
+                font-size:
+                    clamp(
+                        7px,
+                        1vw,
+                        11px
+                    );
+            }
+        }
+
+    </style>
 </head>
 
 
 <body>
 
 
-  <main
-    class="stage"
-    aria-label="KovoHladil firemní systém"
-  >
-
-
-    <!-- ==================================================
-         ODHLÁSIT
-         ================================================== -->
-
-    <button
-      class="image-button logout-button"
-      type="button"
-      onclick="odhlasit()"
-      aria-label="Odhlásit"
+    <main
+        class="stage"
+        aria-label="KovoHladil firemní systém"
     >
 
-      <img
-        src="odhlasit.png"
-        alt="ODHLÁSIT"
-      >
 
-    </button>
+        <!-- ==================================================
+             ODHLÁSIT
+             ================================================== -->
 
+        <button
+            class="image-button logout-button"
+            type="button"
+            onclick="odhlasit()"
+            aria-label="Odhlásit"
+        >
 
-    <!-- ==================================================
-         SKLAD MATERIÁLU
-         ================================================== -->
+            <img
+                src="odhlasit.png"
+                alt="ODHLÁSIT"
+            >
 
-    <a
-      class="image-button sklad-link"
-      href="sklad/material.html"
-      aria-label="Sklad materiálu"
-    >
-
-      <img
-        src="sklad-materialu.png"
-        alt="SKLAD MATERIÁLU"
-      >
-
-    </a>
+        </button>
 
 
-    <!-- ==================================================
-         DATUM
-         ================================================== -->
+        <!-- ==================================================
+             SKLAD MATERIÁLU
+             ================================================== -->
 
-    <span
-      class="footer-value"
-      id="datum"
-    ></span>
+        <a
+            class="image-button sklad-link"
+            href="sklad/material.html"
+            aria-label="Sklad materiálu"
+        >
 
+            <img
+                src="sklad-materialu.png"
+                alt="SKLAD MATERIÁLU"
+            >
 
-    <!-- ==================================================
-         ČAS
-         ================================================== -->
-
-    <span
-      class="footer-value"
-      id="cas"
-    ></span>
+        </a>
 
 
-    <!-- ==================================================
-         UŽIVATEL
-         ================================================== -->
+        <!-- ==================================================
+             DATUM
+             ================================================== -->
 
-    <div class="user-box">
-
-      <span class="user-label">
-        Uživatel
-      </span>
-
-      <span id="uzivatel">
-        —
-      </span>
-
-    </div>
+        <span
+            class="footer-value"
+            id="datum"
+        ></span>
 
 
-  </main>
+        <!-- ==================================================
+             ČAS
+             ================================================== -->
+
+        <span
+            class="footer-value"
+            id="cas"
+        ></span>
 
 
-  <script>
+        <!-- ==================================================
+             UŽIVATEL
+             ================================================== -->
 
-    /* =====================================================
-       SUPABASE
-       ===================================================== */
+        <div class="user-box">
 
-    const SUPABASE_URL =
-      "https://gmawlmsizglrnjmjegmx.supabase.co";
+            <span class="user-label">
+                Uživatel
+            </span>
 
+            <span id="uzivatel">
+                —
+            </span>
 
-    const SUPABASE_KEY =
-      "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
-
-
-    const supabaseClient =
-      window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
+        </div>
 
 
-    /* =====================================================
-       JMÉNO UŽIVATELE
-       ===================================================== */
+    </main>
 
-    function zobrazJmenoUzivatele(user) {
 
-      const el =
-        document.getElementById(
-          "uzivatel"
+    <script>
+
+        /* =====================================================
+           SUPABASE
+           ===================================================== */
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        /* =====================================================
+           JMÉNO UŽIVATELE
+           ===================================================== */
+
+        function zobrazJmenoUzivatele(user) {
+
+            const el =
+                document.getElementById(
+                    "uzivatel"
+                );
+
+
+            if (!el || !user) {
+                return;
+            }
+
+
+            const meta =
+                user.user_metadata || {};
+
+
+            const emailName =
+                user.email
+                    ? user.email.split("@")[0]
+                    : "";
+
+
+            const jmeno =
+                meta.full_name ||
+                meta.name ||
+                meta.username ||
+                emailName ||
+                "Přihlášen";
+
+
+            el.textContent =
+                jmeno;
+
+
+            el.title =
+                user.email ||
+                jmeno;
+        }
+
+
+        /* =====================================================
+           KONTROLA PŘIHLÁŠENÍ
+           ===================================================== */
+
+        async function zkontrolujPrihlaseni() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+                return;
+            }
+
+
+            zobrazJmenoUzivatele(
+                data.session.user
+            );
+
+
+            document.body.style.display =
+                "block";
+        }
+
+
+        /* =====================================================
+           ODHLÁŠENÍ
+           ===================================================== */
+
+        async function odhlasit() {
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+
+            window.location.replace(
+                "login.html"
+            );
+        }
+
+
+        /* =====================================================
+           DATUM A ČAS
+           ===================================================== */
+
+        function aktualizujCas() {
+
+            const ted =
+                new Date();
+
+
+            document.getElementById(
+                "datum"
+            ).textContent =
+                ted.toLocaleDateString(
+                    "cs-CZ"
+                );
+
+
+            document.getElementById(
+                "cas"
+            ).textContent =
+                ted.toLocaleTimeString(
+                    "cs-CZ",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                );
+        }
+
+
+        /* =====================================================
+           START
+           ===================================================== */
+
+        aktualizujCas();
+
+
+        setInterval(
+            aktualizujCas,
+            1000
         );
 
 
-      if (!el || !user) {
-        return;
-      }
+        zkontrolujPrihlaseni();
 
-
-      const meta =
-        user.user_metadata || {};
-
-
-      const emailName =
-        user.email
-          ? user.email.split("@")[0]
-          : "";
-
-
-      const jmeno =
-        meta.full_name ||
-        meta.name ||
-        meta.username ||
-        emailName ||
-        "Přihlášen";
-
-
-      el.textContent =
-        jmeno;
-
-
-      el.title =
-        user.email ||
-        jmeno;
-    }
-
-
-    /* =====================================================
-       KONTROLA PŘIHLÁŠENÍ
-       ===================================================== */
-
-    async function zkontrolujPrihlaseni() {
-
-      const {
-        data,
-        error
-      } =
-        await supabaseClient
-          .auth
-          .getSession();
-
-
-      if (
-        error ||
-        !data.session
-      ) {
-
-        window.location.replace(
-          "login.html"
-        );
-
-        return;
-      }
-
-
-      zobrazJmenoUzivatele(
-        data.session.user
-      );
-
-
-      document.body.style.display =
-        "block";
-    }
-
-
-    /* =====================================================
-       ODHLÁŠENÍ
-       ===================================================== */
-
-    async function odhlasit() {
-
-      await supabaseClient
-        .auth
-        .signOut();
-
-
-      window.location.replace(
-        "login.html"
-      );
-    }
-
-
-    /* =====================================================
-       DATUM A ČAS
-       ===================================================== */
-
-    function aktualizujCas() {
-
-      const ted =
-        new Date();
-
-
-      document.getElementById(
-        "datum"
-      ).textContent =
-        ted.toLocaleDateString(
-          "cs-CZ"
-        );
-
-
-      document.getElementById(
-        "cas"
-      ).textContent =
-        ted.toLocaleTimeString(
-          "cs-CZ",
-          {
-            hour: "2-digit",
-            minute: "2-digit"
-          }
-        );
-    }
-
-
-    /* =====================================================
-       START
-       ===================================================== */
-
-    aktualizujCas();
-
-
-    setInterval(
-      aktualizujCas,
-      1000
-    );
-
-
-    zkontrolujPrihlaseni();
-
-  </script>
+    </script>
 
 
 </body>
