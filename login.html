@@ -14,7 +14,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
@@ -24,12 +23,12 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            min-height: 100%;
+            height: 100%;
         }
 
         body {
             min-height: 100vh;
-            background: #04182a;
+            background: #050505;
             font-family: Arial, Helvetica, sans-serif;
             overflow: hidden;
         }
@@ -37,28 +36,25 @@
 
         /* =========================================================
            HLAVNÍ PLOCHA - PC
-        ========================================================= */
+           ========================================================= */
 
         .stage {
             position: relative;
 
-            width: min(
-                100vw,
-                calc(100vh * 16 / 9)
-            );
+            width: 100vw;
+            height: 100vh;
 
-            height: min(
-                100vh,
-                calc(100vw * 9 / 16)
-            );
+            margin: 0;
 
-            margin: auto;
-
-            background:
-                url("login-pc.png")
-                center center /
-                100% 100%
-                no-repeat;
+            /*
+                Nové černo-bílo-stříbrné PC pozadí.
+                Obrázek vyplní CELÝ monitor.
+                Tím zmizí prázdné pásy vlevo a vpravo.
+            */
+            background-image: url("login-pc.png");
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
 
             overflow: hidden;
         }
@@ -66,10 +62,7 @@
 
         /* =========================================================
            FORMULÁŘ - PC
-
-           POSUNUTO DOLŮ A VYCENTROVÁNO
-           DO MODRÉHO PANELU
-        ========================================================= */
+           ========================================================= */
 
         .login-box {
             position: absolute;
@@ -77,14 +70,14 @@
             left: 50%;
 
             /*
-                Tohle je hlavní pozice formuláře.
-                Formulář je nyní níže a uprostřed panelu.
+                Formulář je lehce nad přesným středem obrazovky,
+                aby seděl do středu prázdného panelu na pozadí.
             */
-            top: 61%;
+            top: 58%;
 
             transform: translate(-50%, -50%);
 
-            width: 29%;
+            width: min(32vw, 590px);
 
             z-index: 10;
 
@@ -94,21 +87,21 @@
 
         /* =========================================================
            POPISKY
-        ========================================================= */
+           ========================================================= */
 
         label {
             display: block;
 
             width: 100%;
 
-            margin: 0 0 2% 0;
+            margin: 0 0 8px 0;
 
             text-align: left;
 
             color: #ffffff;
 
             font-size: clamp(
-                11px,
+                12px,
                 0.9vw,
                 16px
             );
@@ -116,40 +109,47 @@
             font-weight: 700;
 
             text-shadow:
-                0 1px 3px
-                rgba(0, 0, 0, .7);
+                0 1px 4px
+                rgba(0, 0, 0, 0.95);
         }
 
-
         label:not(:first-of-type) {
-            margin-top: 5%;
+            margin-top: 22px;
         }
 
 
         /* =========================================================
            INPUTY
-        ========================================================= */
+           ========================================================= */
 
         input {
             display: block;
 
             width: 100%;
 
+            min-height: 56px;
+
             padding:
-                clamp(10px, 1vw, 16px)
-                clamp(12px, 1.2vw, 20px);
+                clamp(12px, 1vw, 17px)
+                clamp(14px, 1.2vw, 20px);
 
             border:
                 1px solid
-                rgba(66, 190, 255, 0.75);
+                rgba(220, 220, 220, 0.72);
 
-            border-radius:
-                clamp(8px, 0.7vw, 13px);
+            border-radius: 8px;
 
             outline: none;
 
+            /*
+                Černo-šedý kovový vzhled.
+            */
             background:
-                rgba(2, 23, 46, 0.78);
+                linear-gradient(
+                    180deg,
+                    rgba(38, 38, 38, 0.94) 0%,
+                    rgba(17, 17, 17, 0.94) 100%
+                );
 
             color: #ffffff;
 
@@ -160,7 +160,7 @@
 
             font-size:
                 clamp(
-                    13px,
+                    14px,
                     1.05vw,
                     18px
                 );
@@ -168,11 +168,9 @@
             text-align: center;
 
             box-shadow:
-                inset 0 0 12px
-                rgba(0, 132, 255, 0.10),
-
-                0 0 8px
-                rgba(0, 174, 255, 0.10);
+                inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                inset 0 0 12px rgba(255, 255, 255, 0.025),
+                0 2px 8px rgba(0, 0, 0, 0.35);
 
             transition:
                 border-color .18s ease,
@@ -182,59 +180,66 @@
 
 
         input::placeholder {
-            color:
-                rgba(210, 231, 245, 0.58);
+            color: rgba(215, 215, 215, 0.58);
         }
 
 
         input:focus {
-            border-color: #00c8ff;
+            border-color: #ffffff;
 
             background:
-                rgba(2, 28, 54, 0.92);
+                linear-gradient(
+                    180deg,
+                    rgba(48, 48, 48, 0.98) 0%,
+                    rgba(18, 18, 18, 0.98) 100%
+                );
 
             box-shadow:
-                0 0 0 2px
-                rgba(0, 196, 255, 0.15),
-
-                0 0 18px
-                rgba(0, 196, 255, 0.28);
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                0 0 0 2px rgba(255, 255, 255, 0.10),
+                0 0 18px rgba(255, 255, 255, 0.15);
         }
 
 
         /* =========================================================
            TLAČÍTKO PŘIHLÁSIT
-        ========================================================= */
+           ========================================================= */
 
         #prihlasitButton {
             width: 100%;
 
-            margin-top: 8%;
+            min-height: 60px;
+
+            margin-top: 32px;
 
             padding:
-                clamp(11px, 1.1vw, 17px)
+                clamp(12px, 1.1vw, 18px)
                 10px;
 
             border:
                 1px solid
-                rgba(76, 211, 255, 0.95);
+                rgba(255, 255, 255, 0.80);
 
-            border-radius:
-                clamp(8px, 0.7vw, 13px);
+            border-radius: 8px;
 
+            /*
+                Stříbrný / černý vzhled.
+            */
             background:
                 linear-gradient(
-                    180deg,
-                    #159cf0 0%,
-                    #0875ce 48%,
-                    #04539d 100%
+                    110deg,
+                    #eeeeee 0%,
+                    #a8a8a8 20%,
+                    #4b4b4b 42%,
+                    #161616 62%,
+                    #050505 100%
                 );
 
             color: #ffffff;
 
             font-size:
                 clamp(
-                    13px,
+                    14px,
                     1.15vw,
                     20px
                 );
@@ -246,15 +251,12 @@
             cursor: pointer;
 
             text-shadow:
-                0 1px 3px
-                rgba(0, 0, 0, .55);
+                0 2px 4px
+                rgba(0, 0, 0, 0.85);
 
             box-shadow:
-                inset 0 1px 0
-                rgba(255, 255, 255, .35),
-
-                0 0 15px
-                rgba(0, 170, 255, .25);
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                0 3px 10px rgba(0, 0, 0, 0.45);
 
             transition:
                 transform .15s ease,
@@ -266,14 +268,12 @@
         #prihlasitButton:hover {
             transform: translateY(-2px);
 
-            filter: brightness(1.08);
+            filter: brightness(1.12);
 
             box-shadow:
-                inset 0 1px 0
-                rgba(255, 255, 255, .4),
-
-                0 0 22px
-                rgba(0, 190, 255, .42);
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 5px 16px rgba(0, 0, 0, 0.55),
+                0 0 12px rgba(255, 255, 255, 0.12);
         }
 
 
@@ -292,18 +292,18 @@
 
         /* =========================================================
            CHYBOVÁ HLÁŠKA
-        ========================================================= */
+           ========================================================= */
 
         .chyba {
             min-height: 1.4em;
 
-            margin-top: 5%;
+            margin-top: 15px;
 
-            color: #ffb4b4;
+            color: #ffb7b7;
 
             font-size:
                 clamp(
-                    10px,
+                    11px,
                     0.82vw,
                     14px
                 );
@@ -313,35 +313,14 @@
             text-align: center;
 
             text-shadow:
-                0 1px 3px
-                rgba(0, 0, 0, .8);
+                0 1px 4px
+                rgba(0, 0, 0, 0.95);
         }
 
 
         /* =========================================================
-           SPODNÍ INFORMACE
-        ========================================================= */
-
-        .info {
-            margin-top: 3%;
-
-            color:
-                rgba(220, 238, 250, 0.72);
-
-            font-size:
-                clamp(
-                    9px,
-                    0.72vw,
-                    13px
-                );
-
-            text-align: center;
-        }
-
-
-        /* =========================================================
-           MOBILNÍ VERZE NA VÝŠKU
-        ========================================================= */
+           MOBILNÍ VERZE
+           ========================================================= */
 
         @media
         (max-width: 700px)
@@ -350,8 +329,10 @@
 
             body {
                 min-height: 100dvh;
+
                 overflow: hidden;
-                background: #03182c;
+
+                background: #050505;
             }
 
 
@@ -366,14 +347,21 @@
                 background-image:
                     url("login-mobil.png");
 
+                /*
+                    Mobilní fotka je více přiblížená.
+                    Pokud ji budeš chtít ještě více přiblížit,
+                    stačí zvýšit 115% například na 125%.
+                */
                 background-position:
                     center center;
 
                 background-size:
-                    cover;
+                    auto 115%;
 
                 background-repeat:
                     no-repeat;
+
+                background-color: #050505;
             }
 
 
@@ -381,23 +369,27 @@
                 left: 50%;
 
                 /*
-                    Mobil má vlastní pozici.
+                    Formulář uprostřed mobilního panelu.
                 */
-                top: 53%;
+                top: 52%;
 
                 transform:
                     translate(-50%, -50%);
 
-                width: 68%;
+                width: 76%;
 
-                max-width: none;
+                max-width: 430px;
 
                 padding: 0;
+
+                text-align: center;
             }
 
 
             label {
-                margin-bottom: 2.2%;
+                margin-bottom: 7px;
+
+                color: #ffffff;
 
                 font-size:
                     clamp(
@@ -405,121 +397,266 @@
                         3.5vw,
                         16px
                     );
+
+                text-shadow:
+                    0 1px 4px
+                    rgba(0, 0, 0, 0.95);
             }
 
 
             label:not(:first-of-type) {
-                margin-top: 5%;
+                margin-top: 18px;
             }
 
 
             input {
-                min-height: 48px;
+                width: 100%;
+
+                min-height: 52px;
 
                 padding:
                     12px
                     14px;
 
-                border-radius: 10px;
+                border:
+                    1px solid
+                    rgba(220, 220, 220, 0.72);
+
+                border-radius: 8px;
 
                 font-size: 16px;
 
                 background:
-                    rgba(
-                        0,
-                        18,
-                        38,
-                        .78
+                    linear-gradient(
+                        180deg,
+                        rgba(42, 42, 42, 0.95) 0%,
+                        rgba(14, 14, 14, 0.95) 100%
                     );
+
+                color: #ffffff;
+
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+                    0 2px 8px rgba(0, 0, 0, 0.45);
+            }
+
+
+            input::placeholder {
+                color:
+                    rgba(220, 220, 220, 0.60);
+            }
+
+
+            input:focus {
+                border-color: #ffffff;
+
+                background:
+                    linear-gradient(
+                        180deg,
+                        rgba(50, 50, 50, 0.98) 0%,
+                        rgba(16, 16, 16, 0.98) 100%
+                    );
+
+                box-shadow:
+                    0 0 0 2px
+                    rgba(255, 255, 255, 0.10);
             }
 
 
             #prihlasitButton {
-                min-height: 50px;
+                width: 100%;
 
-                margin-top: 8%;
+                min-height: 54px;
+
+                margin-top: 25px;
 
                 padding:
                     12px
                     8px;
 
-                border-radius: 10px;
+                border:
+                    1px solid
+                    rgba(255, 255, 255, 0.85);
+
+                border-radius: 8px;
+
+                background:
+                    linear-gradient(
+                        110deg,
+                        #eeeeee 0%,
+                        #9d9d9d 22%,
+                        #404040 45%,
+                        #151515 65%,
+                        #050505 100%
+                    );
+
+                color: #ffffff;
 
                 font-size: 16px;
+
+                font-weight: 800;
+
+                letter-spacing: 0.06em;
+
+                text-shadow:
+                    0 2px 4px
+                    rgba(0, 0, 0, 0.9);
+
+                box-shadow:
+                    inset 0 1px 0
+                    rgba(255, 255, 255, 0.45),
+
+                    0 3px 10px
+                    rgba(0, 0, 0, 0.45);
             }
 
 
             .chyba {
-                margin-top: 5%;
+                margin-top: 12px;
+
                 font-size: 12px;
-            }
-
-
-            .info {
-                margin-top: 3%;
-                font-size: 10px;
             }
         }
 
 
         /* =========================================================
            MENŠÍ MOBILY
-        ========================================================= */
+           ========================================================= */
 
         @media
         (max-width: 390px)
         and
         (orientation: portrait) {
 
+            .stage {
+                /*
+                    Na malých telefonech ještě lehce větší zoom.
+                */
+                background-size:
+                    auto 120%;
+            }
+
+
             .login-box {
-                top: 53%;
-                width: 70%;
+                top: 52%;
+
+                width: 80%;
             }
 
 
             input {
-                min-height: 44px;
+                min-height: 48px;
             }
 
 
             #prihlasitButton {
-                min-height: 46px;
+                min-height: 50px;
+
+                margin-top: 22px;
             }
         }
 
 
         /* =========================================================
            MOBIL NA ŠÍŘKU
-        ========================================================= */
+           ========================================================= */
 
         @media
         (max-height: 600px)
         and
         (orientation: landscape) {
 
+            .stage {
+                width: 100vw;
+                height: 100dvh;
+
+                background-image:
+                    url("login-pc.png");
+
+                background-size: cover;
+
+                background-position:
+                    center center;
+            }
+
+
             .login-box {
-                top: 60%;
-                width: 27%;
+                left: 50%;
+
+                top: 54%;
+
+                transform:
+                    translate(-50%, -50%);
+
+                width: 31%;
+
+                max-width: 470px;
+            }
+
+
+            label {
+                font-size: 11px;
+
+                margin-bottom: 4px;
             }
 
 
             label:not(:first-of-type) {
-                margin-top: 3%;
+                margin-top: 8px;
+            }
+
+
+            input {
+                min-height: 36px;
+
+                padding: 7px 10px;
+
+                font-size: 13px;
             }
 
 
             #prihlasitButton {
-                margin-top: 4%;
+                min-height: 38px;
+
+                margin-top: 12px;
+
+                padding: 7px;
+
+                font-size: 13px;
             }
 
 
             .chyba {
-                margin-top: 2%;
+                margin-top: 5px;
+
+                font-size: 10px;
+            }
+        }
+
+
+        /* =========================================================
+           VELMI ŠIROKÉ PC MONITORY
+           ========================================================= */
+
+        @media
+        (min-aspect-ratio: 19/9)
+        and
+        (min-width: 701px) {
+
+            .stage {
+                /*
+                    Na ultra-wide monitoru se pozadí dál roztáhne
+                    přes celý monitor bez bočních prázdných pásů.
+                */
+                background-size: cover;
+
+                background-position:
+                    center center;
             }
 
 
-            .info {
-                margin-top: 1%;
+            .login-box {
+                width: min(29vw, 590px);
             }
         }
 
@@ -584,11 +721,6 @@
                 aria-live="polite"
             ></div>
 
-
-            <div class="info">
-                Přístup pouze pro oprávněné pracovníky.
-            </div>
-
         </form>
 
     </main>
@@ -598,7 +730,7 @@
 
         /* =========================================================
            SUPABASE
-        ========================================================= */
+           ========================================================= */
 
         const SUPABASE_URL =
             "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -617,7 +749,7 @@
 
         /* =========================================================
            PŘIHLÁŠENÍ
-        ========================================================= */
+           ========================================================= */
 
         async function prihlasit() {
 
@@ -743,7 +875,7 @@
 
         /* =========================================================
            ENTER / ODESLÁNÍ FORMULÁŘE
-        ========================================================= */
+           ========================================================= */
 
         document
             .getElementById("loginForm")
@@ -761,7 +893,7 @@
 
         /* =========================================================
            KONTROLA PŘIHLÁŠENÍ
-        ========================================================= */
+           ========================================================= */
 
         async function zkontrolujPrihlaseni() {
 
@@ -802,7 +934,7 @@
 
         /* =========================================================
            START
-        ========================================================= */
+           ========================================================= */
 
         zkontrolujPrihlaseni();
 
