@@ -27,22 +27,15 @@
         body {
             margin: 0;
             padding: 0;
-
             width: 100%;
             height: 100%;
-
             overflow: hidden;
         }
 
         body {
             display: none;
-
             background: #071725;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
 
@@ -61,17 +54,10 @@
 
             overflow: hidden;
 
-            background-image:
-                url("pozadi.png");
-
-            background-position:
-                center center;
-
-            background-repeat:
-                no-repeat;
-
-            background-size:
-                100% 100%;
+            background-image: url("pozadi.png");
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
 
             user-select: none;
         }
@@ -83,7 +69,6 @@
 
         .image-button {
             position: absolute;
-
             z-index: 10;
 
             display: block;
@@ -98,8 +83,7 @@
 
             cursor: pointer;
 
-            -webkit-tap-highlight-color:
-                transparent;
+            -webkit-tap-highlight-color: transparent;
 
             transition:
                 transform 0.16s ease,
@@ -127,13 +111,11 @@
 
         .sklad-link {
             left: 50%;
-
             top: 58.3%;
 
             width: 48.5%;
 
-            transform:
-                translateX(-50%);
+            transform: translateX(-50%);
 
             text-decoration: none;
         }
@@ -144,8 +126,7 @@
                 translateY(-3px)
                 scale(1.015);
 
-            filter:
-                brightness(1.04);
+            filter: brightness(1.04);
         }
 
         .sklad-link:active {
@@ -162,9 +143,7 @@
 
         .logout-button {
             top: 1.15%;
-
             right: 1.85%;
-
             width: 12.3%;
         }
 
@@ -173,8 +152,7 @@
                 translateY(-2px)
                 scale(1.025);
 
-            filter:
-                brightness(1.08);
+            filter: brightness(1.08);
         }
 
         .logout-button:active {
@@ -195,23 +173,20 @@
 
             top: 94.65%;
 
-            transform:
-                translateY(-50%);
+            transform: translateY(-50%);
 
             display: flex;
-
             align-items: center;
 
             height: 3%;
 
             color: #e4ebf1;
 
-            font-size:
-                clamp(
-                    11px,
-                    0.92vw,
-                    16px
-                );
+            font-size: clamp(
+                11px,
+                0.92vw,
+                16px
+            );
 
             font-weight: 400;
 
@@ -255,19 +230,17 @@
             z-index: 8;
 
             left: 93.55%;
-
             top: 93.15%;
 
             width: 6.1%;
 
             color: #e4ebf1;
 
-            font-size:
-                clamp(
-                    10px,
-                    0.88vw,
-                    15px
-                );
+            font-size: clamp(
+                10px,
+                0.88vw,
+                15px
+            );
 
             line-height: 1;
 
@@ -284,11 +257,9 @@
             display: block;
 
             margin: 0 0 4px 0;
-
             padding: 0;
 
             font-weight: 400;
-
             line-height: 1;
         }
 
@@ -317,20 +288,14 @@
            ===================================================== */
 
         .image-button:focus-visible {
-            outline:
-                2px solid #00b9ff;
-
-            outline-offset:
-                4px;
-
-            border-radius:
-                12px;
+            outline: 2px solid #00b9ff;
+            outline-offset: 4px;
+            border-radius: 12px;
         }
 
 
         /* =====================================================
            TABLET / MENŠÍ NOTEBOOK
-           701px - 1000px
            ===================================================== */
 
         @media
@@ -349,27 +314,28 @@
             }
 
             .footer-value {
-                font-size:
-                    clamp(
-                        9px,
-                        1.1vw,
-                        13px
-                    );
+                font-size: clamp(
+                    9px,
+                    1.1vw,
+                    13px
+                );
             }
 
             .user-box {
-                font-size:
-                    clamp(
-                        8px,
-                        1vw,
-                        12px
-                    );
+                font-size: clamp(
+                    8px,
+                    1vw,
+                    12px
+                );
             }
         }
 
 
         /* =====================================================
-           MOBIL - NA VÝŠKU
+           MOBIL NA VÝŠKU
+           
+           TADY SE POUŽÍVÁ NOVÉ:
+           pozadi-mobil.png
            ===================================================== */
 
         @media
@@ -381,7 +347,6 @@
             body {
                 width: 100%;
                 height: 100%;
-
                 min-height: 100dvh;
 
                 overflow: hidden;
@@ -390,21 +355,24 @@
             }
 
 
-            /* -------------------------------------------------
-               Pozadí
-
-               Na mobilu ho zvětšíme tak, aby vyplnilo telefon.
-               ------------------------------------------------- */
+            /* =============================================
+               NOVÉ MOBILNÍ POZADÍ
+               ============================================= */
 
             .stage {
+                position: relative;
+
                 width: 100vw;
-
                 height: 100dvh;
-
                 min-height: 100dvh;
 
+                margin: 0;
+                padding: 0;
+
+                overflow: hidden;
+
                 background-image:
-                    url("pozadi.png");
+                    url("pozadi-mobil.png");
 
                 background-repeat:
                     no-repeat;
@@ -413,46 +381,54 @@
                     center center;
 
                 background-size:
-                    cover;
+                    100% 100%;
             }
 
 
-            /* -------------------------------------------------
+            /* =============================================
                ODHLÁSIT - MOBIL
-               ------------------------------------------------- */
+               
+               používáme stejné odhlasit.png
+               jako na PC
+               ============================================= */
 
             .logout-button {
                 top:
-                    max(
-                        12px,
-                        calc(
-                            env(safe-area-inset-top)
-                            + 6px
-                        )
+                    calc(
+                        env(safe-area-inset-top)
+                        + 1.5%
                     );
 
                 right: 3%;
 
-                width: 30%;
+                width: 32%;
 
+                min-width: 108px;
                 max-width: 160px;
+            }
 
-                min-width: 105px;
+            .logout-button:hover {
+                transform: none;
+                filter: none;
+            }
+
+            .logout-button:active {
+                transform: scale(0.97);
             }
 
 
-            /* -------------------------------------------------
+            /* =============================================
                SKLAD MATERIÁLU - MOBIL
-
-               Velké tlačítko vhodné na dotyk.
-               ------------------------------------------------- */
+               
+               samostatné umístění pro mobilní pozadí
+               ============================================= */
 
             .sklad-link {
                 left: 50%;
 
-                top: 57%;
+                top: 71%;
 
-                width: 92%;
+                width: 91%;
 
                 max-width: 600px;
 
@@ -463,6 +439,8 @@
             .sklad-link:hover {
                 transform:
                     translateX(-50%);
+
+                filter: none;
             }
 
             .sklad-link:active {
@@ -472,84 +450,149 @@
             }
 
 
-            /* -------------------------------------------------
-               Spodní informace na mobilu
-
-               Protože původní ikonky jsou součástí pozadí,
-               hodnoty držíme ve spodní části obrazovky.
-               ------------------------------------------------- */
+            /* =============================================
+               DATUM + ČAS - MOBIL
+               
+               Ikony jsou součástí pozadi-mobil.png.
+               Sem doplňujeme pouze živé hodnoty.
+               ============================================= */
 
             .footer-value {
+                position: absolute;
+
+                z-index: 8;
+
                 top: auto;
 
                 bottom:
                     calc(
                         env(safe-area-inset-bottom)
-                        + 4.5%
+                        + 2.8%
                     );
 
                 transform: none;
 
+                display: block;
+
                 height: auto;
+
+                color: #e4ebf1;
 
                 font-size:
                     clamp(
                         11px,
                         3.3vw,
-                        16px
+                        15px
                     );
 
                 font-weight: 400;
+
+                line-height: 1;
+
+                white-space: nowrap;
+
+                text-shadow:
+                    0 1px 2px
+                    rgba(0, 0, 0, 0.55);
+
+                pointer-events: none;
             }
 
 
-            /* DATUM */
+            /* =============================================
+               DATUM - MOBIL
+               ============================================= */
 
             #datum {
-                left: 23%;
+                left: 17%;
             }
 
 
-            /* ČAS */
+            /* =============================================
+               ČAS - MOBIL
+               ============================================= */
 
             #cas {
-                left: 59%;
+                left: 53%;
             }
 
 
-            /* UŽIVATEL */
+            /* =============================================
+               UŽIVATEL - MOBIL
+               ============================================= */
 
             .user-box {
-                left: 81%;
+                position: absolute;
+
+                z-index: 8;
+
+                left: 80%;
 
                 top: auto;
 
                 bottom:
                     calc(
                         env(safe-area-inset-bottom)
-                        + 3.8%
+                        + 1.9%
                     );
 
-                width: 17%;
+                width: 18%;
+
+                color: #e4ebf1;
 
                 font-size:
                     clamp(
                         10px,
                         3vw,
-                        15px
+                        14px
                     );
 
                 line-height: 1.05;
+
+                text-align: left;
+
+                text-shadow:
+                    0 1px 2px
+                    rgba(0, 0, 0, 0.55);
+
+                pointer-events: none;
             }
 
             .user-label {
-                margin-bottom: 4px;
+                display: block;
+
+                margin: 0 0 4px 0;
+
+                padding: 0;
+
+                font-weight: 400;
+
+                line-height: 1;
+            }
+
+            #uzivatel {
+                display: block;
+
+                margin: 0;
+                padding: 0;
+
+                max-width: 100%;
+
+                overflow: hidden;
+
+                white-space: nowrap;
+
+                text-overflow: ellipsis;
+
+                font-weight: 700;
+
+                line-height: 1;
             }
         }
 
 
         /* =====================================================
-           VELMI MALÝ MOBIL
+           VELMI MALÝ MOBIL NA VÝŠKU
            ===================================================== */
 
         @media
@@ -558,35 +601,34 @@
         (orientation: portrait) {
 
             .logout-button {
-                width: 32%;
-
+                width: 33%;
                 right: 2.5%;
             }
 
             .sklad-link {
                 width: 94%;
-
-                top: 58%;
+                top: 71%;
             }
 
             #datum {
-                left: 21%;
+                left: 17%;
             }
 
             #cas {
-                left: 58%;
+                left: 53%;
             }
 
             .user-box {
                 left: 80%;
-
                 width: 18%;
             }
         }
 
 
         /* =====================================================
-           MOBIL - NA ŠÍŘKU
+           MOBIL NA ŠÍŘKU
+           
+           ZDE SE VRÁTÍME K PC POZADÍ.
            ===================================================== */
 
         @media
@@ -596,27 +638,35 @@
 
             .stage {
                 width: 100vw;
-
                 height: 100dvh;
+
+                background-image:
+                    url("pozadi.png");
+
+                background-position:
+                    center center;
+
+                background-repeat:
+                    no-repeat;
 
                 background-size:
                     100% 100%;
             }
 
 
-            /* Na šířku se držíme PC vzhledu. */
+            /* ODHLÁSIT */
 
             .logout-button {
                 top: 1.2%;
-
                 right: 1.8%;
-
                 width: 13%;
             }
 
+
+            /* SKLAD */
+
             .sklad-link {
                 left: 50%;
-
                 top: 58.3%;
 
                 width: 49%;
@@ -625,9 +675,11 @@
                     translateX(-50%);
             }
 
+
+            /* DATUM + ČAS */
+
             .footer-value {
                 top: 94.65%;
-
                 bottom: auto;
 
                 transform:
@@ -649,11 +701,13 @@
                 left: 84.05%;
             }
 
+
+            /* UŽIVATEL */
+
             .user-box {
                 left: 93.55%;
 
                 top: 93.15%;
-
                 bottom: auto;
 
                 width: 6.1%;
@@ -672,7 +726,6 @@
 
 
 <body>
-
 
     <main
         class="stage"
@@ -925,7 +978,6 @@
         zkontrolujPrihlaseni();
 
     </script>
-
 
 </body>
 
