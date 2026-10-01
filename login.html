@@ -2,178 +2,651 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>KOVOHLADIL - Přihlášení</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <title>KOVOHLADIL | Přihlášení</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+
+        * {
             box-sizing: border-box;
         }
 
-        .login-box {
+        html,
+        body {
+            margin: 0;
+            padding: 0;
             width: 100%;
-            max-width: 420px;
-            background: white;
-            padding: 35px 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #04182a;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           PC VERZE
+        ========================================================= */
+
+        .stage {
+            position: relative;
+
+            width: min(
+                100vw,
+                calc(100vh * 16 / 9)
+            );
+
+            height: min(
+                100vh,
+                calc(100vw * 9 / 16)
+            );
+
+            margin: auto;
+
+            background:
+                url("login-pc.png")
+                center center /
+                100% 100%
+                no-repeat;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           PŘIHLAŠOVACÍ FORMULÁŘ - PC
+        ========================================================= */
+
+        .login-box {
+            position: absolute;
+
+            left: 50%;
+            top: 56%;
+
+            transform: translate(-50%, -50%);
+
+            width: 29%;
+
+            z-index: 10;
+
             text-align: center;
         }
 
-        .firma {
-            font-size: 34px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
+
+        /* =========================================================
+           INTERNÍ SYSTÉM
+           POSUNUTO JEŠTĚ VÍCE DOLŮ
+        ========================================================= */
+
+        .login-subtitle {
+            position: relative;
+
+            /* NOVĚ 36px DOLŮ */
+            top: 36px;
+
+            margin-bottom: calc(7% + 36px);
+
+            color: #a9dfff;
+
+            font-size: clamp(
+                10px,
+                0.85vw,
+                15px
+            );
+
+            letter-spacing: 0.12em;
         }
 
-        .podnadpis {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 17px;
-        }
+
+        /* =========================================================
+           POPISKY
+        ========================================================= */
 
         label {
             display: block;
+
+            width: 100%;
+
+            margin:
+                0
+                0
+                2%
+                0;
+
             text-align: left;
-            font-weight: bold;
-            margin: 18px auto 8px auto;
-            max-width: 320px;
+
+            color: #ffffff;
+
+            font-size: clamp(
+                11px,
+                0.9vw,
+                16px
+            );
+
+            font-weight: 700;
+
+            text-shadow:
+                0 1px 3px
+                rgba(0,0,0,.7);
         }
 
+
+        label:not(:first-of-type) {
+            margin-top: 5%;
+        }
+
+
+        /* =========================================================
+           INPUTY
+        ========================================================= */
+
         input {
+            display: block;
+
             width: 100%;
-            max-width: 320px;
-            box-sizing: border-box;
-            padding: 14px;
-            font-size: 19px;
-            border: 1px solid #aaa;
-            border-radius: 10px;
+
+            padding:
+                clamp(10px, 1vw, 16px)
+                clamp(12px, 1.2vw, 20px);
+
+            border:
+                1px solid
+                rgba(66, 190, 255, 0.75);
+
+            border-radius:
+                clamp(8px, 0.7vw, 13px);
+
+            outline: none;
+
+            background:
+                rgba(2, 23, 46, 0.78);
+
+            color: #ffffff;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-size:
+                clamp(
+                    13px,
+                    1.05vw,
+                    18px
+                );
+
+            text-align: center;
+
+            box-shadow:
+                inset 0 0 12px
+                rgba(0, 132, 255, 0.10),
+
+                0 0 8px
+                rgba(0, 174, 255, 0.10);
+
+            transition:
+                border-color .18s ease,
+                box-shadow .18s ease,
+                background .18s ease;
+        }
+
+
+        input::placeholder {
+            color:
+                rgba(210, 231, 245, 0.58);
+        }
+
+
+        input:focus {
+            border-color: #00c8ff;
+
+            background:
+                rgba(2, 28, 54, 0.92);
+
+            box-shadow:
+                0 0 0 2px
+                rgba(0, 196, 255, 0.15),
+
+                0 0 18px
+                rgba(0, 196, 255, 0.28);
+        }
+
+
+        /* =========================================================
+           TLAČÍTKO PŘIHLÁSIT
+        ========================================================= */
+
+        #prihlasitButton {
+            width: 100%;
+
+            margin-top: 8%;
+
+            padding:
+                clamp(11px, 1.1vw, 17px)
+                10px;
+
+            border:
+                1px solid
+                rgba(76, 211, 255, 0.95);
+
+            border-radius:
+                clamp(8px, 0.7vw, 13px);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #159cf0 0%,
+                    #0875ce 48%,
+                    #04539d 100%
+                );
+
+            color: #ffffff;
+
+            font-size:
+                clamp(
+                    13px,
+                    1.15vw,
+                    20px
+                );
+
+            font-weight: 800;
+
+            letter-spacing: 0.06em;
+
+            cursor: pointer;
+
+            text-shadow:
+                0 1px 3px
+                rgba(0,0,0,.55);
+
+            box-shadow:
+                inset 0 1px 0
+                rgba(255,255,255,.35),
+
+                0 0 15px
+                rgba(0,170,255,.25);
+
+            transition:
+                transform .15s ease,
+                filter .15s ease,
+                box-shadow .15s ease;
+        }
+
+
+        #prihlasitButton:hover {
+            transform: translateY(-2px);
+
+            filter: brightness(1.08);
+
+            box-shadow:
+                inset 0 1px 0
+                rgba(255,255,255,.4),
+
+                0 0 22px
+                rgba(0,190,255,.42);
+        }
+
+
+        #prihlasitButton:active {
+            transform: translateY(1px);
+        }
+
+
+        #prihlasitButton:disabled {
+            opacity: .6;
+            cursor: wait;
+            transform: none;
+            filter: none;
+        }
+
+
+        /* =========================================================
+           CHYBA
+        ========================================================= */
+
+        .chyba {
+            min-height: 1.4em;
+
+            margin-top: 5%;
+
+            color: #ffb4b4;
+
+            font-size:
+                clamp(
+                    10px,
+                    0.82vw,
+                    14px
+                );
+
+            font-weight: 700;
+
+            text-align: center;
+
+            text-shadow:
+                0 1px 3px
+                rgba(0,0,0,.8);
+        }
+
+
+        /* =========================================================
+           SPODNÍ INFORMACE
+        ========================================================= */
+
+        .info {
+            margin-top: 3%;
+
+            color:
+                rgba(220, 238, 250, 0.72);
+
+            font-size:
+                clamp(
+                    9px,
+                    0.72vw,
+                    13px
+                );
+
             text-align: center;
         }
 
-        button {
-            width: 100%;
-            max-width: 320px;
-            padding: 16px;
-            margin-top: 25px;
-            font-size: 20px;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            background: #1976d2;
-            color: white;
-            cursor: pointer;
-        }
 
-        button:hover {
-            background: #1565c0;
-        }
+        /* =========================================================
+           MOBIL NA VÝŠKU
+        ========================================================= */
 
-        button:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
+        @media
+        (max-width: 700px)
+        and
+        (orientation: portrait) {
 
-        .chyba {
-            color: #d32f2f;
-            font-weight: bold;
-            margin-top: 18px;
-            min-height: 24px;
-        }
-
-        .info {
-            margin-top: 25px;
-            color: #777;
-            font-size: 14px;
-        }
-
-        @media (max-width: 500px) {
-            .firma {
-                font-size: 29px;
+            body {
+                min-height: 100dvh;
+                overflow: hidden;
+                background: #03182c;
             }
+
+
+            .stage {
+                position: relative;
+
+                width: 100vw;
+                height: 100dvh;
+
+                margin: 0;
+
+                background-image:
+                    url("login-mobil.png");
+
+                background-position:
+                    center center;
+
+                background-size:
+                    cover;
+
+                background-repeat:
+                    no-repeat;
+            }
+
 
             .login-box {
-                padding: 30px 18px;
+                left: 50%;
+                top: 53%;
+
+                transform:
+                    translate(-50%, -50%);
+
+                width: 68%;
+
+                max-width: none;
+
+                padding: 0;
             }
+
+
+            /* INTERNÍ SYSTÉM - TAKÉ 36px DOLŮ */
+
+            .login-subtitle {
+                position: relative;
+
+                top: 36px;
+
+                margin-bottom:
+                    calc(7% + 36px);
+
+                font-size:
+                    clamp(
+                        10px,
+                        3vw,
+                        14px
+                    );
+            }
+
+
+            label {
+                margin-bottom: 2.2%;
+
+                font-size:
+                    clamp(
+                        12px,
+                        3.5vw,
+                        16px
+                    );
+            }
+
+
+            label:not(:first-of-type) {
+                margin-top: 5%;
+            }
+
+
+            input {
+                min-height: 48px;
+
+                padding:
+                    12px
+                    14px;
+
+                border-radius: 10px;
+
+                font-size: 16px;
+
+                background:
+                    rgba(
+                        0,
+                        18,
+                        38,
+                        .78
+                    );
+            }
+
+
+            #prihlasitButton {
+                min-height: 50px;
+
+                margin-top: 8%;
+
+                padding:
+                    12px
+                    8px;
+
+                border-radius: 10px;
+
+                font-size: 16px;
+            }
+
+
+            .chyba {
+                margin-top: 5%;
+
+                font-size: 12px;
+            }
+
+
+            .info {
+                margin-top: 3%;
+
+                font-size: 10px;
+            }
+
         }
+
+
+        /* =========================================================
+           MENŠÍ MOBILY
+        ========================================================= */
+
+        @media
+        (max-width: 390px)
+        and
+        (orientation: portrait) {
+
+            .login-box {
+                top: 53%;
+                width: 70%;
+            }
+
+            input {
+                min-height: 44px;
+            }
+
+            #prihlasitButton {
+                min-height: 46px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MOBIL NA ŠÍŘKU
+        ========================================================= */
+
+        @media
+        (max-height: 600px)
+        and
+        (orientation: landscape) {
+
+            .login-box {
+                top: 55%;
+                width: 27%;
+            }
+
+            .login-subtitle {
+                top: 36px;
+
+                margin-bottom:
+                    calc(3% + 36px);
+            }
+
+            label:not(:first-of-type) {
+                margin-top: 3%;
+            }
+
+            #prihlasitButton {
+                margin-top: 4%;
+            }
+
+            .chyba {
+                margin-top: 2%;
+            }
+
+            .info {
+                margin-top: 1%;
+            }
+
+        }
+
     </style>
 </head>
 
+
 <body>
 
-    <div class="login-box">
+    <main
+        class="stage"
+        aria-label="KovoHladil přihlášení"
+    >
 
-        <div class="firma">
-            KOVOHLADIL
-        </div>
-
-        <div class="podnadpis">
-            Interní systém
-        </div>
-
-
-        <label for="osobniCislo">
-            Osobní číslo
-        </label>
-
-        <input
-            type="text"
-            id="osobniCislo"
-            inputmode="numeric"
-            autocomplete="username"
-            placeholder="např. 1"
+        <form
+            class="login-box"
+            id="loginForm"
+            autocomplete="on"
         >
 
-
-        <label for="heslo">
-            Heslo
-        </label>
-
-        <input
-            type="password"
-            id="heslo"
-            autocomplete="current-password"
-            placeholder="Zadej heslo"
-        >
+            <div class="login-subtitle">
+                INTERNÍ SYSTÉM
+            </div>
 
 
-        <button
-            id="prihlasitButton"
-            onclick="prihlasit()"
-        >
-            PŘIHLÁSIT
-        </button>
+            <label for="osobniCislo">
+                Osobní číslo
+            </label>
+
+            <input
+                type="text"
+                id="osobniCislo"
+                inputmode="numeric"
+                autocomplete="username"
+                placeholder="např. 1"
+                enterkeyhint="next"
+            >
 
 
-        <div
-            id="chyba"
-            class="chyba"
-        ></div>
+            <label for="heslo">
+                Heslo
+            </label>
+
+            <input
+                type="password"
+                id="heslo"
+                autocomplete="current-password"
+                placeholder="Zadej heslo"
+                enterkeyhint="go"
+            >
 
 
-        <div class="info">
-            Přístup pouze pro oprávněné pracovníky.
-        </div>
+            <button
+                type="submit"
+                id="prihlasitButton"
+            >
+                PŘIHLÁSIT
+            </button>
 
-    </div>
+
+            <div
+                id="chyba"
+                class="chyba"
+                role="alert"
+                aria-live="polite"
+            ></div>
+
+
+            <div class="info">
+                Přístup pouze pro oprávněné pracovníky.
+            </div>
+
+        </form>
+
+    </main>
 
 
     <script>
 
+        /* =========================================================
+           SUPABASE
+        ========================================================= */
+
         const SUPABASE_URL =
             "https://gmawlmsizglrnjmjegmx.supabase.co";
+
 
         const SUPABASE_KEY =
             "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
@@ -186,6 +659,10 @@
             );
 
 
+        /* =========================================================
+           PŘIHLÁŠENÍ
+        ========================================================= */
+
         async function prihlasit() {
 
             const osobniCislo =
@@ -194,21 +671,24 @@
                     .value
                     .trim();
 
+
             const heslo =
                 document
                     .getElementById("heslo")
                     .value;
 
+
             const chyba =
-                document.getElementById("chyba");
+                document
+                    .getElementById("chyba");
+
 
             const button =
-                document.getElementById(
-                    "prihlasitButton"
-                );
+                document
+                    .getElementById("prihlasitButton");
 
 
-            chyba.innerText = "";
+            chyba.textContent = "";
 
 
             if (
@@ -216,7 +696,7 @@
                 heslo === ""
             ) {
 
-                chyba.innerText =
+                chyba.textContent =
                     "Vyplň osobní číslo a heslo.";
 
                 return;
@@ -229,92 +709,142 @@
 
 
             button.disabled = true;
-            button.innerText = "PŘIHLAŠUJI...";
+
+            button.textContent =
+                "PŘIHLAŠUJI...";
 
 
-            const {
-                data,
-                error
-            } =
-                await supabaseClient
-                    .auth
-                    .signInWithPassword({
-                        email: email,
-                        password: heslo
-                    });
+            try {
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient
+                        .auth
+                        .signInWithPassword({
+
+                            email: email,
+
+                            password: heslo
+
+                        });
 
 
-            if (error) {
+                if (error) {
 
-                chyba.innerText =
-                    "Nesprávné osobní číslo nebo heslo.";
+                    chyba.textContent =
+                        "Nesprávné osobní číslo nebo heslo.";
 
-                button.disabled = false;
-                button.innerText = "PŘIHLÁSIT";
+                    button.disabled = false;
 
-                return;
-            }
+                    button.textContent =
+                        "PŘIHLÁSIT";
+
+                    return;
+                }
 
 
-            if (data.session) {
+                if (data.session) {
 
-                window.location.href =
-                    "index.html";
+                    window.location.replace(
+                        "index.html"
+                    );
 
-            } else {
+                    return;
+                }
 
-                chyba.innerText =
+
+                chyba.textContent =
                     "Přihlášení se nepodařilo.";
 
+
                 button.disabled = false;
-                button.innerText = "PŘIHLÁSIT";
+
+                button.textContent =
+                    "PŘIHLÁSIT";
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                chyba.textContent =
+                    "Nepodařilo se připojit k serveru.";
+
+
+                button.disabled = false;
+
+                button.textContent =
+                    "PŘIHLÁSIT";
+
             }
 
         }
 
 
-        /*
-            ENTER = PŘIHLÁSIT
-        */
+        /* =========================================================
+           ENTER / ODESLÁNÍ FORMULÁŘE
+        ========================================================= */
 
         document
-            .getElementById("heslo")
+            .getElementById("loginForm")
             .addEventListener(
-                "keydown",
+                "submit",
                 function(event) {
 
-                    if (event.key === "Enter") {
-                        prihlasit();
-                    }
+                    event.preventDefault();
+
+                    prihlasit();
 
                 }
             );
 
 
-        /*
-            KDYŽ UŽ JE UŽIVATEL PŘIHLÁŠENÝ,
-            POŠLEME HO ROVNOU DÁL
-        */
+        /* =========================================================
+           KONTROLA PŘIHLÁŠENÍ
+        ========================================================= */
 
         async function zkontrolujPrihlaseni() {
 
-            const {
-                data
-            } =
-                await supabaseClient
-                    .auth
-                    .getSession();
+            try {
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient
+                        .auth
+                        .getSession();
 
 
-            if (data.session) {
+                if (
+                    !error &&
+                    data.session
+                ) {
 
-                window.location.href =
-                    "index.html";
+                    window.location.replace(
+                        "index.html"
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Kontrola přihlášení:",
+                    error
+                );
 
             }
 
         }
 
+
+        /* =========================================================
+           START
+        ========================================================= */
 
         zkontrolujPrihlaseni();
 
