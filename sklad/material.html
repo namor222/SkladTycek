@@ -1,180 +1,234 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <title>Sklad materiálu</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+
+        /* =========================================================
+           ZÁKLAD
+        ========================================================= */
+
         * {
             box-sizing: border-box;
         }
 
         html,
         body {
-            margin: 0;
-            padding: 0;
             width: 100%;
             min-height: 100%;
+            margin: 0;
+        }
+
+        html {
+            background: #071018;
         }
 
         body {
-            display: none;
             font-family: Arial, Helvetica, sans-serif;
+
+            display: none;
 
             width: 100%;
             min-height: 100vh;
+            min-height: 100dvh;
+
+            margin: 0;
+            padding: 0;
+
+            overflow-x: hidden;
+
+            color: white;
+
+            /* =====================================================
+               PC POZADÍ
+               ===================================================== */
 
             background-image: url("materialpc.png");
-            background-repeat: no-repeat;
-            background-position: center center;
             background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
 
-            overflow: hidden;
+            background-color: #071018;
         }
 
 
-        /* =====================================================
+        /* =========================================================
            HLAVNÍ STRÁNKA
-        ===================================================== */
+        ========================================================= */
 
-        .stranka {
+        .page {
             position: relative;
 
-            width: 100vw;
-            height: 100vh;
-            min-height: 650px;
-        }
-
-
-        /* =====================================================
-           ZPĚT
-           Decentnější než původní verze
-        ===================================================== */
-
-        .zpet {
-            position: fixed;
-
-            top: 22px;
-            right: 24px;
-
-            z-index: 100;
-
-            min-width: 105px;
-            height: 40px;
-
-            padding: 0 17px;
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
 
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+
+            padding: 170px 20px 90px;
+        }
+
+
+        /* =========================================================
+           TLAČÍTKO ZPĚT
+        ========================================================= */
+
+        .zpet {
+            position: fixed;
+
+            top: 28px;
+            right: 30px;
+
+            z-index: 100;
+
+            min-width: 105px;
+
+            padding: 12px 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
             text-decoration: none;
 
-            color: rgba(255, 255, 255, .90);
+            color: rgba(255, 255, 255, 0.82);
 
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 800;
-            letter-spacing: .2px;
 
-            border: 1px solid rgba(255, 255, 255, .65);
             border-radius: 10px;
+
+            border: 1px solid rgba(255, 255, 255, 0.30);
 
             background:
                 linear-gradient(
                     110deg,
-                    rgba(220, 220, 220, .50) 0%,
-                    rgba(100, 100, 100, .52) 35%,
-                    rgba(30, 30, 30, .70) 70%,
-                    rgba(5, 5, 5, .78) 100%
+                    rgba(255, 255, 255, 0.16),
+                    rgba(35, 35, 35, 0.58) 45%,
+                    rgba(10, 10, 10, 0.68)
                 );
 
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
 
             box-shadow:
-                0 4px 12px rgba(0, 0, 0, .30),
-                inset 0 1px 0 rgba(255, 255, 255, .40);
-
-            text-shadow:
-                0 1px 2px rgba(0, 0, 0, .9);
-
-            opacity: .82;
+                0 5px 15px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.20);
 
             transition:
-                transform .18s ease,
-                opacity .18s ease,
-                filter .18s ease,
-                box-shadow .18s ease;
+                transform 0.18s ease,
+                background 0.18s ease,
+                box-shadow 0.18s ease;
         }
+
 
         .zpet:hover {
-            opacity: 1;
             transform: translateY(-2px);
 
-            filter: brightness(1.12);
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(255, 255, 255, 0.25),
+                    rgba(45, 45, 45, 0.72) 45%,
+                    rgba(15, 15, 15, 0.82)
+                );
 
             box-shadow:
-                0 6px 17px rgba(0, 0, 0, .45),
-                inset 0 1px 0 rgba(255, 255, 255, .55);
-        }
-
-        .zpet:active {
-            transform: scale(.97);
+                0 8px 20px rgba(0, 0, 0, 0.38),
+                inset 0 1px 0 rgba(255, 255, 255, 0.30);
         }
 
 
-        /* =====================================================
+        /* =========================================================
+           SKLENĚNÝ PANEL
+        ========================================================= */
+
+        .panel {
+            width: min(860px, 76vw);
+
+            padding: 55px 65px;
+
+            border-radius: 22px;
+
+            border: 1px solid rgba(255, 255, 255, 0.30);
+
+            /*
+                Panel je schválně hodně průhledný,
+                protože skleněný panel už máme
+                zakomponovaný také v obrázku.
+            */
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(15, 95, 150, 0.08),
+                    rgba(20, 25, 30, 0.12) 50%,
+                    rgba(170, 75, 15, 0.08)
+                );
+
+            box-shadow:
+                -4px 0 18px rgba(20, 150, 255, 0.15),
+                4px 0 18px rgba(255, 120, 20, 0.13),
+                0 14px 35px rgba(0, 0, 0, 0.20);
+        }
+
+
+        /* =========================================================
            MENU
-
-           Skleněný panel JE SOUČÁSTÍ obrázku.
-           Tady vytváříme pouze tlačítka.
-        ===================================================== */
+        ========================================================= */
 
         .menu {
-            position: absolute;
-
-            left: 50%;
-            top: 50.5%;
-
-            transform: translate(-50%, -50%);
-
-            width: min(46vw, 790px);
-
-            display: flex;
-            flex-direction: column;
-
-            gap: 14px;
-
-            z-index: 10;
+            width: 100%;
+            margin: 0 auto;
         }
 
         .menu a {
             display: block;
+
             width: 100%;
+
+            margin-bottom: 16px;
 
             text-decoration: none;
         }
 
+        .menu a:last-child {
+            margin-bottom: 0;
+        }
 
-        /* =====================================================
+
+        /* =========================================================
            TLAČÍTKA
-        ===================================================== */
+        ========================================================= */
 
         .menu button {
             position: relative;
 
             width: 100%;
-            height: 68px;
+            height: 78px;
 
-            padding: 0 25px;
+            padding: 0 30px;
 
-            border: 1.5px solid rgba(255, 255, 255, .92);
-            border-radius: 11px;
+            border-radius: 13px;
+
+            border:
+                1.5px solid
+                rgba(220, 235, 245, 0.68);
 
             cursor: pointer;
 
@@ -182,50 +236,67 @@
             align-items: center;
             justify-content: center;
 
-            gap: 18px;
+            gap: 20px;
 
-            color: white;
+            color: #ffffff;
 
-            font-family: Arial, Helvetica, sans-serif;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
 
-            font-size: 21px;
+            font-size: 23px;
             font-weight: 900;
 
-            letter-spacing: .3px;
+            letter-spacing: 0.4px;
 
             /*
-             * Stříbrná -> šedá -> černá
-             */
+                MODRO - KOVOVĚ - ORANŽOVÝ VZHLED
+            */
+
             background:
                 linear-gradient(
                     105deg,
-                    #f4f4f4 0%,
-                    #dddddd 14%,
-                    #a9a9a9 28%,
-                    #686868 42%,
-                    #343434 55%,
-                    #181818 72%,
-                    #080808 88%,
-                    #030303 100%
+
+                    rgba(45, 135, 195, 0.86) 0%,
+
+                    rgba(55, 100, 130, 0.90) 17%,
+
+                    rgba(60, 68, 75, 0.94) 38%,
+
+                    rgba(35, 37, 40, 0.97) 58%,
+
+                    rgba(67, 49, 39, 0.96) 79%,
+
+                    rgba(145, 72, 26, 0.88) 100%
                 );
 
             box-shadow:
-                0 6px 15px rgba(0, 0, 0, .45),
-                inset 0 1px 1px rgba(255, 255, 255, .95);
+                0 7px 18px rgba(0, 0, 0, 0.48),
+
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.50),
+
+                inset 0 -1px 0
+                rgba(0, 0, 0, 0.65);
 
             text-shadow:
-                0 2px 4px #000;
+                0 2px 4px
+                rgba(0, 0, 0, 0.95);
 
             overflow: hidden;
 
             transition:
-                transform .17s ease,
-                filter .17s ease,
-                box-shadow .17s ease;
+                transform 0.17s ease,
+                filter 0.17s ease,
+                box-shadow 0.17s ease,
+                border-color 0.17s ease;
         }
 
 
-        /* kovový odlesk */
+        /* =========================================================
+           KOVOVÝ ODLESK
+        ========================================================= */
 
         .menu button::before {
             content: "";
@@ -233,460 +304,681 @@
             position: absolute;
 
             top: 0;
-            left: -45%;
+            left: -30%;
 
-            width: 32%;
+            width: 45%;
             height: 100%;
 
-            transform: skewX(-25deg);
+            transform: skewX(-22deg);
 
             background:
                 linear-gradient(
-                    100deg,
+                    90deg,
                     transparent,
-                    rgba(255, 255, 255, .38),
+                    rgba(255, 255, 255, 0.11),
                     transparent
                 );
 
-            transition: left .45s ease;
-
             pointer-events: none;
+
+            transition: left 0.45s ease;
         }
 
+
+        /* =========================================================
+           HOVER
+        ========================================================= */
 
         .menu button:hover {
             transform: translateY(-3px);
 
-            filter: brightness(1.12);
+            filter:
+                brightness(1.15)
+                saturate(1.12);
+
+            border-color:
+                rgba(255, 255, 255, 0.85);
 
             box-shadow:
-                0 10px 25px rgba(0, 0, 0, .60),
-                inset 0 1px 1px white;
+                0 11px 26px
+                rgba(0, 0, 0, 0.55),
+
+                -4px 0 15px
+                rgba(25, 155, 255, 0.32),
+
+                4px 0 15px
+                rgba(255, 120, 25, 0.28),
+
+                inset 0 1px 1px
+                rgba(255, 255, 255, 0.60);
         }
 
         .menu button:hover::before {
-            left: 120%;
+            left: 90%;
         }
+
+
+        /* =========================================================
+           KLIKNUTÍ
+        ========================================================= */
 
         .menu button:active {
-            transform: scale(.985);
+            transform:
+                translateY(0)
+                scale(0.99);
+
+            box-shadow:
+                0 3px 10px
+                rgba(0, 0, 0, 0.45),
+
+                inset 0 2px 5px
+                rgba(0, 0, 0, 0.35);
         }
 
 
-        /* =====================================================
+        /* =========================================================
            IKONY
-        ===================================================== */
+        ========================================================= */
 
         .ikona {
-            position: relative;
-            z-index: 2;
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
 
             width: 42px;
-            min-width: 42px;
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            font-size: 29px;
+            font-size: 32px;
+            line-height: 1;
 
             filter:
-                drop-shadow(0 3px 3px rgba(0, 0, 0, .75));
-        }
-
-        .text {
-            position: relative;
-            z-index: 2;
-        }
-
-
-        /* =====================================================
-           BARVY / VZHLED IKON
-        ===================================================== */
-
-        .stav .ikona {
-            color: #35a7ff;
-        }
-
-        .pridat .ikona {
-            color: #299cff;
-        }
-
-        .odebrat .ikona {
-            color: #ff8700;
-        }
-
-        .historie .ikona {
-            color: white;
+                drop-shadow(
+                    0 3px 3px
+                    rgba(0, 0, 0, 0.65)
+                );
         }
 
 
-        /* =====================================================
-           NOTEBOOK / MENŠÍ PC
-        ===================================================== */
+        /* STAV */
 
-        @media (max-width: 1200px) {
+        .stav {
+            filter:
+                drop-shadow(
+                    0 3px 3px
+                    rgba(0, 0, 0, 0.65)
+                )
+                saturate(1.2);
+        }
 
-            .menu {
-                width: min(52vw, 700px);
+
+        /* PŘIDAT */
+
+        .pridat {
+            color: #32aaff;
+
+            font-size: 46px;
+            font-weight: bold;
+
+            text-shadow:
+                0 0 10px
+                rgba(40, 160, 255, 0.50);
+        }
+
+
+        /* ODEBRAT */
+
+        .odebrat {
+            color: #ff8618;
+
+            font-size: 46px;
+            font-weight: bold;
+
+            text-shadow:
+                0 0 10px
+                rgba(255, 125, 20, 0.45);
+        }
+
+
+        /* HISTORIE */
+
+        .historie {
+            font-size: 33px;
+        }
+
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .panel {
+                width: min(720px, 86vw);
+
+                padding:
+                    45px
+                    45px;
             }
 
             .menu button {
-                height: 62px;
-                font-size: 19px;
+                height: 72px;
+
+                font-size: 21px;
             }
         }
 
 
-        /* =====================================================
+        /* =========================================================
            MOBIL
-        ===================================================== */
+        ========================================================= */
 
         @media (max-width: 600px) {
 
             body {
-                min-height: 100svh;
-
-                background-image: url("materialmobil.png");
-                background-repeat: no-repeat;
 
                 /*
-                 * Fotku necháme přes celý displej.
-                 */
-                background-position: center top;
+                    MOBILNÍ OBRÁZEK
+                */
+
+                background-image:
+                    url("materialmobil.png");
+
                 background-size: cover;
 
-                overflow: hidden;
+                background-position:
+                    center top;
+
+                background-repeat:
+                    no-repeat;
+
+                background-attachment:
+                    scroll;
             }
 
-            .stranka {
+
+            .page {
                 width: 100%;
-                height: 100svh;
 
-                min-height: 600px;
+                min-height: 100vh;
+                min-height: 100dvh;
+
+                padding:
+                    205px
+                    18px
+                    50px;
+
+                align-items:
+                    flex-start;
             }
 
 
-            /* =============================================
-               ZPĚT - MOBIL
-            ============================================= */
+            /* =====================================================
+               ZPĚT NA MOBILU
+            ===================================================== */
 
             .zpet {
-                top: 10px;
-                right: 10px;
+                top:
+                    calc(
+                        14px +
+                        env(safe-area-inset-top)
+                    );
 
-                min-width: 68px;
-                height: 30px;
+                right: 14px;
 
-                padding: 0 9px;
+                min-width: auto;
 
-                font-size: 9px;
-                font-weight: 800;
+                padding:
+                    8px
+                    13px;
 
-                border-radius: 7px;
+                font-size:
+                    12px;
+
+                border-radius:
+                    8px;
+
+                color:
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.68
+                    );
+
+                background:
+                    rgba(
+                        15,
+                        18,
+                        22,
+                        0.35
+                    );
 
                 border:
-                    1px solid rgba(255, 255, 255, .52);
+                    1px solid
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.22
+                    );
+
+                backdrop-filter:
+                    blur(5px);
+
+                -webkit-backdrop-filter:
+                    blur(5px);
+
+                box-shadow:
+                    0 3px 10px
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        0.20
+                    );
+            }
+
+
+            /* =====================================================
+               PANEL MOBIL
+            ===================================================== */
+
+            .panel {
+                width: 92vw;
+
+                margin:
+                    0 auto;
+
+                padding:
+                    32px
+                    22px;
+
+                border-radius:
+                    18px;
 
                 background:
                     linear-gradient(
-                        110deg,
-                        rgba(200, 200, 200, .32),
-                        rgba(50, 50, 50, .50),
-                        rgba(5, 5, 5, .65)
+                        120deg,
+
+                        rgba(
+                            20,
+                            90,
+                            140,
+                            0.10
+                        ),
+
+                        rgba(
+                            20,
+                            25,
+                            30,
+                            0.16
+                        )
+                        50%,
+
+                        rgba(
+                            150,
+                            70,
+                            20,
+                            0.10
+                        )
+                    );
+
+                border:
+                    1px solid
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.28
                     );
 
                 box-shadow:
-                    0 3px 8px rgba(0, 0, 0, .25);
+                    -3px 0 14px
+                    rgba(
+                        20,
+                        150,
+                        255,
+                        0.14
+                    ),
 
-                opacity: .68;
+                    3px 0 14px
+                    rgba(
+                        255,
+                        120,
+                        20,
+                        0.12
+                    ),
 
-                backdrop-filter: blur(4px);
-                -webkit-backdrop-filter: blur(4px);
-            }
-
-            .zpet:hover {
-                opacity: 1;
-            }
-
-
-            /* =============================================
-               MENU - MOBIL
-
-               Pozice odpovídá skleněnému panelu
-               na materialmobil.png.
-            ============================================= */
-
-            .menu {
-                left: 50%;
-
-                /*
-                 * lehce níž než původní verze
-                 */
-                top: 45%;
-
-                transform:
-                    translate(-50%, -50%);
-
-                width: 72%;
-
-                gap: 10px;
+                    0 10px 25px
+                    rgba(
+                        0,
+                        0,
+                        0,
+                        0.20
+                    );
             }
 
 
-            /* =============================================
-               TLAČÍTKA - MOBIL
-            ============================================= */
+            .menu a {
+                margin-bottom:
+                    13px;
+            }
+
+
+            /* =====================================================
+               MOBILNÍ TLAČÍTKA
+            ===================================================== */
 
             .menu button {
-                height: 57px;
+                height:
+                    68px;
 
-                padding: 0 12px;
+                padding:
+                    0
+                    15px;
 
-                gap: 10px;
+                border-radius:
+                    11px;
 
-                font-size: 16px;
+                font-size:
+                    18px;
 
-                border-radius: 9px;
+                gap:
+                    13px;
 
-                border:
-                    1.3px solid rgba(255, 255, 255, .9);
+                background:
+                    linear-gradient(
+                        105deg,
 
-                box-shadow:
-                    0 5px 12px rgba(0, 0, 0, .42),
-                    inset 0 1px 1px rgba(255, 255, 255, .9);
+                        rgba(
+                            40,
+                            125,
+                            180,
+                            0.88
+                        )
+                        0%,
+
+                        rgba(
+                            52,
+                            82,
+                            102,
+                            0.94
+                        )
+                        25%,
+
+                        rgba(
+                            35,
+                            36,
+                            39,
+                            0.97
+                        )
+                        57%,
+
+                        rgba(
+                            92,
+                            54,
+                            31,
+                            0.95
+                        )
+                        82%,
+
+                        rgba(
+                            160,
+                            78,
+                            24,
+                            0.88
+                        )
+                        100%
+                    );
             }
 
 
             .ikona {
-                width: 33px;
-                min-width: 33px;
+                width:
+                    34px;
 
-                font-size: 24px;
+                font-size:
+                    27px;
+            }
+
+            .pridat,
+            .odebrat {
+                font-size:
+                    38px;
+            }
+
+            .historie {
+                font-size:
+                    28px;
             }
         }
 
 
-        /* =====================================================
-           MENŠÍ MOBILY
-        ===================================================== */
+        /* =========================================================
+           MALÉ MOBILY
+        ========================================================= */
 
-        @media (max-width: 390px) {
+        @media (max-width: 380px) {
 
-            .menu {
-                top: 45%;
+            .page {
+                padding-left:
+                    12px;
 
-                width: 74%;
+                padding-right:
+                    12px;
 
-                gap: 8px;
+                padding-top:
+                    190px;
+            }
+
+            .panel {
+                width:
+                    94vw;
+
+                padding:
+                    25px
+                    14px;
             }
 
             .menu button {
-                height: 52px;
+                height:
+                    62px;
 
-                font-size: 14px;
+                font-size:
+                    16px;
 
-                gap: 8px;
+                gap:
+                    10px;
             }
 
             .ikona {
-                width: 29px;
-                min-width: 29px;
-
-                font-size: 21px;
-            }
-
-            .zpet {
-                min-width: 62px;
-                height: 28px;
-
-                font-size: 8px;
-            }
-        }
-
-
-        /* =====================================================
-           NÍZKÝ DISPLEJ MOBILU
-        ===================================================== */
-
-        @media (max-width: 600px) and (max-height: 700px) {
-
-            .menu {
-                top: 46%;
-            }
-
-            .menu button {
-                height: 48px;
+                width:
+                    30px;
             }
         }
 
     </style>
+
 </head>
+
 
 <body>
 
-<main class="stranka">
 
-
-    <!-- ==========================================
+    <!-- =========================================================
          ZPĚT
-    =========================================== -->
+    ========================================================== -->
 
     <a
-        href="../index.html"
         class="zpet"
+        href="../index.html"
     >
         ← ZPĚT
     </a>
 
 
 
-    <!-- ==========================================
-         MENU
-    =========================================== -->
+    <!-- =========================================================
+         HLAVNÍ OBSAH
+    ========================================================== -->
 
-    <nav class="menu">
-
-
-        <!-- STAV -->
-
-        <a href="stav.html">
-
-            <button
-                type="button"
-                class="stav"
-            >
-                <span class="ikona">📊</span>
-
-                <span class="text">
-                    STAV
-                </span>
-            </button>
-
-        </a>
+    <main class="page">
 
 
+        <div class="panel">
 
-        <!-- PŘIDAT -->
 
-        <a href="pridat.html">
+            <div class="menu">
 
-            <button
-                type="button"
-                class="pridat"
-            >
-                <span class="ikona">➕</span>
 
-                <span class="text">
-                    PŘIDAT
-                </span>
-            </button>
+                <!-- STAV -->
 
-        </a>
+                <a href="stav.html">
+
+                    <button type="button">
+
+                        <span class="ikona stav">
+                            📊
+                        </span>
+
+                        <span>
+                            STAV
+                        </span>
+
+                    </button>
+
+                </a>
 
 
 
-        <!-- ODEBRAT -->
+                <!-- PŘIDAT -->
 
-        <a href="odebrat.html">
+                <a href="pridat.html">
 
-            <button
-                type="button"
-                class="odebrat"
-            >
-                <span class="ikona">➖</span>
+                    <button type="button">
 
-                <span class="text">
-                    ODEBRAT
-                </span>
-            </button>
+                        <span class="ikona pridat">
+                            +
+                        </span>
 
-        </a>
+                        <span>
+                            PŘIDAT
+                        </span>
 
+                    </button>
 
-
-        <!-- HISTORIE -->
-
-        <a href="historie.html">
-
-            <button
-                type="button"
-                class="historie"
-            >
-                <span class="ikona">🕘</span>
-
-                <span class="text">
-                    HISTORIE
-                </span>
-            </button>
-
-        </a>
-
-
-    </nav>
-
-</main>
+                </a>
 
 
 
-<script>
+                <!-- ODEBRAT -->
 
-    /* =====================================================
-       SUPABASE
-       FUNKČNOST ZACHOVÁNA
-    ===================================================== */
+                <a href="odebrat.html">
 
-    const SUPABASE_URL =
-        "https://gmawlmsizglrnjmjegmx.supabase.co";
+                    <button type="button">
 
-    const SUPABASE_KEY =
-        "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+                        <span class="ikona odebrat">
+                            −
+                        </span>
 
-    const supabaseClient =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
+                        <span>
+                            ODEBRAT
+                        </span>
 
+                    </button>
 
-    /* =====================================================
-       KONTROLA PŘIHLÁŠENÍ
-    ===================================================== */
-
-    async function zkontrolujPrihlaseni() {
-
-        const { data, error } =
-            await supabaseClient
-                .auth
-                .getSession();
+                </a>
 
 
-        if (
-            error ||
-            !data.session
-        ) {
 
-            window.location.replace(
-                "../login.html"
+                <!-- HISTORIE -->
+
+                <a href="historie.html">
+
+                    <button type="button">
+
+                        <span class="ikona historie">
+                            🕘
+                        </span>
+
+                        <span>
+                            HISTORIE
+                        </span>
+
+                    </button>
+
+                </a>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- =========================================================
+         SUPABASE
+    ========================================================== -->
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://gmawlmsizglrnjmjegmx.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
             );
 
-            return;
+
+        async function zkontrolujPrihlaseni() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .getSession();
+
+
+            if (
+                error ||
+                !data.session
+            ) {
+
+                window.location.replace(
+                    "../login.html"
+                );
+
+                return;
+            }
+
+
+            /*
+                Stránku zobrazíme až po
+                úspěšné kontrole přihlášení.
+            */
+
+            document.body.style.display =
+                "block";
         }
 
 
-        /*
-         * Stránku zobrazíme až po ověření
-         * přihlášení.
-         */
+        zkontrolujPrihlaseni();
 
-        document.body.style.display =
-            "block";
-    }
+    </script>
 
-
-    zkontrolujPrihlaseni();
-
-</script>
 
 </body>
+
 </html>
