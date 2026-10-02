@@ -39,7 +39,10 @@
 
             background: #080808;
 
-            font-family: Arial, Helvetica, sans-serif;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
         }
 
 
@@ -52,28 +55,30 @@
 
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
 
             overflow: hidden;
 
-            background-image: url("pozadi.png");
-            background-repeat: no-repeat;
+            background-image:
+                url("pozadi.png");
 
-            /*
-                Fotografie vyplní celou obrazovku.
-                Nebudou vznikat prázdné pásy.
-            */
-            background-size: cover;
-            background-position: center center;
+            background-repeat:
+                no-repeat;
+
+            background-size:
+                cover;
+
+            background-position:
+                center center;
 
             user-select: none;
         }
 
 
         /* =========================================================
-           ZÁKLADNÍ VZHLED TLAČÍTEK
+           SPOLEČNÝ VZHLED TLAČÍTEK
 
-           STEJNÝ STYL JAKO LOGIN:
-           šedá -> černá
+           MODRÁ -> KOV -> ORANŽOVÁ
         ========================================================= */
 
         .system-button {
@@ -83,63 +88,141 @@
             align-items: center;
 
             border:
-
                 2px solid
-                rgba(255, 255, 255, 0.92);
+                rgba(235, 245, 250, 0.82);
 
-            border-radius: 14px;
+            border-radius:
+                15px;
 
             background:
-
                 linear-gradient(
                     105deg,
 
-                    #d8d8d8 0%,
-                    #c4c4c4 15%,
-                    #969696 28%,
-                    #555555 45%,
-                    #282828 63%,
-                    #111111 80%,
-                    #050505 100%
+                    rgba(39, 151, 218, 0.94) 0%,
+
+                    rgba(55, 126, 169, 0.92) 17%,
+
+                    rgba(61, 83, 96, 0.94) 35%,
+
+                    rgba(43, 45, 48, 0.97) 53%,
+
+                    rgba(67, 49, 42, 0.96) 70%,
+
+                    rgba(126, 65, 28, 0.96) 86%,
+
+                    rgba(159, 75, 24, 0.97) 100%
                 );
 
             box-shadow:
-
-                0 5px 15px
-                rgba(0, 0, 0, 0.38),
+                0 7px 18px rgba(0, 0, 0, 0.45),
 
                 inset 0 1px 0
-                rgba(255, 255, 255, 0.18);
+                rgba(255, 255, 255, 0.38),
 
-            color: #ffffff;
+                inset 0 -1px 0
+                rgba(0, 0, 0, 0.35);
+
+            color:
+                #ffffff;
 
             font-family:
                 Arial,
                 Helvetica,
                 sans-serif;
 
-            font-weight: 900;
+            font-weight:
+                900;
 
-            text-decoration: none;
+            text-decoration:
+                none;
 
-            text-transform: uppercase;
+            text-transform:
+                uppercase;
 
             text-shadow:
+                0 2px 3px
+                rgba(0, 0, 0, 0.95),
 
-                0 2px 2px
-                rgba(0, 0, 0, 0.9),
+                0 0 3px
+                rgba(0, 0, 0, 0.70);
 
-                0 0 2px
-                rgba(0, 0, 0, 0.8);
+            cursor:
+                pointer;
 
-            cursor: pointer;
+            overflow:
+                hidden;
 
             transition:
-                transform 0.15s ease,
-                filter 0.15s ease,
-                box-shadow 0.15s ease;
+                transform 0.18s ease,
+                filter 0.18s ease,
+                box-shadow 0.18s ease,
+                border-color 0.18s ease;
 
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color:
+                transparent;
+        }
+
+
+        /* =========================================================
+           KOVOVÝ ODLESK
+        ========================================================= */
+
+        .system-button::before {
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: -32%;
+
+            width: 45%;
+            height: 100%;
+
+            background:
+                linear-gradient(
+                    110deg,
+
+                    transparent 0%,
+
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.05
+                    ) 30%,
+
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.22
+                    ) 50%,
+
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.05
+                    ) 70%,
+
+                    transparent 100%
+                );
+
+            transform:
+                skewX(-20deg);
+
+            pointer-events:
+                none;
+
+            transition:
+                left 0.50s ease;
+        }
+
+
+        .system-button > * {
+            position: relative;
+
+            z-index: 2;
         }
 
 
@@ -148,52 +231,59 @@
         ========================================================= */
 
         .system-button:hover {
+            filter:
+                brightness(1.12)
+                saturate(1.08);
 
-            filter: brightness(1.08);
+            border-color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.96
+                );
 
             box-shadow:
+                0 11px 27px
+                rgba(0, 0, 0, 0.52),
 
-                0 8px 20px
-                rgba(0, 0, 0, 0.45),
+                -5px 0 18px
+                rgba(20, 155, 255, 0.25),
+
+                5px 0 18px
+                rgba(255, 120, 25, 0.22),
 
                 inset 0 1px 0
-                rgba(255, 255, 255, 0.28);
+                rgba(255, 255, 255, 0.48);
+        }
 
+
+        .system-button:hover::before {
+            left: 100%;
         }
 
 
         .system-button:active {
-
-            filter: brightness(0.92);
-
+            filter:
+                brightness(0.94);
         }
 
 
         .system-button:focus-visible {
-
             outline:
                 2px solid white;
 
             outline-offset:
                 4px;
-
         }
 
 
         /* =========================================================
-           SKLAD MATERIÁLU
-           PC
+           SKLAD MATERIÁLU - PC
         ========================================================= */
 
         .sklad-button {
-
             left: 50%;
-
-            /*
-                Pozice hlavního tlačítka.
-                Tuto hodnotu můžeme následně
-                přesně doladit podle screenshotu.
-            */
             top: 59%;
 
             transform:
@@ -202,130 +292,209 @@
             width:
                 min(820px, 52vw);
 
-            height: 105px;
+            height:
+                105px;
 
             padding:
                 0 32px;
 
+            /*
+                Hlavní tlačítko je trochu výraznější.
+            */
+
+            background:
+                linear-gradient(
+                    105deg,
+
+                    #2797da 0%,
+
+                    #377ea9 17%,
+
+                    #3d5360 35%,
+
+                    #2b2d30 53%,
+
+                    #43312a 70%,
+
+                    #7e411c 86%,
+
+                    #9f4b18 100%
+                );
+
+            box-shadow:
+                0 9px 23px
+                rgba(0, 0, 0, 0.48),
+
+                -5px 0 18px
+                rgba(25, 150, 255, 0.12),
+
+                5px 0 18px
+                rgba(255, 120, 25, 0.10),
+
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.40),
+
+                inset 0 -1px 0
+                rgba(0, 0, 0, 0.40);
         }
 
 
         .sklad-button:hover {
-
             transform:
                 translateX(-50%)
-                translateY(-2px);
-
+                translateY(-3px);
         }
 
 
         .sklad-button:active {
-
             transform:
                 translateX(-50%)
-                translateY(1px);
-
+                translateY(1px)
+                scale(0.995);
         }
 
 
         /* =========================================================
-           LEVÁ IKONA SKLADU
+           IKONA SKLADU
         ========================================================= */
 
         .warehouse-section {
-
             position: relative;
 
             display: flex;
 
             align-items: center;
-
             justify-content: center;
 
             flex:
                 0 0 105px;
 
-            height: 70%;
+            height:
+                70%;
 
-            margin-right: 30px;
+            margin-right:
+                30px;
 
             border-right:
-
                 2px solid
-                rgba(255, 255, 255, 0.72);
-
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.70
+                );
         }
 
 
-        /*
-            Jednoduchá ikona tří skladových bloků.
-            Není potřeba žádný obrázek.
-        */
-
         .warehouse-icon {
-
             position: relative;
 
-            width: 58px;
-            height: 58px;
+            width:
+                58px;
 
+            height:
+                58px;
         }
 
 
         .warehouse-box {
+            position:
+                absolute;
 
-            position: absolute;
+            width:
+                29px;
 
-            width: 29px;
-            height: 29px;
+            height:
+                29px;
 
             border:
-                2px solid white;
+                2px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.95
+                );
 
             border-radius:
-                3px;
+                4px;
 
             background:
-
                 linear-gradient(
                     135deg,
-                    #f5f5f5,
-                    #555555 48%,
-                    #111111
+
+                    rgba(
+                        115,
+                        197,
+                        244,
+                        0.95
+                    ) 0%,
+
+                    rgba(
+                        70,
+                        94,
+                        107,
+                        0.95
+                    ) 45%,
+
+                    rgba(
+                        35,
+                        37,
+                        40,
+                        0.98
+                    ) 70%,
+
+                    rgba(
+                        170,
+                        79,
+                        25,
+                        0.95
+                    ) 100%
                 );
 
             box-shadow:
+                inset 0 1px 2px
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.35
+                ),
 
-                inset 0 0 4px
-                rgba(255,255,255,0.55),
-
-                0 2px 4px
-                rgba(0,0,0,0.45);
-
+                0 2px 5px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.50
+                );
         }
 
 
         .warehouse-box.one {
+            top:
+                0;
 
-            top: 0;
-            left: 15px;
-
+            left:
+                15px;
         }
 
 
         .warehouse-box.two {
+            bottom:
+                0;
 
-            bottom: 0;
-            left: 0;
-
+            left:
+                0;
         }
 
 
         .warehouse-box.three {
+            bottom:
+                0;
 
-            bottom: 0;
-            right: 0;
-
+            right:
+                0;
         }
 
 
@@ -334,27 +503,27 @@
         ========================================================= */
 
         .sklad-text {
+            flex:
+                1;
 
-            flex: 1;
-
-            text-align: center;
+            text-align:
+                center;
 
             font-size:
-
                 clamp(
                     26px,
                     2.2vw,
                     42px
                 );
 
-            font-weight: 900;
+            font-weight:
+                900;
 
             letter-spacing:
                 1px;
 
             white-space:
                 nowrap;
-
         }
 
 
@@ -363,73 +532,144 @@
         ========================================================= */
 
         .arrow {
+            display:
+                flex;
 
-            display: flex;
+            align-items:
+                center;
 
-            align-items: center;
-
-            justify-content: center;
+            justify-content:
+                center;
 
             flex:
                 0 0 65px;
 
-            margin-left: 20px;
+            margin-left:
+                20px;
 
-            font-size: 65px;
+            font-size:
+                65px;
 
             font-family:
                 Arial,
                 Helvetica,
                 sans-serif;
 
-            font-weight: 300;
+            font-weight:
+                300;
 
-            color: white;
+            color:
+                white;
 
-            line-height: 1;
+            line-height:
+                1;
 
+            text-shadow:
+                0 2px 5px
+                rgba(0,0,0,.65);
         }
 
 
         /* =========================================================
-           ODHLÁSIT
-           PC
+           ODHLÁSIT - PC
         ========================================================= */
 
         .logout-button {
+            top:
+                22px;
 
-            top: 22px;
-            right: 25px;
+            right:
+                25px;
 
-            width: 205px;
-            height: 60px;
+            width:
+                205px;
 
-            justify-content: center;
+            height:
+                60px;
+
+            justify-content:
+                center;
 
             padding:
                 0 20px;
 
-            font-size: 18px;
+            font-size:
+                18px;
 
             letter-spacing:
                 0.8px;
 
+            /*
+                Stejný styl, ale trochu tmavší,
+                aby nekonkuroval SKLADU.
+            */
+
+            background:
+                linear-gradient(
+                    105deg,
+
+                    rgba(
+                        48,
+                        126,
+                        174,
+                        0.92
+                    ) 0%,
+
+                    rgba(
+                        50,
+                        87,
+                        108,
+                        0.94
+                    ) 25%,
+
+                    rgba(
+                        40,
+                        43,
+                        46,
+                        0.97
+                    ) 52%,
+
+                    rgba(
+                        76,
+                        48,
+                        34,
+                        0.96
+                    ) 76%,
+
+                    rgba(
+                        137,
+                        65,
+                        24,
+                        0.96
+                    ) 100%
+                );
+
+            border-color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.65
+                );
+
+            box-shadow:
+                0 6px 16px
+                rgba(0, 0, 0, 0.42),
+
+                inset 0 1px 0
+                rgba(255,255,255,.27);
         }
 
 
         .logout-button:hover {
-
             transform:
                 translateY(-2px);
-
         }
 
 
         .logout-button:active {
-
             transform:
                 translateY(1px);
-
         }
 
 
@@ -438,70 +678,87 @@
         ========================================================= */
 
         .logout-icon {
+            position:
+                relative;
 
-            position: relative;
+            width:
+                26px;
 
-            width: 26px;
-            height: 30px;
+            height:
+                30px;
 
-            margin-right: 16px;
+            margin-right:
+                16px;
 
             border:
-
                 3px solid
                 white;
 
-            border-right: 0;
+            border-right:
+                0;
 
             border-radius:
                 4px 0 0 4px;
-
         }
 
 
         .logout-icon::before {
+            content:
+                "";
 
-            content: "";
+            position:
+                absolute;
 
-            position: absolute;
+            top:
+                50%;
 
-            top: 50%;
-            left: 8px;
+            left:
+                8px;
 
-            width: 19px;
-            height: 3px;
+            width:
+                19px;
 
-            background: white;
+            height:
+                3px;
+
+            background:
+                white;
 
             transform:
                 translateY(-50%);
-
         }
 
 
         .logout-icon::after {
+            content:
+                "";
 
-            content: "";
+            position:
+                absolute;
 
-            position: absolute;
+            top:
+                50%;
 
-            top: 50%;
-            right: -14px;
+            right:
+                -14px;
 
-            width: 10px;
-            height: 10px;
+            width:
+                10px;
+
+            height:
+                10px;
 
             border-top:
-                3px solid white;
+                3px solid
+                white;
 
             border-right:
-                3px solid white;
+                3px solid
+                white;
 
             transform:
-
                 translateY(-50%)
                 rotate(45deg);
-
         }
 
 
@@ -515,64 +772,55 @@
         (max-width: 1100px) {
 
             .sklad-button {
+                width:
+                    62vw;
 
-                width: 62vw;
+                height:
+                    92px;
 
-                height: 92px;
-
-                top: 60%;
+                top:
+                    60%;
 
                 padding:
                     0 24px;
-
             }
 
 
             .warehouse-section {
-
                 flex-basis:
                     90px;
 
                 margin-right:
                     22px;
-
             }
 
 
             .warehouse-icon {
-
                 transform:
                     scale(0.85);
-
             }
 
 
             .sklad-text {
-
                 font-size:
-
                     clamp(
                         23px,
                         3vw,
                         34px
                     );
-
             }
 
 
             .arrow {
-
                 flex-basis:
                     50px;
 
                 font-size:
                     52px;
-
             }
 
 
             .logout-button {
-
                 width:
                     180px;
 
@@ -581,9 +829,7 @@
 
                 font-size:
                     16px;
-
             }
-
         }
 
 
@@ -598,17 +844,17 @@
 
             html,
             body {
+                width:
+                    100%;
 
-                width: 100%;
-
-                height: 100%;
+                height:
+                    100%;
 
                 min-height:
                     100dvh;
 
                 overflow:
                     hidden;
-
             }
 
 
@@ -617,10 +863,11 @@
             ===================================================== */
 
             .stage {
+                width:
+                    100vw;
 
-                width: 100vw;
-
-                height: 100dvh;
+                height:
+                    100dvh;
 
                 min-height:
                     100dvh;
@@ -636,7 +883,6 @@
 
                 background-position:
                     center center;
-
             }
 
 
@@ -645,9 +891,7 @@
             ===================================================== */
 
             .logout-button {
-
                 top:
-
                     calc(
                         env(safe-area-inset-top)
                         + 12px
@@ -666,19 +910,20 @@
                     0 14px;
 
                 border-radius:
-                    12px;
+                    11px;
+
+                border-width:
+                    1.5px;
 
                 font-size:
                     14px;
 
                 letter-spacing:
                     0.4px;
-
             }
 
 
             .logout-icon {
-
                 width:
                     20px;
 
@@ -690,12 +935,10 @@
 
                 border-width:
                     2px;
-
             }
 
 
             .logout-icon::before {
-
                 width:
                     15px;
 
@@ -704,12 +947,10 @@
 
                 left:
                     6px;
-
             }
 
 
             .logout-icon::after {
-
                 width:
                     8px;
 
@@ -724,7 +965,6 @@
 
                 border-right-width:
                     2px;
-
             }
 
 
@@ -733,16 +973,16 @@
             ===================================================== */
 
             .sklad-button {
+                left:
+                    50%;
 
-                left: 50%;
-
-                top: 68%;
+                top:
+                    68%;
 
                 transform:
                     translateX(-50%);
 
                 width:
-
                     calc(
                         100% - 28px
                     );
@@ -759,29 +999,25 @@
                 border-radius:
                     14px;
 
+                border-width:
+                    1.5px;
             }
 
 
             .sklad-button:hover {
-
                 transform:
                     translateX(-50%);
-
             }
 
 
             .sklad-button:active {
-
                 transform:
-
                     translateX(-50%)
                     scale(0.98);
-
             }
 
 
             .warehouse-section {
-
                 flex:
                     0 0 70px;
 
@@ -790,22 +1026,17 @@
 
                 margin-right:
                     14px;
-
             }
 
 
             .warehouse-icon {
-
                 transform:
                     scale(0.78);
-
             }
 
 
             .sklad-text {
-
                 font-size:
-
                     clamp(
                         17px,
                         5.2vw,
@@ -814,12 +1045,10 @@
 
                 letter-spacing:
                     0.3px;
-
             }
 
 
             .arrow {
-
                 flex:
                     0 0 35px;
 
@@ -828,30 +1057,30 @@
 
                 font-size:
                     44px;
-
             }
 
 
             /*
-                Na telefonu vypneme klasický
-                desktopový hover.
+                Na dotykových telefonech nechceme
+                klasický desktopový hover.
             */
 
             .system-button:hover {
-
                 filter:
                     none;
-
-                box-shadow:
-
-                    0 5px 15px
-                    rgba(0, 0, 0, 0.38),
-
-                    inset 0 1px 0
-                    rgba(255, 255, 255, 0.18);
-
             }
 
+
+            .system-button:hover::before {
+                left:
+                    -32%;
+            }
+
+
+            .logout-button:hover {
+                transform:
+                    none;
+            }
         }
 
 
@@ -865,9 +1094,7 @@
         (orientation: portrait) {
 
             .logout-button {
-
                 top:
-
                     calc(
                         env(safe-area-inset-top)
                         + 9px
@@ -884,17 +1111,14 @@
 
                 font-size:
                     13px;
-
             }
 
 
             .sklad-button {
-
                 top:
                     68%;
 
                 width:
-
                     calc(
                         100% - 18px
                     );
@@ -907,44 +1131,35 @@
 
                 border-radius:
                     12px;
-
             }
 
 
             .warehouse-section {
-
                 flex-basis:
                     58px;
 
                 margin-right:
                     9px;
-
             }
 
 
             .warehouse-icon {
-
                 transform:
                     scale(0.66);
-
             }
 
 
             .sklad-text {
-
                 font-size:
-
                     clamp(
                         16px,
                         5vw,
                         22px
                     );
-
             }
 
 
             .arrow {
-
                 flex-basis:
                     27px;
 
@@ -953,9 +1168,7 @@
 
                 font-size:
                     36px;
-
             }
-
         }
 
 
@@ -969,7 +1182,6 @@
         (orientation: landscape) {
 
             .stage {
-
                 width:
                     100vw;
 
@@ -987,12 +1199,10 @@
 
                 background-position:
                     center center;
-
             }
 
 
             .logout-button {
-
                 top:
                     9px;
 
@@ -1010,12 +1220,10 @@
 
                 border-radius:
                     11px;
-
             }
 
 
             .sklad-button {
-
                 left:
                     50%;
 
@@ -1036,20 +1244,16 @@
 
                 border-radius:
                     12px;
-
             }
 
 
             .sklad-button:hover {
-
                 transform:
                     translateX(-50%);
-
             }
 
 
             .warehouse-section {
-
                 flex-basis:
                     70px;
 
@@ -1058,38 +1262,29 @@
 
                 margin-right:
                     15px;
-
             }
 
 
             .warehouse-icon {
-
                 transform:
                     scale(0.70);
-
             }
 
 
             .sklad-text {
-
                 font-size:
-
                     clamp(
                         20px,
                         3vw,
                         30px
                     );
-
             }
 
 
             .arrow {
-
                 font-size:
                     40px;
-
             }
-
         }
 
     </style>
@@ -1167,15 +1362,11 @@
             </span>
 
 
-
             <!-- TEXT -->
 
             <span class="sklad-text">
-
                 SKLAD MATERIÁLU
-
             </span>
-
 
 
             <!-- ŠIPKA -->
@@ -1184,9 +1375,7 @@
                 class="arrow"
                 aria-hidden="true"
             >
-
                 ›
-
             </span>
 
 
@@ -1234,11 +1423,6 @@
                     .getSession();
 
 
-            /*
-                Pokud uživatel není přihlášen,
-                vrátíme ho na login.
-            */
-
             if (
                 error ||
                 !data.session
@@ -1249,17 +1433,8 @@
                 );
 
                 return;
-
             }
 
-
-            /*
-                Stránku zobrazíme až po ověření
-                přihlášení.
-
-                Díky tomu se index krátce
-                nezobrazí nepřihlášenému uživateli.
-            */
 
             document.body.style.display =
                 "block";
@@ -1299,7 +1474,6 @@
         ========================================================= */
 
         zkontrolujPrihlaseni();
-
 
     </script>
 
