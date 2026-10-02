@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
 
@@ -13,9 +14,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* =====================================================
+
+        /* =========================================================
            ZÁKLAD
-           ===================================================== */
+        ========================================================= */
 
         * {
             box-sizing: border-box;
@@ -35,18 +37,15 @@
         body {
             display: none;
 
-            background: #071725;
+            background: #080808;
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
 
-        /* =====================================================
-           HLAVNÍ OBRAZOVKA - PC
-           ===================================================== */
+        /* =========================================================
+           POZADÍ
+        ========================================================= */
 
         .stage {
             position: relative;
@@ -54,178 +53,543 @@
             width: 100vw;
             height: 100vh;
 
-            margin: 0;
-            padding: 0;
-
             overflow: hidden;
 
-            background-image:
-                url("pozadi.png");
+            background-image: url("pozadi.png");
+            background-repeat: no-repeat;
 
-            background-position:
-                center center;
-
-            background-repeat:
-                no-repeat;
-
-            background-size:
-                100% 100%;
+            /*
+                Fotografie vyplní celou obrazovku.
+                Nebudou vznikat prázdné pásy.
+            */
+            background-size: cover;
+            background-position: center center;
 
             user-select: none;
         }
 
 
-        /* =====================================================
-           OBRÁZKOVÁ TLAČÍTKA
-           ===================================================== */
+        /* =========================================================
+           ZÁKLADNÍ VZHLED TLAČÍTEK
 
-        .image-button {
+           STEJNÝ STYL JAKO LOGIN:
+           šedá -> černá
+        ========================================================= */
+
+        .system-button {
             position: absolute;
 
-            z-index: 10;
+            display: flex;
+            align-items: center;
 
-            display: block;
+            border:
 
-            margin: 0;
-            padding: 0;
+                2px solid
+                rgba(255, 255, 255, 0.92);
 
-            border: 0;
-            outline: 0;
+            border-radius: 14px;
 
-            background: transparent;
+            background:
+
+                linear-gradient(
+                    105deg,
+
+                    #d8d8d8 0%,
+                    #c4c4c4 15%,
+                    #969696 28%,
+                    #555555 45%,
+                    #282828 63%,
+                    #111111 80%,
+                    #050505 100%
+                );
+
+            box-shadow:
+
+                0 5px 15px
+                rgba(0, 0, 0, 0.38),
+
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.18);
+
+            color: #ffffff;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-weight: 900;
+
+            text-decoration: none;
+
+            text-transform: uppercase;
+
+            text-shadow:
+
+                0 2px 2px
+                rgba(0, 0, 0, 0.9),
+
+                0 0 2px
+                rgba(0, 0, 0, 0.8);
 
             cursor: pointer;
 
-            -webkit-tap-highlight-color:
-                transparent;
-
             transition:
-                transform 0.16s ease,
-                filter 0.16s ease;
-        }
+                transform 0.15s ease,
+                filter 0.15s ease,
+                box-shadow 0.15s ease;
 
-        .image-button img {
-            display: block;
-
-            width: 100%;
-            height: auto;
-
-            margin: 0;
-            padding: 0;
-
-            border: 0;
-
-            pointer-events: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
 
-        /* =====================================================
-           SKLAD MATERIÁLU - PC
-           ===================================================== */
+        /* =========================================================
+           HOVER
+        ========================================================= */
 
-        .sklad-link {
-            left: 50%;
-            top: 58.3%;
+        .system-button:hover {
 
-            width: 48.5%;
+            filter: brightness(1.08);
 
-            transform:
-                translateX(-50%);
+            box-shadow:
 
-            text-decoration: none;
-        }
+                0 8px 20px
+                rgba(0, 0, 0, 0.45),
 
-        .sklad-link:hover {
-            transform:
-                translateX(-50%)
-                translateY(-3px)
-                scale(1.015);
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.28);
 
-            filter:
-                brightness(1.04);
-        }
-
-        .sklad-link:active {
-            transform:
-                translateX(-50%)
-                translateY(1px)
-                scale(0.995);
         }
 
 
-        /* =====================================================
-           ODHLÁSIT - PC
+        .system-button:active {
 
-           Posunuto více doprava a nahoru.
-           ===================================================== */
+            filter: brightness(0.92);
 
-        .logout-button {
-            top: 0.45%;
-            right: 0.45%;
-
-            width: 12.3%;
-        }
-
-        .logout-button:hover {
-            transform:
-                translateY(-2px)
-                scale(1.025);
-
-            filter:
-                brightness(1.08);
-        }
-
-        .logout-button:active {
-            transform:
-                translateY(1px)
-                scale(0.98);
         }
 
 
-        /* =====================================================
-           FOCUS
-           ===================================================== */
+        .system-button:focus-visible {
 
-        .image-button:focus-visible {
             outline:
-                2px solid #00b9ff;
+                2px solid white;
 
             outline-offset:
                 4px;
 
-            border-radius:
-                12px;
         }
 
 
-        /* =====================================================
-           TABLET / MENŠÍ NOTEBOOK
-           ===================================================== */
+        /* =========================================================
+           SKLAD MATERIÁLU
+           PC
+        ========================================================= */
+
+        .sklad-button {
+
+            left: 50%;
+
+            /*
+                Pozice hlavního tlačítka.
+                Tuto hodnotu můžeme následně
+                přesně doladit podle screenshotu.
+            */
+            top: 59%;
+
+            transform:
+                translateX(-50%);
+
+            width:
+                min(820px, 52vw);
+
+            height: 105px;
+
+            padding:
+                0 32px;
+
+        }
+
+
+        .sklad-button:hover {
+
+            transform:
+                translateX(-50%)
+                translateY(-2px);
+
+        }
+
+
+        .sklad-button:active {
+
+            transform:
+                translateX(-50%)
+                translateY(1px);
+
+        }
+
+
+        /* =========================================================
+           LEVÁ IKONA SKLADU
+        ========================================================= */
+
+        .warehouse-section {
+
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            flex:
+                0 0 105px;
+
+            height: 70%;
+
+            margin-right: 30px;
+
+            border-right:
+
+                2px solid
+                rgba(255, 255, 255, 0.72);
+
+        }
+
+
+        /*
+            Jednoduchá ikona tří skladových bloků.
+            Není potřeba žádný obrázek.
+        */
+
+        .warehouse-icon {
+
+            position: relative;
+
+            width: 58px;
+            height: 58px;
+
+        }
+
+
+        .warehouse-box {
+
+            position: absolute;
+
+            width: 29px;
+            height: 29px;
+
+            border:
+                2px solid white;
+
+            border-radius:
+                3px;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    #f5f5f5,
+                    #555555 48%,
+                    #111111
+                );
+
+            box-shadow:
+
+                inset 0 0 4px
+                rgba(255,255,255,0.55),
+
+                0 2px 4px
+                rgba(0,0,0,0.45);
+
+        }
+
+
+        .warehouse-box.one {
+
+            top: 0;
+            left: 15px;
+
+        }
+
+
+        .warehouse-box.two {
+
+            bottom: 0;
+            left: 0;
+
+        }
+
+
+        .warehouse-box.three {
+
+            bottom: 0;
+            right: 0;
+
+        }
+
+
+        /* =========================================================
+           TEXT SKLAD MATERIÁLU
+        ========================================================= */
+
+        .sklad-text {
+
+            flex: 1;
+
+            text-align: center;
+
+            font-size:
+
+                clamp(
+                    26px,
+                    2.2vw,
+                    42px
+                );
+
+            font-weight: 900;
+
+            letter-spacing:
+                1px;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        /* =========================================================
+           ŠIPKA
+        ========================================================= */
+
+        .arrow {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            flex:
+                0 0 65px;
+
+            margin-left: 20px;
+
+            font-size: 65px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            font-weight: 300;
+
+            color: white;
+
+            line-height: 1;
+
+        }
+
+
+        /* =========================================================
+           ODHLÁSIT
+           PC
+        ========================================================= */
+
+        .logout-button {
+
+            top: 22px;
+            right: 25px;
+
+            width: 205px;
+            height: 60px;
+
+            justify-content: center;
+
+            padding:
+                0 20px;
+
+            font-size: 18px;
+
+            letter-spacing:
+                0.8px;
+
+        }
+
+
+        .logout-button:hover {
+
+            transform:
+                translateY(-2px);
+
+        }
+
+
+        .logout-button:active {
+
+            transform:
+                translateY(1px);
+
+        }
+
+
+        /* =========================================================
+           IKONA ODHLÁŠENÍ
+        ========================================================= */
+
+        .logout-icon {
+
+            position: relative;
+
+            width: 26px;
+            height: 30px;
+
+            margin-right: 16px;
+
+            border:
+
+                3px solid
+                white;
+
+            border-right: 0;
+
+            border-radius:
+                4px 0 0 4px;
+
+        }
+
+
+        .logout-icon::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 50%;
+            left: 8px;
+
+            width: 19px;
+            height: 3px;
+
+            background: white;
+
+            transform:
+                translateY(-50%);
+
+        }
+
+
+        .logout-icon::after {
+
+            content: "";
+
+            position: absolute;
+
+            top: 50%;
+            right: -14px;
+
+            width: 10px;
+            height: 10px;
+
+            border-top:
+                3px solid white;
+
+            border-right:
+                3px solid white;
+
+            transform:
+
+                translateY(-50%)
+                rotate(45deg);
+
+        }
+
+
+        /* =========================================================
+           MENŠÍ PC / TABLET
+        ========================================================= */
 
         @media
         (min-width: 701px)
         and
-        (max-width: 1000px) {
+        (max-width: 1100px) {
+
+            .sklad-button {
+
+                width: 62vw;
+
+                height: 92px;
+
+                top: 60%;
+
+                padding:
+                    0 24px;
+
+            }
+
+
+            .warehouse-section {
+
+                flex-basis:
+                    90px;
+
+                margin-right:
+                    22px;
+
+            }
+
+
+            .warehouse-icon {
+
+                transform:
+                    scale(0.85);
+
+            }
+
+
+            .sklad-text {
+
+                font-size:
+
+                    clamp(
+                        23px,
+                        3vw,
+                        34px
+                    );
+
+            }
+
+
+            .arrow {
+
+                flex-basis:
+                    50px;
+
+                font-size:
+                    52px;
+
+            }
+
 
             .logout-button {
-                width: 14%;
 
-                top: 0.45%;
-                right: 0.6%;
+                width:
+                    180px;
+
+                height:
+                    54px;
+
+                font-size:
+                    16px;
+
             }
 
-            .sklad-link {
-                width: 53%;
-            }
         }
 
 
-        /* =====================================================
+        /* =========================================================
            MOBIL NA VÝŠKU
-
-           Používá:
-           pozadi-mobil.png
-           ===================================================== */
+        ========================================================= */
 
         @media
         (max-width: 700px)
@@ -234,31 +598,32 @@
 
             html,
             body {
+
                 width: 100%;
+
                 height: 100%;
-                min-height: 100dvh;
 
-                overflow: hidden;
+                min-height:
+                    100dvh;
 
-                background: #071725;
+                overflow:
+                    hidden;
+
             }
 
 
-            /* =============================================
+            /* =====================================================
                MOBILNÍ POZADÍ
-               ============================================= */
+            ===================================================== */
 
             .stage {
-                position: relative;
 
                 width: 100vw;
+
                 height: 100dvh;
-                min-height: 100dvh;
 
-                margin: 0;
-                padding: 0;
-
-                overflow: hidden;
+                min-height:
+                    100dvh;
 
                 background-image:
                     url("pozadi-mobil.png");
@@ -266,79 +631,233 @@
                 background-repeat:
                     no-repeat;
 
+                background-size:
+                    cover;
+
                 background-position:
                     center center;
 
-                background-size:
-                    100% 100%;
             }
 
 
-            /* =============================================
+            /* =====================================================
                ODHLÁSIT - MOBIL
-               ============================================= */
+            ===================================================== */
 
             .logout-button {
+
                 top:
+
                     calc(
                         env(safe-area-inset-top)
-                        + 1.2%
+                        + 12px
                     );
 
-                right: 2.2%;
+                right:
+                    12px;
 
-                width: 36%;
+                width:
+                    145px;
 
-                min-width: 125px;
-                max-width: 180px;
+                height:
+                    47px;
+
+                padding:
+                    0 14px;
+
+                border-radius:
+                    12px;
+
+                font-size:
+                    14px;
+
+                letter-spacing:
+                    0.4px;
+
             }
 
-            .logout-button:hover {
-                transform: none;
-                filter: none;
+
+            .logout-icon {
+
+                width:
+                    20px;
+
+                height:
+                    24px;
+
+                margin-right:
+                    12px;
+
+                border-width:
+                    2px;
+
             }
 
-            .logout-button:active {
-                transform:
-                    scale(0.97);
+
+            .logout-icon::before {
+
+                width:
+                    15px;
+
+                height:
+                    2px;
+
+                left:
+                    6px;
+
             }
 
 
-            /* =============================================
-               SKLAD MATERIÁLU - MOBIL
-               ============================================= */
+            .logout-icon::after {
 
-            .sklad-link {
+                width:
+                    8px;
+
+                height:
+                    8px;
+
+                right:
+                    -10px;
+
+                border-top-width:
+                    2px;
+
+                border-right-width:
+                    2px;
+
+            }
+
+
+            /* =====================================================
+               SKLAD - MOBIL
+            ===================================================== */
+
+            .sklad-button {
+
                 left: 50%;
 
-                top: 70%;
-
-                width: 92%;
-
-                max-width: 600px;
+                top: 68%;
 
                 transform:
                     translateX(-50%);
+
+                width:
+
+                    calc(
+                        100% - 28px
+                    );
+
+                max-width:
+                    520px;
+
+                height:
+                    86px;
+
+                padding:
+                    0 16px;
+
+                border-radius:
+                    14px;
+
             }
 
-            .sklad-link:hover {
+
+            .sklad-button:hover {
+
                 transform:
                     translateX(-50%);
 
-                filter: none;
             }
 
-            .sklad-link:active {
+
+            .sklad-button:active {
+
                 transform:
+
                     translateX(-50%)
                     scale(0.98);
+
             }
+
+
+            .warehouse-section {
+
+                flex:
+                    0 0 70px;
+
+                height:
+                    64%;
+
+                margin-right:
+                    14px;
+
+            }
+
+
+            .warehouse-icon {
+
+                transform:
+                    scale(0.78);
+
+            }
+
+
+            .sklad-text {
+
+                font-size:
+
+                    clamp(
+                        17px,
+                        5.2vw,
+                        27px
+                    );
+
+                letter-spacing:
+                    0.3px;
+
+            }
+
+
+            .arrow {
+
+                flex:
+                    0 0 35px;
+
+                margin-left:
+                    8px;
+
+                font-size:
+                    44px;
+
+            }
+
+
+            /*
+                Na telefonu vypneme klasický
+                desktopový hover.
+            */
+
+            .system-button:hover {
+
+                filter:
+                    none;
+
+                box-shadow:
+
+                    0 5px 15px
+                    rgba(0, 0, 0, 0.38),
+
+                    inset 0 1px 0
+                    rgba(255, 255, 255, 0.18);
+
+            }
+
         }
 
 
-        /* =====================================================
-           VELMI MALÝ MOBIL NA VÝŠKU
-           ===================================================== */
+        /* =========================================================
+           MALÉ MOBILY
+        ========================================================= */
 
         @media
         (max-width: 430px)
@@ -346,24 +865,103 @@
         (orientation: portrait) {
 
             .logout-button {
-                width: 37%;
 
-                right: 2%;
+                top:
+
+                    calc(
+                        env(safe-area-inset-top)
+                        + 9px
+                    );
+
+                right:
+                    9px;
+
+                width:
+                    132px;
+
+                height:
+                    43px;
+
+                font-size:
+                    13px;
+
             }
 
-            .sklad-link {
-                width: 94%;
 
-                top: 70%;
+            .sklad-button {
+
+                top:
+                    68%;
+
+                width:
+
+                    calc(
+                        100% - 18px
+                    );
+
+                height:
+                    78px;
+
+                padding:
+                    0 11px;
+
+                border-radius:
+                    12px;
+
             }
+
+
+            .warehouse-section {
+
+                flex-basis:
+                    58px;
+
+                margin-right:
+                    9px;
+
+            }
+
+
+            .warehouse-icon {
+
+                transform:
+                    scale(0.66);
+
+            }
+
+
+            .sklad-text {
+
+                font-size:
+
+                    clamp(
+                        16px,
+                        5vw,
+                        22px
+                    );
+
+            }
+
+
+            .arrow {
+
+                flex-basis:
+                    27px;
+
+                margin-left:
+                    5px;
+
+                font-size:
+                    36px;
+
+            }
+
         }
 
 
-        /* =====================================================
+        /* =========================================================
            MOBIL NA ŠÍŘKU
-
-           Na šířku používáme PC pozadí.
-           ===================================================== */
+        ========================================================= */
 
         @media
         (max-height: 600px)
@@ -371,52 +969,136 @@
         (orientation: landscape) {
 
             .stage {
-                width: 100vw;
-                height: 100dvh;
+
+                width:
+                    100vw;
+
+                height:
+                    100dvh;
 
                 background-image:
                     url("pozadi.png");
-
-                background-position:
-                    center center;
 
                 background-repeat:
                     no-repeat;
 
                 background-size:
-                    100% 100%;
+                    cover;
+
+                background-position:
+                    center center;
+
             }
 
-
-            /* ODHLÁSIT */
 
             .logout-button {
-                top: 0.4%;
-                right: 0.5%;
 
-                width: 13%;
+                top:
+                    9px;
+
+                right:
+                    10px;
+
+                width:
+                    150px;
+
+                height:
+                    44px;
+
+                font-size:
+                    14px;
+
+                border-radius:
+                    11px;
+
             }
 
 
-            /* SKLAD */
+            .sklad-button {
 
-            .sklad-link {
-                left: 50%;
+                left:
+                    50%;
 
-                top: 58.3%;
-
-                width: 49%;
+                top:
+                    61%;
 
                 transform:
                     translateX(-50%);
+
+                width:
+                    54%;
+
+                min-width:
+                    400px;
+
+                height:
+                    72px;
+
+                border-radius:
+                    12px;
+
             }
+
+
+            .sklad-button:hover {
+
+                transform:
+                    translateX(-50%);
+
+            }
+
+
+            .warehouse-section {
+
+                flex-basis:
+                    70px;
+
+                height:
+                    55px;
+
+                margin-right:
+                    15px;
+
+            }
+
+
+            .warehouse-icon {
+
+                transform:
+                    scale(0.70);
+
+            }
+
+
+            .sklad-text {
+
+                font-size:
+
+                    clamp(
+                        20px,
+                        3vw,
+                        30px
+                    );
+
+            }
+
+
+            .arrow {
+
+                font-size:
+                    40px;
+
+            }
+
         }
 
     </style>
+
 </head>
 
 
 <body>
+
 
     <main
         class="stage"
@@ -424,39 +1106,89 @@
     >
 
 
-        <!-- ==================================================
+        <!-- =====================================================
              ODHLÁSIT
-             ================================================== -->
+        ====================================================== -->
 
         <button
-            class="image-button logout-button"
             type="button"
+            class="system-button logout-button"
             onclick="odhlasit()"
             aria-label="Odhlásit"
         >
 
-            <img
-                src="odhlasit.png"
-                alt="ODHLÁSIT"
-            >
+            <span
+                class="logout-icon"
+                aria-hidden="true"
+            ></span>
+
+            <span>
+                ODHLÁSIT
+            </span>
 
         </button>
 
 
-        <!-- ==================================================
+
+        <!-- =====================================================
              SKLAD MATERIÁLU
-             ================================================== -->
+        ====================================================== -->
 
         <a
-            class="image-button sklad-link"
             href="sklad/material.html"
+            class="system-button sklad-button"
             aria-label="Sklad materiálu"
         >
 
-            <img
-                src="sklad-materialu.png"
-                alt="SKLAD MATERIÁLU"
+
+            <!-- IKONA -->
+
+            <span
+                class="warehouse-section"
+                aria-hidden="true"
             >
+
+                <span class="warehouse-icon">
+
+                    <span
+                        class="warehouse-box one"
+                    ></span>
+
+                    <span
+                        class="warehouse-box two"
+                    ></span>
+
+                    <span
+                        class="warehouse-box three"
+                    ></span>
+
+                </span>
+
+            </span>
+
+
+
+            <!-- TEXT -->
+
+            <span class="sklad-text">
+
+                SKLAD MATERIÁLU
+
+            </span>
+
+
+
+            <!-- ŠIPKA -->
+
+            <span
+                class="arrow"
+                aria-hidden="true"
+            >
+
+                ›
+
+            </span>
+
 
         </a>
 
@@ -464,11 +1196,12 @@
     </main>
 
 
+
     <script>
 
-        /* =====================================================
+        /* =========================================================
            SUPABASE
-           ===================================================== */
+        ========================================================= */
 
         const SUPABASE_URL =
             "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -485,9 +1218,10 @@
             );
 
 
-        /* =====================================================
+
+        /* =========================================================
            KONTROLA PŘIHLÁŠENÍ
-           ===================================================== */
+        ========================================================= */
 
         async function zkontrolujPrihlaseni() {
 
@@ -500,6 +1234,11 @@
                     .getSession();
 
 
+            /*
+                Pokud uživatel není přihlášen,
+                vrátíme ho na login.
+            */
+
             if (
                 error ||
                 !data.session
@@ -510,43 +1249,61 @@
                 );
 
                 return;
+
             }
 
 
             /*
-             * Uživatel je přihlášen.
-             * Teprve teď zobrazíme stránku.
-             */
+                Stránku zobrazíme až po ověření
+                přihlášení.
+
+                Díky tomu se index krátce
+                nezobrazí nepřihlášenému uživateli.
+            */
 
             document.body.style.display =
                 "block";
+
         }
 
 
-        /* =====================================================
+
+        /* =========================================================
            ODHLÁŠENÍ
-           ===================================================== */
+        ========================================================= */
 
         async function odhlasit() {
 
-            await supabaseClient
-                .auth
-                .signOut();
+            try {
 
+                await supabaseClient
+                    .auth
+                    .signOut();
 
-            window.location.replace(
-                "login.html"
-            );
+            }
+
+            finally {
+
+                window.location.replace(
+                    "login.html"
+                );
+
+            }
+
         }
 
 
-        /* =====================================================
-           START
-           ===================================================== */
+
+        /* =========================================================
+           SPUŠTĚNÍ
+        ========================================================= */
 
         zkontrolujPrihlaseni();
 
+
     </script>
 
+
 </body>
+
 </html>
