@@ -9,143 +9,229 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            margin: 0;
-            padding: 20px 15px 30px 15px;
-            text-align: center;
 
-            /* STRÁNKA SE UKÁŽE AŽ PO OVĚŘENÍ LOGINU */
+        * { box-sizing: border-box; }
+
+        :root {
+            --bg:#f4f7fb;
+            --card:#fff;
+            --line:#dfe7f0;
+            --text:#071a38;
+            --muted:#6f8097;
+            --blue:#1688f5;
+            --green:#08aa43;
+            --red:#ef3737;
+            --orange:#f28a00;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 24px 28px 38px;
+            color: var(--text);
             display: none;
         }
 
+        .hlavicka, .filtry, .obsah {
+            width: min(1450px, 100%);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .hlavicka {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
+            min-height: 74px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:20px;
+            border-bottom:1px solid var(--line);
+            margin-bottom:18px;
         }
 
         .hlavicka h1 {
-            margin: 0;
-            font-size: 28px;
-            text-align: left;
+            margin:0;
+            font-size:36px;
+            line-height:1;
+            font-weight:800;
+            letter-spacing:-.6px;
         }
 
         .zpet {
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            color: #1976d2;
-            white-space: nowrap;
-        }
-
-        .zpet:hover {
-            text-decoration: underline;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:118px;
+            height:48px;
+            padding:0 20px;
+            border:1px solid #d6e0eb;
+            border-radius:10px;
+            background:#fff;
+            color:var(--text);
+            text-decoration:none;
+            font-size:15px;
+            font-weight:800;
+            box-shadow:0 3px 12px rgba(20,45,75,.05);
         }
 
         .filtry {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+            margin-bottom:18px;
         }
 
         .filtry input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 13px;
-            font-size: 17px;
-            border: 1px solid #aaa;
-            border-radius: 10px;
-            background: white;
+            width:100%;
+            height:48px;
+            padding:0 15px;
+            border:1px solid #d6e0eb;
+            border-radius:9px;
+            background:#fff;
+            color:var(--text);
+            font-size:14px;
+            font-weight:600;
+            outline:none;
         }
 
-        .obsah {
-            max-width: 800px;
-            margin: auto;
+        .filtry input::placeholder { color:#8796aa; }
+        .filtry input:focus {
+            border-color:var(--blue);
+            box-shadow:0 0 0 3px rgba(22,136,245,.08);
+        }
+
+        #seznam {
+            background:#fff;
+            border:1px solid var(--line);
+            border-top:0;
+            border-radius:0 0 10px 10px;
+            overflow:hidden;
+            box-shadow:0 4px 14px rgba(20,45,75,.04);
+        }
+
+        #seznam::before {
+            content:"";
+            display:none;
+        }
+
+        .tabulka-hlavicka {
+            display:grid;
+            grid-template-columns:170px 145px minmax(270px,1fr) 170px 120px 90px 190px;
+            align-items:center;
+            column-gap:16px;
+            padding:11px 18px 11px 23px;
+            background:#edf2f7;
+            color:#667991;
+            border:1px solid var(--line);
+            border-bottom:0;
+            border-radius:10px 10px 0 0;
+            font-size:11px;
+            font-weight:800;
         }
 
         .zaznam {
-            background: white;
-            padding: 18px;
-            margin-bottom: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-            text-align: left;
-            border-left: 8px solid #999;
+            display:grid;
+            grid-template-columns: 170px 145px minmax(270px,1fr) 170px 120px 90px 190px;
+            align-items:center;
+            min-height:52px;
+            padding:0 18px;
+            margin:0;
+            background:#fff;
+            border:0;
+            border-left:5px solid #999;
+            border-bottom:1px solid var(--line);
+            border-radius:0;
+            box-shadow:none;
+            text-align:left;
+            column-gap:16px;
         }
 
-        .zaznam.pridano {
-            border-left-color: #28a745;
+        .zaznam:last-child { border-bottom:0; }
+        .zaznam.pridano { border-left-color:var(--green); }
+        .zaznam.odebrano { border-left-color:var(--red); }
+
+        .datum, .akce, .detail, .objednavka {
+            margin:0;
+            font-size:13px;
+            line-height:1.25;
         }
 
-        .zaznam.odebrano {
-            border-left-color: #dc3545;
+        .datum { color:#53667f; font-weight:700; }
+        .akce { font-weight:900; }
+        .akce.pridano { color:var(--green); }
+        .akce.odebrano { color:var(--red); }
+
+        .material-cell { color:var(--text); font-weight:700; }
+        .cislo-tavby { color:#0877e8; font-weight:800; }
+        .pocet { font-weight:900; }
+        .pocet.pridano { color:var(--green); }
+        .pocet.odebrano { color:var(--red); }
+        .osobni { color:#334760; font-weight:700; }
+        .objednavka { color:#334760; font-weight:700; }
+        .cislo-objednavky { color:var(--orange); font-weight:900; }
+
+        #seznam > p {
+            margin:0;
+            padding:20px;
+            background:#fff;
         }
 
-        .akce {
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 5px;
-        }
+        @media (max-width: 900px) {
+            body { padding:12px 10px 28px; }
 
-        .akce.pridano {
-            color: #28a745;
-        }
-
-        .akce.odebrano {
-            color: #dc3545;
-        }
-
-        .datum {
-            font-size: 16px;
-            margin-bottom: 6px;
-        }
-
-        .detail {
-            margin-top: 8px;
-            line-height: 1.5;
-        }
-
-        .cislo-tavby {
-            color: #1976d2;
-            font-weight: bold;
-        }
-
-        .objednavka {
-            margin-top: 8px;
-            font-weight: bold;
-            color: #000000;
-        }
-
-        .cislo-objednavky {
-            color: #f57c00;
-            font-weight: bold;
-        }
-
-        @media (max-width: 500px) {
-
-            .hlavicka h1 {
-                font-size: 22px;
+            .hlavicka {
+                min-height:58px;
+                margin-bottom:12px;
             }
 
+            .hlavicka h1 { font-size:24px; }
+
             .zpet {
-                font-size: 16px;
+                min-width:82px;
+                height:40px;
+                padding:0 12px;
+                font-size:13px;
             }
 
             .filtry {
-                grid-template-columns: 1fr;
+                grid-template-columns:1fr;
+                gap:8px;
+                margin-bottom:12px;
             }
 
-            .filtry input {
-                font-size: 16px;
+            .filtry input { height:44px; }
+
+            #seznam {
+                background:transparent;
+                border:0;
+                box-shadow:none;
+                overflow:visible;
             }
+
+            #seznam::before { display:none; }
+            .tabulka-hlavicka { display:none; }
+
+            .zaznam {
+                grid-template-columns:1fr auto;
+                gap:7px 12px;
+                min-height:0;
+                padding:14px 14px;
+                margin-bottom:8px;
+                border:1px solid var(--line);
+                border-left-width:5px;
+                border-radius:9px;
+                box-shadow:0 3px 10px rgba(20,45,75,.04);
+            }
+
+            .datum { grid-column:1; grid-row:1; }
+            .akce { grid-column:2; grid-row:1; text-align:right; }
+            .material-cell { grid-column:1 / -1; grid-row:2; }
+            .tavba-cell { grid-column:1; grid-row:3; }
+            .pocet { grid-column:2; grid-row:3; text-align:right; }
+            .osobni { grid-column:1; grid-row:4; }
+            .objednavka { grid-column:2; grid-row:4; text-align:right; }
         }
+
     </style>
 </head>
 
@@ -153,7 +239,7 @@
 
     <div class="hlavicka">
 
-        <h1>🕘 Historie skladu</h1>
+        <h1>Historie skladu</h1>
 
         <a class="zpet" href="material.html">
             ← ZPĚT
@@ -182,6 +268,16 @@
 
 
     <div class="obsah">
+
+        <div class="tabulka-hlavicka">
+            <div>DATUM</div>
+            <div>OPERACE</div>
+            <div>MATERIÁL</div>
+            <div>TAVBA</div>
+            <div>POČET</div>
+            <div>OS. Č.</div>
+            <div>OBJEDNÁVKA</div>
+        </div>
 
         <div id="seznam">
             Načítám historii...
@@ -373,7 +469,6 @@
                 ) {
                     objednavkaHTML = `
                         <div class="objednavka">
-                            Objednávka:
                             <span class="cislo-objednavky">
                                 ${escapeHtml(zaznam.objednavka)}
                             </span>
@@ -389,39 +484,35 @@
 
                 seznam.innerHTML += `
                     <div class="zaznam ${trida}">
-
                         <div class="datum">
                             ${escapeHtml(formatDatum(zaznam.datum))}
-                            ${osobniCislo}
                         </div>
 
                         <div class="akce ${trida}">
                             ${escapeHtml(zaznam.akce)}
                         </div>
 
-                        <div class="detail">
-                            ${escapeHtml(zaznam.material)}
-                            |
-                            ${escapeHtml(zaznam.druh)}
-                            |
+                        <div class="material-cell">
+                            ${escapeHtml(zaznam.material)} |
+                            ${escapeHtml(zaznam.druh)} |
                             ${escapeHtml(zaznam.rozmer)}
+                        </div>
 
-                            <br>
-
-                            Tavba:
+                        <div class="tavba-cell">
                             <span class="cislo-tavby">
                                 ${escapeHtml(zaznam.tavba)}
                             </span>
-
-                            |
-
-                            <strong>
-                                ${pocetHTML}
-                            </strong>
-
-                            ${objednavkaHTML}
                         </div>
 
+                        <div class="pocet ${trida}">
+                            ${pocetHTML}
+                        </div>
+
+                        <div class="osobni">
+                            ${osobniCislo ? osobniCislo.replace(" | Os. č. ", "") : ""}
+                        </div>
+
+                        ${objednavkaHTML || '<div class="objednavka"></div>'}
                     </div>
                 `;
             });
@@ -451,7 +542,7 @@
                 Tím nevznikne NaN ani v případě času za datem.
             */
             const shoda =
-                textDatum.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+                textDatum.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
             if (shoda) {
 

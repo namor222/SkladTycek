@@ -14,7 +14,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-
         /* =========================================================
            ZÁKLAD
         ========================================================= */
@@ -29,328 +28,418 @@
             padding: 0;
 
             width: 100%;
-            height: 100%;
+            min-height: 100%;
 
-            overflow: hidden;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: #101828;
         }
 
         body {
             display: none;
+            background: #eef2f6;
+        }
 
-            background: #080808;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+        button,
+        a {
+            font: inherit;
         }
 
 
         /* =========================================================
-           POZADÍ
+           CELÁ STRÁNKA
         ========================================================= */
 
-        .stage {
+        .page {
             position: relative;
 
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
 
             overflow: hidden;
 
             background-image:
-                url("pozadi.png");
+                linear-gradient(
+                    rgba(245, 248, 251, 0.20),
+                    rgba(245, 248, 251, 0.20)
+                ),
+                url("index-pozadi.png");
 
-            background-repeat:
-                no-repeat;
-
-            background-size:
-                cover;
-
-            background-position:
-                center center;
-
-            user-select: none;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
 
         /* =========================================================
-           SPOLEČNÝ VZHLED TLAČÍTEK
-
-           MODRÁ -> KOV -> ORANŽOVÁ
+           HORNÍ LIŠTA
         ========================================================= */
 
-        .system-button {
-            position: absolute;
+        .topbar {
+            position: relative;
+            z-index: 10;
+
+            width: 100%;
+            height: 88px;
 
             display: flex;
             align-items: center;
 
-            border:
-                2px solid
-                rgba(235, 245, 250, 0.82);
-
-            border-radius:
-                15px;
+            padding:
+                0
+                clamp(25px, 4vw, 70px);
 
             background:
-                linear-gradient(
-                    105deg,
+                rgba(255, 255, 255, 0.94);
 
-                    rgba(39, 151, 218, 0.94) 0%,
-
-                    rgba(55, 126, 169, 0.92) 17%,
-
-                    rgba(61, 83, 96, 0.94) 35%,
-
-                    rgba(43, 45, 48, 0.97) 53%,
-
-                    rgba(67, 49, 42, 0.96) 70%,
-
-                    rgba(126, 65, 28, 0.96) 86%,
-
-                    rgba(159, 75, 24, 0.97) 100%
-                );
+            border-bottom:
+                1px solid rgba(18, 41, 65, 0.12);
 
             box-shadow:
-                0 7px 18px rgba(0, 0, 0, 0.45),
+                0 4px 18px rgba(20, 40, 60, 0.08);
 
-                inset 0 1px 0
-                rgba(255, 255, 255, 0.38),
-
-                inset 0 -1px 0
-                rgba(0, 0, 0, 0.35);
-
-            color:
-                #ffffff;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            font-weight:
-                900;
-
-            text-decoration:
-                none;
-
-            text-transform:
-                uppercase;
-
-            text-shadow:
-                0 2px 3px
-                rgba(0, 0, 0, 0.95),
-
-                0 0 3px
-                rgba(0, 0, 0, 0.70);
-
-            cursor:
-                pointer;
-
-            overflow:
-                hidden;
-
-            transition:
-                transform 0.18s ease,
-                filter 0.18s ease,
-                box-shadow 0.18s ease,
-                border-color 0.18s ease;
-
-            -webkit-tap-highlight-color:
-                transparent;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
 
         /* =========================================================
-           KOVOVÝ ODLESK
+           LOGO
         ========================================================= */
 
-        .system-button::before {
+        .brand {
+            display: flex;
+            align-items: center;
+
+            min-width: 0;
+        }
+
+        .brand img {
+            display: block;
+
+            width: auto;
+            height: 56px;
+
+            max-width: min(410px, 42vw);
+
+            object-fit: contain;
+            object-position: left center;
+        }
+
+
+        /* =========================================================
+           PRAVÁ ČÁST HLAVIČKY
+        ========================================================= */
+
+        .topbar-right {
+            margin-left: auto;
+
+            display: flex;
+            align-items: center;
+
+            gap: 22px;
+        }
+
+
+        /* =========================================================
+           UŽIVATEL
+        ========================================================= */
+
+        .user-info {
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            color: #344054;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            white-space: nowrap;
+        }
+
+        .user-icon {
+            position: relative;
+
+            width: 22px;
+            height: 22px;
+
+            flex: 0 0 22px;
+        }
+
+        .user-icon::before {
             content: "";
 
             position: absolute;
 
-            top: 0;
-            left: -32%;
+            top: 1px;
+            left: 7px;
 
-            width: 45%;
-            height: 100%;
+            width: 8px;
+            height: 8px;
+
+            border:
+                2px solid #15263b;
+
+            border-radius: 50%;
+        }
+
+        .user-icon::after {
+            content: "";
+
+            position: absolute;
+
+            left: 3px;
+            bottom: 1px;
+
+            width: 16px;
+            height: 8px;
+
+            border:
+                2px solid #15263b;
+
+            border-bottom: 0;
+
+            border-radius:
+                10px 10px 0 0;
+        }
+
+
+        /* =========================================================
+           ODHLÁSIT
+        ========================================================= */
+
+        .logout-button {
+            height: 46px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 9px;
+
+            padding: 0 18px;
+
+            border:
+                1px solid #d6dde5;
+
+            border-radius: 8px;
 
             background:
-                linear-gradient(
-                    110deg,
+                rgba(248, 250, 252, 0.95);
 
-                    transparent 0%,
+            color: #172033;
 
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.05
-                    ) 30%,
+            font-size: 13px;
+            font-weight: 800;
 
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.22
-                    ) 50%,
+            text-transform: uppercase;
 
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.05
-                    ) 70%,
+            cursor: pointer;
 
-                    transparent 100%
-                );
-
-            transform:
-                skewX(-20deg);
-
-            pointer-events:
-                none;
+            box-shadow:
+                0 2px 7px rgba(16, 24, 40, 0.06);
 
             transition:
-                left 0.50s ease;
+                background 0.18s ease,
+                border-color 0.18s ease,
+                transform 0.18s ease,
+                box-shadow 0.18s ease;
         }
 
+        .logout-button:hover {
+            background: #ffffff;
 
-        .system-button > * {
-            position: relative;
-
-            z-index: 2;
-        }
-
-
-        /* =========================================================
-           HOVER
-        ========================================================= */
-
-        .system-button:hover {
-            filter:
-                brightness(1.12)
-                saturate(1.08);
-
-            border-color:
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.96
-                );
-
-            box-shadow:
-                0 11px 27px
-                rgba(0, 0, 0, 0.52),
-
-                -5px 0 18px
-                rgba(20, 155, 255, 0.25),
-
-                5px 0 18px
-                rgba(255, 120, 25, 0.22),
-
-                inset 0 1px 0
-                rgba(255, 255, 255, 0.48);
-        }
-
-
-        .system-button:hover::before {
-            left: 100%;
-        }
-
-
-        .system-button:active {
-            filter:
-                brightness(0.94);
-        }
-
-
-        .system-button:focus-visible {
-            outline:
-                2px solid white;
-
-            outline-offset:
-                4px;
-        }
-
-
-        /* =========================================================
-           SKLAD MATERIÁLU - PC
-        ========================================================= */
-
-        .sklad-button {
-            left: 50%;
-            top: 59%;
+            border-color: #b7c3cf;
 
             transform:
-                translateX(-50%);
+                translateY(-1px);
 
-            width:
-                min(820px, 52vw);
+            box-shadow:
+                0 5px 12px rgba(16, 24, 40, 0.10);
+        }
 
-            height:
-                105px;
+        .logout-button:active {
+            transform:
+                translateY(0);
+        }
+
+        .logout-symbol {
+            font-size: 18px;
+            font-weight: 700;
+
+            color: #344054;
+        }
+
+
+        /* =========================================================
+           HLAVNÍ OBSAH
+        ========================================================= */
+
+        .content {
+            position: relative;
+            z-index: 2;
+
+            min-height:
+                calc(100vh - 88px);
+
+            min-height:
+                calc(100dvh - 88px);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
 
             padding:
-                0 32px;
+                clamp(55px, 8vh, 105px)
+                24px
+                60px;
+        }
 
-            /*
-                Hlavní tlačítko je trochu výraznější.
-            */
+
+        /* =========================================================
+           NADPIS
+        ========================================================= */
+
+        .intro {
+            width:
+                min(780px, 90vw);
+
+            margin-bottom:
+                clamp(32px, 5vh, 58px);
+
+            padding:
+                30px 40px;
+
+            text-align: center;
 
             background:
-                linear-gradient(
-                    105deg,
+                rgba(255, 255, 255, 0.92);
 
-                    #2797da 0%,
+            border:
+                1px solid rgba(255, 255, 255, 0.90);
 
-                    #377ea9 17%,
-
-                    #3d5360 35%,
-
-                    #2b2d30 53%,
-
-                    #43312a 70%,
-
-                    #7e411c 86%,
-
-                    #9f4b18 100%
-                );
+            border-radius: 14px;
 
             box-shadow:
-                0 9px 23px
-                rgba(0, 0, 0, 0.48),
+                0 12px 35px rgba(20, 40, 60, 0.12);
 
-                -5px 0 18px
-                rgba(25, 150, 255, 0.12),
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
 
-                5px 0 18px
-                rgba(255, 120, 25, 0.10),
+        .intro h1 {
+            margin:
+                0 0 8px;
 
-                inset 0 1px 0
-                rgba(255, 255, 255, 0.40),
+            font-size:
+                clamp(28px, 3vw, 42px);
 
-                inset 0 -1px 0
-                rgba(0, 0, 0, 0.40);
+            line-height: 1.1;
+
+            font-weight: 800;
+
+            color: #101828;
+
+            letter-spacing: -0.5px;
+        }
+
+        .intro p {
+            margin: 0;
+
+            color: #667085;
+
+            font-size:
+                clamp(15px, 1.4vw, 18px);
+
+            line-height: 1.5;
         }
 
 
-        .sklad-button:hover {
-            transform:
-                translateX(-50%)
-                translateY(-3px);
+        /* =========================================================
+           ROZCESTNÍK
+        ========================================================= */
+
+        .menu {
+            width:
+                min(980px, 92vw);
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 18px;
         }
 
 
-        .sklad-button:active {
+        /* =========================================================
+           KARTA
+        ========================================================= */
+
+        .menu-card {
+            position: relative;
+
+            min-height: 190px;
+
+            display: flex;
+            flex-direction: column;
+
+            padding:
+                28px 25px 23px;
+
+            text-decoration: none;
+
+            color: #101828;
+
+            background:
+                rgba(255, 255, 255, 0.95);
+
+            border:
+                1px solid rgba(208, 216, 226, 0.92);
+
+            border-radius: 11px;
+
+            box-shadow:
+                0 8px 24px rgba(16, 24, 40, 0.10);
+
+            overflow: hidden;
+
+            transition:
+                transform 0.20s ease,
+                box-shadow 0.20s ease,
+                border-color 0.20s ease;
+        }
+
+        .menu-card::before {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            width: 5px;
+
+            background:
+                #1688ed;
+        }
+
+        .menu-card:hover {
             transform:
-                translateX(-50%)
-                translateY(1px)
-                scale(0.995);
+                translateY(-4px);
+
+            border-color:
+                #b8c6d5;
+
+            box-shadow:
+                0 14px 35px rgba(16, 24, 40, 0.16);
         }
 
 
@@ -358,728 +447,353 @@
            IKONA SKLADU
         ========================================================= */
 
-        .warehouse-section {
-            position: relative;
+        .warehouse-icon {
+            height: 58px;
 
             display: flex;
+            align-items: flex-end;
 
-            align-items: center;
-            justify-content: center;
+            gap: 5px;
 
-            flex:
-                0 0 105px;
-
-            height:
-                70%;
-
-            margin-right:
-                30px;
-
-            border-right:
-                2px solid
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.70
-                );
+            margin-bottom: 20px;
         }
 
+        .warehouse-icon span {
+            display: block;
 
-        .warehouse-icon {
-            position: relative;
-
-            width:
-                58px;
-
-            height:
-                58px;
-        }
-
-
-        .warehouse-box {
-            position:
-                absolute;
-
-            width:
-                29px;
-
-            height:
-                29px;
-
-            border:
-                2px solid
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.95
-                );
+            width: 12px;
 
             border-radius:
-                4px;
+                2px 2px 0 0;
 
             background:
                 linear-gradient(
-                    135deg,
-
-                    rgba(
-                        115,
-                        197,
-                        244,
-                        0.95
-                    ) 0%,
-
-                    rgba(
-                        70,
-                        94,
-                        107,
-                        0.95
-                    ) 45%,
-
-                    rgba(
-                        35,
-                        37,
-                        40,
-                        0.98
-                    ) 70%,
-
-                    rgba(
-                        170,
-                        79,
-                        25,
-                        0.95
-                    ) 100%
-                );
-
-            box-shadow:
-                inset 0 1px 2px
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.35
-                ),
-
-                0 2px 5px
-                rgba(
-                    0,
-                    0,
-                    0,
-                    0.50
+                    180deg,
+                    #29a7ff 0%,
+                    #0879e8 100%
                 );
         }
 
-
-        .warehouse-box.one {
-            top:
-                0;
-
-            left:
-                15px;
+        .warehouse-icon .bar-1 {
+            height: 27px;
         }
 
-
-        .warehouse-box.two {
-            bottom:
-                0;
-
-            left:
-                0;
+        .warehouse-icon .bar-2 {
+            height: 42px;
         }
 
-
-        .warehouse-box.three {
-            bottom:
-                0;
-
-            right:
-                0;
+        .warehouse-icon .bar-3 {
+            height: 54px;
         }
 
 
         /* =========================================================
-           TEXT SKLAD MATERIÁLU
+           TEXT KARTY
         ========================================================= */
 
-        .sklad-text {
-            flex:
-                1;
+        .menu-title {
+            margin:
+                0 0 7px;
 
-            text-align:
-                center;
+            font-size: 21px;
+            font-weight: 800;
 
-            font-size:
-                clamp(
-                    26px,
-                    2.2vw,
-                    42px
-                );
+            line-height: 1.2;
+        }
 
-            font-weight:
-                900;
+        .menu-description {
+            margin: 0;
 
-            letter-spacing:
-                1px;
+            color: #667085;
 
-            white-space:
-                nowrap;
+            font-size: 15px;
+
+            line-height: 1.4;
+        }
+
+        .menu-arrow {
+            margin-top: auto;
+
+            padding-top: 18px;
+
+            display: flex;
+            justify-content: flex-end;
+
+            color: #172033;
+
+            font-size: 27px;
+            font-weight: 700;
         }
 
 
         /* =========================================================
-           ŠIPKA
+           BUDOUCÍ KARTY
+           Zatím se nezobrazují.
         ========================================================= */
 
-        .arrow {
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                center;
-
-            flex:
-                0 0 65px;
-
-            margin-left:
-                20px;
-
-            font-size:
-                65px;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            font-weight:
-                300;
-
-            color:
-                white;
-
-            line-height:
-                1;
-
-            text-shadow:
-                0 2px 5px
-                rgba(0,0,0,.65);
+        .future-card {
+            display: none;
         }
 
 
         /* =========================================================
-           ODHLÁSIT - PC
+           TABLET
         ========================================================= */
 
-        .logout-button {
-            top:
-                22px;
+        @media (max-width: 1000px) {
 
-            right:
-                25px;
-
-            width:
-                205px;
-
-            height:
-                60px;
-
-            justify-content:
-                center;
-
-            padding:
-                0 20px;
-
-            font-size:
-                18px;
-
-            letter-spacing:
-                0.8px;
-
-            /*
-                Stejný styl, ale trochu tmavší,
-                aby nekonkuroval SKLADU.
-            */
-
-            background:
-                linear-gradient(
-                    105deg,
-
-                    rgba(
-                        48,
-                        126,
-                        174,
-                        0.92
-                    ) 0%,
-
-                    rgba(
-                        50,
-                        87,
-                        108,
-                        0.94
-                    ) 25%,
-
-                    rgba(
-                        40,
-                        43,
-                        46,
-                        0.97
-                    ) 52%,
-
-                    rgba(
-                        76,
-                        48,
-                        34,
-                        0.96
-                    ) 76%,
-
-                    rgba(
-                        137,
-                        65,
-                        24,
-                        0.96
-                    ) 100%
-                );
-
-            border-color:
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.65
-                );
-
-            box-shadow:
-                0 6px 16px
-                rgba(0, 0, 0, 0.42),
-
-                inset 0 1px 0
-                rgba(255,255,255,.27);
-        }
-
-
-        .logout-button:hover {
-            transform:
-                translateY(-2px);
-        }
-
-
-        .logout-button:active {
-            transform:
-                translateY(1px);
-        }
-
-
-        /* =========================================================
-           IKONA ODHLÁŠENÍ
-        ========================================================= */
-
-        .logout-icon {
-            position:
-                relative;
-
-            width:
-                26px;
-
-            height:
-                30px;
-
-            margin-right:
-                16px;
-
-            border:
-                3px solid
-                white;
-
-            border-right:
-                0;
-
-            border-radius:
-                4px 0 0 4px;
-        }
-
-
-        .logout-icon::before {
-            content:
-                "";
-
-            position:
-                absolute;
-
-            top:
-                50%;
-
-            left:
-                8px;
-
-            width:
-                19px;
-
-            height:
-                3px;
-
-            background:
-                white;
-
-            transform:
-                translateY(-50%);
-        }
-
-
-        .logout-icon::after {
-            content:
-                "";
-
-            position:
-                absolute;
-
-            top:
-                50%;
-
-            right:
-                -14px;
-
-            width:
-                10px;
-
-            height:
-                10px;
-
-            border-top:
-                3px solid
-                white;
-
-            border-right:
-                3px solid
-                white;
-
-            transform:
-                translateY(-50%)
-                rotate(45deg);
-        }
-
-
-        /* =========================================================
-           MENŠÍ PC / TABLET
-        ========================================================= */
-
-        @media
-        (min-width: 701px)
-        and
-        (max-width: 1100px) {
-
-            .sklad-button {
-                width:
-                    62vw;
-
-                height:
-                    92px;
-
-                top:
-                    60%;
+            .topbar {
+                height: 78px;
 
                 padding:
-                    0 24px;
+                    0 25px;
             }
 
-
-            .warehouse-section {
-                flex-basis:
-                    90px;
-
-                margin-right:
-                    22px;
+            .brand img {
+                height: 48px;
             }
 
+            .content {
+                min-height:
+                    calc(100dvh - 78px);
 
-            .warehouse-icon {
-                transform:
-                    scale(0.85);
+                padding-top:
+                    60px;
             }
 
+            .menu {
+                grid-template-columns:
+                    repeat(2, 1fr);
 
-            .sklad-text {
-                font-size:
-                    clamp(
-                        23px,
-                        3vw,
-                        34px
-                    );
+                max-width: 720px;
             }
 
-
-            .arrow {
-                flex-basis:
-                    50px;
-
-                font-size:
-                    52px;
-            }
-
-
-            .logout-button {
-                width:
-                    180px;
-
-                height:
-                    54px;
-
-                font-size:
-                    16px;
+            .menu-card {
+                min-height: 175px;
             }
         }
 
 
         /* =========================================================
-           MOBIL NA VÝŠKU
+           MOBIL
         ========================================================= */
 
-        @media
-        (max-width: 700px)
-        and
-        (orientation: portrait) {
+        @media (max-width: 700px) {
 
-            html,
             body {
-                width:
-                    100%;
-
-                height:
-                    100%;
-
-                min-height:
-                    100dvh;
-
-                overflow:
-                    hidden;
+                background: #eef2f6;
             }
 
-
-            /* =====================================================
-               MOBILNÍ POZADÍ
-            ===================================================== */
-
-            .stage {
-                width:
-                    100vw;
-
-                height:
-                    100dvh;
-
-                min-height:
-                    100dvh;
+            .page {
+                min-height: 100dvh;
 
                 background-image:
-                    url("pozadi-mobil.png");
-
-                background-repeat:
-                    no-repeat;
-
-                background-size:
-                    cover;
+                    linear-gradient(
+                        rgba(245, 248, 251, 0.16),
+                        rgba(245, 248, 251, 0.16)
+                    ),
+                    url("index-pozadi-mobil.png");
 
                 background-position:
                     center center;
+
+                background-size:
+                    cover;
             }
 
 
-            /* =====================================================
-               ODHLÁSIT - MOBIL
-            ===================================================== */
+            /* HEADER */
+
+            .topbar {
+                height:
+                    calc(
+                        72px +
+                        env(safe-area-inset-top)
+                    );
+
+                padding:
+                    env(safe-area-inset-top)
+                    15px
+                    0;
+
+                background:
+                    rgba(255, 255, 255, 0.96);
+            }
+
+            .brand img {
+                height: 39px;
+
+                max-width: 190px;
+            }
+
+            .topbar-right {
+                gap: 8px;
+            }
+
+            .user-info {
+                font-size: 12px;
+
+                gap: 5px;
+            }
+
+            .user-icon {
+                transform:
+                    scale(0.82);
+            }
 
             .logout-button {
-                top:
+                width: 43px;
+                height: 43px;
+
+                padding: 0;
+
+                border-radius: 8px;
+            }
+
+            .logout-button .logout-text {
+                display: none;
+            }
+
+            .logout-symbol {
+                font-size: 20px;
+            }
+
+
+            /* OBSAH */
+
+            .content {
+                min-height:
                     calc(
+                        100dvh -
+                        72px -
                         env(safe-area-inset-top)
-                        + 12px
                     );
 
-                right:
-                    12px;
-
-                width:
-                    145px;
-
-                height:
-                    47px;
+                justify-content: center;
 
                 padding:
-                    0 14px;
-
-                border-radius:
-                    11px;
-
-                border-width:
-                    1.5px;
-
-                font-size:
-                    14px;
-
-                letter-spacing:
-                    0.4px;
-            }
-
-
-            .logout-icon {
-                width:
-                    20px;
-
-                height:
-                    24px;
-
-                margin-right:
-                    12px;
-
-                border-width:
-                    2px;
-            }
-
-
-            .logout-icon::before {
-                width:
-                    15px;
-
-                height:
-                    2px;
-
-                left:
-                    6px;
-            }
-
-
-            .logout-icon::after {
-                width:
-                    8px;
-
-                height:
-                    8px;
-
-                right:
-                    -10px;
-
-                border-top-width:
-                    2px;
-
-                border-right-width:
-                    2px;
-            }
-
-
-            /* =====================================================
-               SKLAD - MOBIL
-            ===================================================== */
-
-            .sklad-button {
-                left:
-                    50%;
-
-                top:
-                    68%;
-
-                transform:
-                    translateX(-50%);
-
-                width:
+                    35px
+                    17px
                     calc(
-                        100% - 28px
+                        35px +
+                        env(safe-area-inset-bottom)
                     );
+            }
 
-                max-width:
-                    520px;
 
-                height:
-                    86px;
+            /* NADPIS */
+
+            .intro {
+                width: 100%;
+
+                margin-bottom: 22px;
 
                 padding:
-                    0 16px;
+                    22px 18px;
 
-                border-radius:
-                    14px;
+                border-radius: 12px;
+            }
 
-                border-width:
-                    1.5px;
+            .intro h1 {
+                font-size:
+                    clamp(24px, 7vw, 31px);
+
+                margin-bottom: 7px;
+            }
+
+            .intro p {
+                font-size: 14px;
             }
 
 
-            .sklad-button:hover {
-                transform:
-                    translateX(-50%);
+            /* MENU */
+
+            .menu {
+                width: 100%;
+
+                display: block;
             }
 
+            .menu-card {
+                width: 100%;
 
-            .sklad-button:active {
-                transform:
-                    translateX(-50%)
-                    scale(0.98);
+                min-height: 128px;
+
+                display: grid;
+
+                grid-template-columns:
+                    70px 1fr 35px;
+
+                grid-template-rows:
+                    auto auto;
+
+                align-items: center;
+
+                padding:
+                    20px 17px;
+
+                border-radius: 11px;
             }
-
-
-            .warehouse-section {
-                flex:
-                    0 0 70px;
-
-                height:
-                    64%;
-
-                margin-right:
-                    14px;
-            }
-
 
             .warehouse-icon {
-                transform:
-                    scale(0.78);
+                grid-column: 1;
+                grid-row: 1 / 3;
+
+                height: 50px;
+
+                margin: 0;
+
+                align-self: center;
             }
 
-
-            .sklad-text {
-                font-size:
-                    clamp(
-                        17px,
-                        5.2vw,
-                        27px
-                    );
-
-                letter-spacing:
-                    0.3px;
+            .warehouse-icon span {
+                width: 10px;
             }
 
-
-            .arrow {
-                flex:
-                    0 0 35px;
-
-                margin-left:
-                    8px;
-
-                font-size:
-                    44px;
+            .warehouse-icon .bar-1 {
+                height: 24px;
             }
 
-
-            /*
-                Na dotykových telefonech nechceme
-                klasický desktopový hover.
-            */
-
-            .system-button:hover {
-                filter:
-                    none;
+            .warehouse-icon .bar-2 {
+                height: 35px;
             }
 
-
-            .system-button:hover::before {
-                left:
-                    -32%;
+            .warehouse-icon .bar-3 {
+                height: 46px;
             }
 
+            .menu-title {
+                grid-column: 2;
+                grid-row: 1;
 
-            .logout-button:hover {
-                transform:
-                    none;
+                align-self: end;
+
+                margin:
+                    0 0 5px;
+
+                font-size: 20px;
+            }
+
+            .menu-description {
+                grid-column: 2;
+                grid-row: 2;
+
+                align-self: start;
+
+                font-size: 13px;
+            }
+
+            .menu-arrow {
+                grid-column: 3;
+                grid-row: 1 / 3;
+
+                align-self: center;
+                justify-self: end;
+
+                margin: 0;
+                padding: 0;
+
+                font-size: 30px;
             }
         }
 
@@ -1088,86 +802,46 @@
            MALÉ MOBILY
         ========================================================= */
 
-        @media
-        (max-width: 430px)
-        and
-        (orientation: portrait) {
+        @media (max-width: 390px) {
 
-            .logout-button {
-                top:
-                    calc(
-                        env(safe-area-inset-top)
-                        + 9px
-                    );
-
-                right:
-                    9px;
-
-                width:
-                    132px;
-
-                height:
-                    43px;
-
-                font-size:
-                    13px;
+            .topbar {
+                padding-left: 11px;
+                padding-right: 11px;
             }
 
+            .brand img {
+                max-width: 160px;
+                height: 34px;
+            }
 
-            .sklad-button {
-                top:
-                    68%;
+            .user-info {
+                display: none;
+            }
 
-                width:
-                    calc(
-                        100% - 18px
-                    );
+            .content {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
 
-                height:
-                    78px;
+            .intro {
+                padding:
+                    18px 14px;
+            }
+
+            .intro h1 {
+                font-size: 23px;
+            }
+
+            .menu-card {
+                grid-template-columns:
+                    59px 1fr 28px;
 
                 padding:
-                    0 11px;
-
-                border-radius:
-                    12px;
+                    18px 14px;
             }
 
-
-            .warehouse-section {
-                flex-basis:
-                    58px;
-
-                margin-right:
-                    9px;
-            }
-
-
-            .warehouse-icon {
-                transform:
-                    scale(0.66);
-            }
-
-
-            .sklad-text {
-                font-size:
-                    clamp(
-                        16px,
-                        5vw,
-                        22px
-                    );
-            }
-
-
-            .arrow {
-                flex-basis:
-                    27px;
-
-                margin-left:
-                    5px;
-
-                font-size:
-                    36px;
+            .menu-title {
+                font-size: 18px;
             }
         }
 
@@ -1181,210 +855,214 @@
         and
         (orientation: landscape) {
 
-            .stage {
-                width:
-                    100vw;
-
-                height:
-                    100dvh;
-
+            .page {
                 background-image:
-                    url("pozadi.png");
-
-                background-repeat:
-                    no-repeat;
-
-                background-size:
-                    cover;
-
-                background-position:
-                    center center;
+                    linear-gradient(
+                        rgba(245, 248, 251, 0.15),
+                        rgba(245, 248, 251, 0.15)
+                    ),
+                    url("index-pozadi.png");
             }
 
+            .topbar {
+                height: 64px;
 
-            .logout-button {
-                top:
-                    9px;
-
-                right:
-                    10px;
-
-                width:
-                    150px;
-
-                height:
-                    44px;
-
-                font-size:
-                    14px;
-
-                border-radius:
-                    11px;
+                padding:
+                    0 20px;
             }
 
-
-            .sklad-button {
-                left:
-                    50%;
-
-                top:
-                    61%;
-
-                transform:
-                    translateX(-50%);
-
-                width:
-                    54%;
-
-                min-width:
-                    400px;
-
-                height:
-                    72px;
-
-                border-radius:
-                    12px;
+            .brand img {
+                height: 39px;
             }
 
+            .content {
+                min-height:
+                    calc(100dvh - 64px);
 
-            .sklad-button:hover {
-                transform:
-                    translateX(-50%);
+                padding:
+                    25px 20px;
             }
 
+            .intro {
+                margin-bottom: 18px;
 
-            .warehouse-section {
-                flex-basis:
-                    70px;
-
-                height:
-                    55px;
-
-                margin-right:
-                    15px;
+                padding:
+                    15px 25px;
             }
 
-
-            .warehouse-icon {
-                transform:
-                    scale(0.70);
+            .intro h1 {
+                font-size: 25px;
             }
 
-
-            .sklad-text {
-                font-size:
-                    clamp(
-                        20px,
-                        3vw,
-                        30px
-                    );
+            .intro p {
+                font-size: 13px;
             }
 
-
-            .arrow {
-                font-size:
-                    40px;
+            .menu-card {
+                min-height: 120px;
             }
         }
-
     </style>
-
 </head>
 
 
 <body>
 
+    <main class="page">
 
-    <main
-        class="stage"
-        aria-label="KovoHladil firemní systém"
-    >
+        <!-- =====================================================
+             HORNÍ LIŠTA
+        ====================================================== -->
+
+        <header class="topbar">
+
+            <!-- LOGO -->
+            <div class="brand">
+                <img
+                    src="logo.png"
+                    alt="KovoHladil"
+                >
+            </div>
+
+
+            <!-- PRAVÁ ČÁST -->
+            <div class="topbar-right">
+
+                <div class="user-info">
+
+                    <span
+                        class="user-icon"
+                        aria-hidden="true"
+                    ></span>
+
+                    <span>
+                        Os. č. 3
+                    </span>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="logout-button"
+                    onclick="odhlasit()"
+                    aria-label="Odhlásit"
+                >
+
+                    <span
+                        class="logout-symbol"
+                        aria-hidden="true"
+                    >
+                        ↪
+                    </span>
+
+                    <span class="logout-text">
+                        Odhlásit
+                    </span>
+
+                </button>
+
+            </div>
+
+        </header>
 
 
         <!-- =====================================================
-             ODHLÁSIT
+             OBSAH
         ====================================================== -->
 
-        <button
-            type="button"
-            class="system-button logout-button"
-            onclick="odhlasit()"
-            aria-label="Odhlásit"
-        >
-
-            <span
-                class="logout-icon"
-                aria-hidden="true"
-            ></span>
-
-            <span>
-                ODHLÁSIT
-            </span>
-
-        </button>
+        <section class="content">
 
 
+            <!-- NADPIS -->
 
-        <!-- =====================================================
-             SKLAD MATERIÁLU
-        ====================================================== -->
+            <div class="intro">
 
-        <a
-            href="sklad/material.html"
-            class="system-button sklad-button"
-            aria-label="Sklad materiálu"
-        >
+                <h1>
+                    Firemní systém
+                </h1>
+
+                <p>
+                    Vyberte oblast, se kterou chcete pracovat.
+                </p>
+
+            </div>
 
 
-            <!-- IKONA -->
+            <!-- =================================================
+                 ROZCESTNÍK
+            ================================================== -->
 
-            <span
-                class="warehouse-section"
-                aria-hidden="true"
+            <nav
+                class="menu"
+                aria-label="Hlavní nabídka"
             >
 
-                <span class="warehouse-icon">
+
+                <!-- =============================================
+                     SKLAD MATERIÁLU
+                ============================================== -->
+
+                <a
+                    href="sklad/material.html"
+                    class="menu-card"
+                >
+
+                    <div
+                        class="warehouse-icon"
+                        aria-hidden="true"
+                    >
+                        <span class="bar-1"></span>
+                        <span class="bar-2"></span>
+                        <span class="bar-3"></span>
+                    </div>
+
+
+                    <h2 class="menu-title">
+                        Sklad materiálu
+                    </h2>
+
+
+                    <p class="menu-description">
+                        Evidence a správa skladového materiálu
+                    </p>
+
 
                     <span
-                        class="warehouse-box one"
-                    ></span>
+                        class="menu-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
 
-                    <span
-                        class="warehouse-box two"
-                    ></span>
-
-                    <span
-                        class="warehouse-box three"
-                    ></span>
-
-                </span>
-
-            </span>
+                </a>
 
 
-            <!-- TEXT -->
+                <!--
+                    =================================================
+                    SEM POZDĚJI PŘIDÁME DALŠÍ MODULY.
 
-            <span class="sklad-text">
-                SKLAD MATERIÁLU
-            </span>
+                    Například:
 
+                    <a href="#" class="menu-card">
+                        ...
+                    </a>
 
-            <!-- ŠIPKA -->
-
-            <span
-                class="arrow"
-                aria-hidden="true"
-            >
-                ›
-            </span>
+                    Zatím je index pouze rozcestník do skladu materiálu.
+                    =================================================
+                -->
 
 
-        </a>
+            </nav>
 
+        </section>
 
     </main>
 
 
+    <!-- =========================================================
+         SUPABASE + PŮVODNÍ FUNKCE
+    ========================================================== -->
 
     <script>
 
@@ -1405,7 +1083,6 @@
                 SUPABASE_URL,
                 SUPABASE_KEY
             );
-
 
 
         /* =========================================================
@@ -1438,9 +1115,7 @@
 
             document.body.style.display =
                 "block";
-
         }
-
 
 
         /* =========================================================
@@ -1468,7 +1143,6 @@
         }
 
 
-
         /* =========================================================
            SPUŠTĚNÍ
         ========================================================= */
@@ -1476,7 +1150,6 @@
         zkontrolujPrihlaseni();
 
     </script>
-
 
 </body>
 

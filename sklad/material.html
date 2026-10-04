@@ -9,7 +9,7 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
-    <title>Sklad materiálu</title>
+    <title>Menu skladu</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -25,41 +25,42 @@
 
         html,
         body {
+            margin: 0;
             width: 100%;
             min-height: 100%;
-            margin: 0;
         }
 
         html {
-            background: #071018;
+            background: #f4f7fa;
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-
             display: none;
 
-            width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
 
-            margin: 0;
-            padding: 0;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: #101d33;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.78),
+                    rgba(255,255,255,0.58)
+                ),
+                url("materialpc.png");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
 
             overflow-x: hidden;
-
-            color: white;
-
-            /* =====================================================
-               PC POZADÍ
-               ===================================================== */
-
-            background-image: url("materialpc.png");
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-
-            background-color: #071018;
         }
 
 
@@ -68,17 +69,103 @@
         ========================================================= */
 
         .page {
-            position: relative;
-
             width: 100%;
             min-height: 100vh;
             min-height: 100dvh;
 
             display: flex;
+            flex-direction: column;
+        }
+
+
+        /* =========================================================
+           HLAVIČKA
+        ========================================================= */
+
+        .topbar {
+            width: 100%;
+            min-height: 88px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 14px 34px;
+
+            background: rgba(255,255,255,0.96);
+
+            border-bottom: 1px solid #dce4ec;
+
+            box-shadow:
+                0 4px 18px rgba(18,38,63,0.07);
+
+            z-index: 10;
+        }
+
+
+        /* =========================================================
+           LOGO
+        ========================================================= */
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            display: block;
+
+            width: 255px;
+            max-width: 100%;
+
+            height: auto;
+        }
+
+
+        /* =========================================================
+           PRAVÁ ČÁST HLAVIČKY
+        ========================================================= */
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+
+            gap: 18px;
+        }
+
+
+        /* =========================================================
+           UŽIVATEL
+        ========================================================= */
+
+        .user {
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            color: #17243a;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            white-space: nowrap;
+        }
+
+        .user-icon {
+            width: 22px;
+            height: 22px;
+
+            display: flex;
             align-items: center;
             justify-content: center;
+        }
 
-            padding: 170px 20px 90px;
+        .user-icon svg {
+            width: 21px;
+            height: 21px;
+
+            stroke: #17243a;
         }
 
 
@@ -86,105 +173,134 @@
            TLAČÍTKO ZPĚT
         ========================================================= */
 
-        .zpet {
-            position: fixed;
+        .back-button {
+            height: 43px;
 
-            top: 28px;
-            right: 30px;
-
-            z-index: 100;
-
-            min-width: 105px;
-
-            padding: 12px 20px;
+            padding: 0 18px;
 
             display: flex;
             align-items: center;
             justify-content: center;
 
+            gap: 8px;
+
+            border: 1px solid #d7e0e9;
+
+            border-radius: 7px;
+
+            background: #f7f9fb;
+
+            color: #14223a;
+
             text-decoration: none;
 
-            color: rgba(255, 255, 255, 0.82);
-
-            font-size: 15px;
+            font-size: 12px;
             font-weight: 800;
 
-            border-radius: 10px;
-
-            border: 1px solid rgba(255, 255, 255, 0.30);
-
-            background:
-                linear-gradient(
-                    110deg,
-                    rgba(255, 255, 255, 0.16),
-                    rgba(35, 35, 35, 0.58) 45%,
-                    rgba(10, 10, 10, 0.68)
-                );
-
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            white-space: nowrap;
 
             box-shadow:
-                0 5px 15px rgba(0, 0, 0, 0.28),
-                inset 0 1px 0 rgba(255, 255, 255, 0.20);
+                0 2px 7px rgba(18,38,63,0.05);
 
             transition:
-                transform 0.18s ease,
                 background 0.18s ease,
+                border-color 0.18s ease,
+                transform 0.18s ease,
                 box-shadow 0.18s ease;
         }
 
+        .back-button:hover {
+            background: #edf3f8;
 
-        .zpet:hover {
-            transform: translateY(-2px);
+            border-color: #b9c8d7;
 
-            color: #ffffff;
-
-            background:
-                linear-gradient(
-                    110deg,
-                    rgba(255, 255, 255, 0.25),
-                    rgba(45, 45, 45, 0.72) 45%,
-                    rgba(15, 15, 15, 0.82)
-                );
+            transform: translateY(-1px);
 
             box-shadow:
-                0 8px 20px rgba(0, 0, 0, 0.38),
-                inset 0 1px 0 rgba(255, 255, 255, 0.30);
+                0 4px 12px rgba(18,38,63,0.09);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        .back-arrow {
+            color: #14223a;
+
+            font-size: 17px;
+            line-height: 1;
+
+            font-weight: 700;
         }
 
 
         /* =========================================================
-           SKLENĚNÝ PANEL
+           OBSAH
         ========================================================= */
 
-        .panel {
-            width: min(860px, 76vw);
+        .content {
+            flex: 1;
 
-            padding: 55px 65px;
+            width: 100%;
 
-            border-radius: 22px;
+            display: flex;
+            justify-content: center;
 
-            border: 1px solid rgba(255, 255, 255, 0.30);
+            padding:
+                55px
+                28px
+                70px;
+        }
 
-            /*
-                Panel je schválně hodně průhledný,
-                protože skleněný panel už máme
-                zakomponovaný také v obrázku.
-            */
+        .content-inner {
+            width: min(100%, 980px);
+        }
+
+
+        /* =========================================================
+           NADPIS
+        ========================================================= */
+
+        .heading {
+            margin-bottom: 30px;
+
+            padding:
+                23px
+                28px;
+
+            border-radius: 10px;
 
             background:
-                linear-gradient(
-                    110deg,
-                    rgba(15, 95, 150, 0.08),
-                    rgba(20, 25, 30, 0.12) 50%,
-                    rgba(170, 75, 15, 0.08)
-                );
+                rgba(255,255,255,0.88);
+
+            border:
+                1px solid rgba(218,226,235,0.95);
 
             box-shadow:
-                -4px 0 18px rgba(20, 150, 255, 0.15),
-                4px 0 18px rgba(255, 120, 20, 0.13),
-                0 14px 35px rgba(0, 0, 0, 0.20);
+                0 7px 24px rgba(23,42,67,0.07);
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .heading h1 {
+            margin: 0 0 7px;
+
+            color: #111e34;
+
+            font-size: 31px;
+            line-height: 1.15;
+
+            font-weight: 800;
+        }
+
+        .heading p {
+            margin: 0;
+
+            color: #687a91;
+
+            font-size: 15px;
+            line-height: 1.45;
         }
 
 
@@ -194,185 +310,118 @@
 
         .menu {
             width: 100%;
-            margin: 0 auto;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0,1fr));
+
+            gap: 16px;
         }
 
-        .menu a {
+        .menu-link {
             display: block;
 
-            width: 100%;
-
-            margin-bottom: 16px;
+            color: inherit;
 
             text-decoration: none;
         }
 
-        .menu a:last-child {
-            margin-bottom: 0;
-        }
-
 
         /* =========================================================
-           TLAČÍTKA
+           KARTA
         ========================================================= */
 
-        .menu button {
+        .menu-card {
+            --accent: #1688ef;
+
             position: relative;
 
             width: 100%;
-            height: 78px;
+            min-height: 112px;
 
-            padding: 0 30px;
+            display: grid;
 
-            border-radius: 13px;
+            grid-template-columns:
+                75px
+                1fr
+                34px;
 
-            border:
-                1.5px solid
-                rgba(220, 235, 245, 0.68);
-
-            cursor: pointer;
-
-            display: flex;
             align-items: center;
-            justify-content: center;
 
-            gap: 20px;
-
-            color: #ffffff;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            font-size: 23px;
-            font-weight: 900;
-
-            letter-spacing: 0.4px;
-
-            /*
-                MODRO - KOVOVĚ - ORANŽOVÝ VZHLED
-            */
-
-            background:
-                linear-gradient(
-                    105deg,
-
-                    rgba(45, 135, 195, 0.86) 0%,
-
-                    rgba(55, 100, 130, 0.90) 17%,
-
-                    rgba(60, 68, 75, 0.94) 38%,
-
-                    rgba(35, 37, 40, 0.97) 58%,
-
-                    rgba(67, 49, 39, 0.96) 79%,
-
-                    rgba(145, 72, 26, 0.88) 100%
-                );
-
-            box-shadow:
-                0 7px 18px rgba(0, 0, 0, 0.48),
-
-                inset 0 1px 0
-                rgba(255, 255, 255, 0.50),
-
-                inset 0 -1px 0
-                rgba(0, 0, 0, 0.65);
-
-            text-shadow:
-                0 2px 4px
-                rgba(0, 0, 0, 0.95);
+            padding:
+                19px
+                22px
+                19px
+                27px;
 
             overflow: hidden;
 
+            background:
+                rgba(255,255,255,0.94);
+
+            border:
+                1px solid #dce4ec;
+
+            border-radius: 9px;
+
+            box-shadow:
+                0 7px 22px rgba(24,45,72,0.09);
+
+            cursor: pointer;
+
             transition:
-                transform 0.17s ease,
-                filter 0.17s ease,
-                box-shadow 0.17s ease,
-                border-color 0.17s ease;
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                border-color 0.18s ease;
         }
 
-
-        /* =========================================================
-           KOVOVÝ ODLESK
-        ========================================================= */
-
-        .menu button::before {
+        .menu-card::before {
             content: "";
 
             position: absolute;
 
             top: 0;
-            left: -30%;
+            left: 0;
 
-            width: 45%;
+            width: 6px;
             height: 100%;
 
-            transform: skewX(-22deg);
+            background: var(--accent);
+        }
 
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.11),
-                    transparent
-                );
+        .menu-link:hover .menu-card {
+            transform: translateY(-2px);
 
-            pointer-events: none;
+            border-color: #c6d3df;
 
-            transition: left 0.45s ease;
+            box-shadow:
+                0 12px 28px rgba(24,45,72,0.14);
+        }
+
+        .menu-link:active .menu-card {
+            transform: translateY(0);
         }
 
 
         /* =========================================================
-           HOVER
+           BARVY KARET
         ========================================================= */
 
-        .menu button:hover {
-            transform: translateY(-3px);
-
-            filter:
-                brightness(1.15)
-                saturate(1.12);
-
-            border-color:
-                rgba(255, 255, 255, 0.85);
-
-            box-shadow:
-                0 11px 26px
-                rgba(0, 0, 0, 0.55),
-
-                -4px 0 15px
-                rgba(25, 155, 255, 0.32),
-
-                4px 0 15px
-                rgba(255, 120, 25, 0.28),
-
-                inset 0 1px 1px
-                rgba(255, 255, 255, 0.60);
+        .card-stav {
+            --accent: #1688ef;
         }
 
-        .menu button:hover::before {
-            left: 90%;
+        .card-pridat {
+            --accent: #20b75a;
         }
 
+        .card-odebrat {
+            --accent: #ff7900;
+        }
 
-        /* =========================================================
-           KLIKNUTÍ
-        ========================================================= */
-
-        .menu button:active {
-            transform:
-                translateY(0)
-                scale(0.99);
-
-            box-shadow:
-                0 3px 10px
-                rgba(0, 0, 0, 0.45),
-
-                inset 0 2px 5px
-                rgba(0, 0, 0, 0.35);
+        .card-historie {
+            --accent: #647991;
         }
 
 
@@ -380,69 +429,106 @@
            IKONY
         ========================================================= */
 
-        .ikona {
-            display: inline-flex;
+        .icon {
+            width: 56px;
+            height: 56px;
 
+            display: flex;
             align-items: center;
             justify-content: center;
 
-            width: 42px;
+            color: var(--accent);
+        }
 
-            font-size: 32px;
+        .icon svg {
+            width: 46px;
+            height: 46px;
+        }
+
+        .icon-plus,
+        .icon-minus {
+            font-size: 57px;
             line-height: 1;
 
-            filter:
-                drop-shadow(
-                    0 3px 3px
-                    rgba(0, 0, 0, 0.65)
-                );
+            font-weight: 700;
+        }
+
+        .icon-minus {
+            padding-bottom: 8px;
         }
 
 
-        /* STAV */
+        /* =========================================================
+           TEXT KARTY
+        ========================================================= */
 
-        .stav {
-            filter:
-                drop-shadow(
-                    0 3px 3px
-                    rgba(0, 0, 0, 0.65)
-                )
-                saturate(1.2);
+        .card-text {
+            min-width: 0;
+        }
+
+        .card-title {
+            display: block;
+
+            margin-bottom: 5px;
+
+            color: #101d33;
+
+            font-size: 20px;
+            line-height: 1.15;
+
+            font-weight: 800;
+        }
+
+        .card-description {
+            display: block;
+
+            color: #687a91;
+
+            font-size: 14px;
+            line-height: 1.35;
         }
 
 
-        /* PŘIDAT */
+        /* =========================================================
+           ŠIPKA
+        ========================================================= */
 
-        .pridat {
-            color: #32aaff;
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
 
-            font-size: 46px;
-            font-weight: bold;
+            color: #17243a;
 
-            text-shadow:
-                0 0 10px
-                rgba(40, 160, 255, 0.50);
+            font-size: 32px;
+            font-weight: 300;
+
+            transition:
+                transform 0.18s ease;
+        }
+
+        .menu-link:hover .arrow {
+            transform: translateX(4px);
         }
 
 
-        /* ODEBRAT */
+        /* =========================================================
+           VĚTŠÍ MONITOR
+        ========================================================= */
 
-        .odebrat {
-            color: #ff8618;
+        @media (min-width: 1200px) {
 
-            font-size: 46px;
-            font-weight: bold;
+            .content {
+                padding-top: 70px;
+            }
 
-            text-shadow:
-                0 0 10px
-                rgba(255, 125, 20, 0.45);
-        }
+            .content-inner {
+                width: min(100%,1040px);
+            }
 
-
-        /* HISTORIE */
-
-        .historie {
-            font-size: 33px;
+            .menu-card {
+                min-height: 120px;
+            }
         }
 
 
@@ -450,20 +536,27 @@
            TABLET
         ========================================================= */
 
-        @media (max-width: 900px) {
+        @media (max-width: 800px) {
 
-            .panel {
-                width: min(720px, 86vw);
-
+            .topbar {
                 padding:
-                    45px
-                    45px;
+                    12px
+                    20px;
             }
 
-            .menu button {
-                height: 72px;
+            .logo {
+                width: 215px;
+            }
 
-                font-size: 21px;
+            .content {
+                padding:
+                    40px
+                    20px
+                    55px;
+            }
+
+            .menu {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -475,448 +568,583 @@
         @media (max-width: 600px) {
 
             body {
-
-                /*
-                    MOBILNÍ OBRÁZEK
-                */
-
-                background-image:
+                background:
+                    linear-gradient(
+                        rgba(255,255,255,0.73),
+                        rgba(255,255,255,0.84)
+                    ),
                     url("materialmobil.png");
 
                 background-size: cover;
 
-                background-position:
-                    center top;
+                background-position: center top;
 
-                background-repeat:
-                    no-repeat;
+                background-repeat: no-repeat;
 
-                background-attachment:
-                    scroll;
+                background-attachment: scroll;
             }
 
 
-            .page {
-                width: 100%;
+            /* HLAVIČKA */
 
-                min-height: 100vh;
-                min-height: 100dvh;
+            .topbar {
+                min-height: 70px;
 
                 padding:
-                    205px
-                    18px
-                    50px;
-
-                align-items:
-                    flex-start;
-            }
-
-
-            /* =====================================================
-               ZPĚT NA MOBILU
-            ===================================================== */
-
-            .zpet {
-                top:
                     calc(
-                        14px +
+                        10px +
                         env(safe-area-inset-top)
-                    );
+                    )
+                    14px
+                    10px;
 
-                right: 14px;
+                gap: 10px;
+            }
 
-                min-width: auto;
+            .logo {
+                width: 155px;
+            }
 
-                padding:
-                    8px
-                    13px;
+            .top-actions {
+                gap: 8px;
+            }
 
-                font-size:
-                    12px;
+            .user {
+                font-size: 11px;
 
-                border-radius:
-                    8px;
+                gap: 5px;
+            }
 
-                color:
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.68
-                    );
+            .user-icon {
+                width: 17px;
+                height: 17px;
+            }
 
-                background:
-                    rgba(
-                        15,
-                        18,
-                        22,
-                        0.35
-                    );
-
-                border:
-                    1px solid
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.22
-                    );
-
-                backdrop-filter:
-                    blur(5px);
-
-                -webkit-backdrop-filter:
-                    blur(5px);
-
-                box-shadow:
-                    0 3px 10px
-                    rgba(
-                        0,
-                        0,
-                        0,
-                        0.20
-                    );
+            .user-icon svg {
+                width: 17px;
+                height: 17px;
             }
 
 
-            /* =====================================================
-               PANEL MOBIL
-            ===================================================== */
+            /* ZPĚT */
 
-            .panel {
-                width: 92vw;
-
-                margin:
-                    0 auto;
-
-                padding:
-                    32px
-                    22px;
-
-                border-radius:
-                    18px;
-
-                background:
-                    linear-gradient(
-                        120deg,
-
-                        rgba(
-                            20,
-                            90,
-                            140,
-                            0.10
-                        ),
-
-                        rgba(
-                            20,
-                            25,
-                            30,
-                            0.16
-                        )
-                        50%,
-
-                        rgba(
-                            150,
-                            70,
-                            20,
-                            0.10
-                        )
-                    );
-
-                border:
-                    1px solid
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.28
-                    );
-
-                box-shadow:
-                    -3px 0 14px
-                    rgba(
-                        20,
-                        150,
-                        255,
-                        0.14
-                    ),
-
-                    3px 0 14px
-                    rgba(
-                        255,
-                        120,
-                        20,
-                        0.12
-                    ),
-
-                    0 10px 25px
-                    rgba(
-                        0,
-                        0,
-                        0,
-                        0.20
-                    );
-            }
-
-
-            .menu a {
-                margin-bottom:
-                    13px;
-            }
-
-
-            /* =====================================================
-               MOBILNÍ TLAČÍTKA
-            ===================================================== */
-
-            .menu button {
-                height:
-                    68px;
+            .back-button {
+                height: 36px;
 
                 padding:
                     0
-                    15px;
-
-                border-radius:
                     11px;
 
-                font-size:
-                    18px;
+                gap: 5px;
 
-                gap:
-                    13px;
+                font-size: 10px;
+            }
 
-                background:
-                    linear-gradient(
-                        105deg,
+            .back-arrow {
+                font-size: 15px;
+            }
 
-                        rgba(
-                            40,
-                            125,
-                            180,
-                            0.88
-                        )
-                        0%,
 
-                        rgba(
-                            52,
-                            82,
-                            102,
-                            0.94
-                        )
-                        25%,
+            /* OBSAH */
 
-                        rgba(
-                            35,
-                            36,
-                            39,
-                            0.97
-                        )
-                        57%,
+            .content {
+                align-items: flex-start;
 
-                        rgba(
-                            92,
-                            54,
-                            31,
-                            0.95
-                        )
-                        82%,
-
-                        rgba(
-                            160,
-                            78,
-                            24,
-                            0.88
-                        )
-                        100%
+                padding:
+                    30px
+                    14px
+                    calc(
+                        35px +
+                        env(safe-area-inset-bottom)
                     );
             }
 
-
-            .ikona {
-                width:
-                    34px;
-
-                font-size:
-                    27px;
+            .content-inner {
+                width: 100%;
             }
 
-            .pridat,
-            .odebrat {
-                font-size:
-                    38px;
+
+            /* NADPIS */
+
+            .heading {
+                margin-bottom: 20px;
+
+                padding:
+                    19px
+                    19px;
+
+                border-radius: 9px;
             }
 
-            .historie {
-                font-size:
-                    28px;
+            .heading h1 {
+                font-size: 26px;
+
+                margin-bottom: 6px;
+            }
+
+            .heading p {
+                font-size: 14px;
+            }
+
+
+            /* MENU */
+
+            .menu {
+                display: flex;
+
+                flex-direction: column;
+
+                gap: 12px;
+            }
+
+            .menu-card {
+                min-height: 91px;
+
+                grid-template-columns:
+                    62px
+                    1fr
+                    25px;
+
+                padding:
+                    14px
+                    15px
+                    14px
+                    20px;
+
+                border-radius: 9px;
+            }
+
+            .menu-card::before {
+                width: 5px;
+            }
+
+
+            /* IKONY */
+
+            .icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .icon svg {
+                width: 39px;
+                height: 39px;
+            }
+
+            .icon-plus,
+            .icon-minus {
+                font-size: 48px;
+            }
+
+
+            /* TEXT */
+
+            .card-title {
+                margin-bottom: 4px;
+
+                font-size: 17px;
+            }
+
+            .card-description {
+                font-size: 12.5px;
+            }
+
+            .arrow {
+                font-size: 27px;
             }
         }
 
 
         /* =========================================================
-           MALÉ MOBILY
+           MALÝ MOBIL
         ========================================================= */
 
-        @media (max-width: 380px) {
+        @media (max-width: 390px) {
 
-            .page {
-                padding-left:
-                    12px;
+            .topbar {
+                padding-left: 10px;
 
-                padding-right:
-                    12px;
-
-                padding-top:
-                    190px;
+                padding-right: 10px;
             }
 
-            .panel {
-                width:
-                    94vw;
-
-                padding:
-                    25px
-                    14px;
+            .logo {
+                width: 138px;
             }
 
-            .menu button {
-                height:
-                    62px;
-
-                font-size:
-                    16px;
-
-                gap:
-                    10px;
+            .user {
+                display: none;
             }
 
-            .ikona {
-                width:
-                    30px;
+            .content {
+                padding-left: 10px;
+
+                padding-right: 10px;
+            }
+
+            .heading h1 {
+                font-size: 23px;
+            }
+
+            .menu-card {
+                grid-template-columns:
+                    55px
+                    1fr
+                    22px;
+
+                padding-left: 17px;
+            }
+
+            .card-title {
+                font-size: 16px;
+            }
+
+            .card-description {
+                font-size: 12px;
             }
         }
 
     </style>
-
 </head>
 
 
 <body>
 
-
-    <!-- =========================================================
-         ZPĚT
-    ========================================================== -->
-
-    <a
-        class="zpet"
-        href="../index.html"
-    >
-        ← ZPĚT
-    </a>
+    <div class="page">
 
 
+        <!-- =====================================================
+             HLAVIČKA
+        ====================================================== -->
 
-    <!-- =========================================================
-         HLAVNÍ OBSAH
-    ========================================================== -->
-
-    <main class="page">
-
-
-        <div class="panel">
+        <header class="topbar">
 
 
-            <div class="menu">
+            <!-- LOGO -->
 
+            <div class="logo-wrap">
 
-                <!-- STAV -->
-
-                <a href="stav.html">
-
-                    <button type="button">
-
-                        <span class="ikona stav">
-                            📊
-                        </span>
-
-                        <span>
-                            STAV
-                        </span>
-
-                    </button>
-
-                </a>
-
-
-
-                <!-- PŘIDAT -->
-
-                <a href="pridat.html">
-
-                    <button type="button">
-
-                        <span class="ikona pridat">
-                            +
-                        </span>
-
-                        <span>
-                            PŘIDAT
-                        </span>
-
-                    </button>
-
-                </a>
-
-
-
-                <!-- ODEBRAT -->
-
-                <a href="odebrat.html">
-
-                    <button type="button">
-
-                        <span class="ikona odebrat">
-                            −
-                        </span>
-
-                        <span>
-                            ODEBRAT
-                        </span>
-
-                    </button>
-
-                </a>
-
-
-
-                <!-- HISTORIE -->
-
-                <a href="historie.html">
-
-                    <button type="button">
-
-                        <span class="ikona historie">
-                            🕘
-                        </span>
-
-                        <span>
-                            HISTORIE
-                        </span>
-
-                    </button>
-
-                </a>
-
+                <img
+                    src="logo.png"
+                    alt="KovoHladil"
+                    class="logo"
+                >
 
             </div>
 
 
-        </div>
+
+            <!-- PRAVÁ ČÁST -->
+
+            <div class="top-actions">
 
 
-    </main>
+                <!-- UŽIVATEL -->
+
+                <div class="user">
+
+                    <span class="user-icon">
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle
+                                cx="12"
+                                cy="8"
+                                r="3.5"
+                            ></circle>
+
+                            <path
+                                d="M5.5 20c.6-4 2.8-6 6.5-6s5.9 2 6.5 6"
+                            ></path>
+                        </svg>
+
+                    </span>
+
+                    <span>
+                        Os. č. 3
+                    </span>
+
+                </div>
+
+
+
+                <!-- ZPĚT NA INDEX -->
+
+                <a
+                    href="../index.html"
+                    class="back-button"
+                >
+
+                    <span class="back-arrow">
+                        ←
+                    </span>
+
+                    ZPĚT
+
+                </a>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =====================================================
+             OBSAH
+        ====================================================== -->
+
+        <main class="content">
+
+            <div class="content-inner">
+
+
+                <!-- =================================================
+                     NADPIS
+                ================================================== -->
+
+                <section class="heading">
+
+                    <h1>
+                        Menu skladu
+                    </h1>
+
+                    <p>
+                        Vyberte požadovanou operaci
+                    </p>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     MENU
+                ================================================== -->
+
+                <nav class="menu">
+
+
+                    <!-- =============================================
+                         STAV SKLADU
+                    ============================================== -->
+
+                    <a
+                        href="stav.html"
+                        class="menu-link"
+                    >
+
+                        <div class="menu-card card-stav">
+
+
+                            <div class="icon">
+
+                                <svg
+                                    viewBox="0 0 48 48"
+                                    fill="currentColor"
+                                >
+
+                                    <rect
+                                        x="5"
+                                        y="27"
+                                        width="8"
+                                        height="16"
+                                        rx="1"
+                                    ></rect>
+
+                                    <rect
+                                        x="20"
+                                        y="17"
+                                        width="8"
+                                        height="26"
+                                        rx="1"
+                                    ></rect>
+
+                                    <rect
+                                        x="35"
+                                        y="7"
+                                        width="8"
+                                        height="36"
+                                        rx="1"
+                                    ></rect>
+
+                                </svg>
+
+                            </div>
+
+
+                            <div class="card-text">
+
+                                <span class="card-title">
+                                    Stav skladu
+                                </span>
+
+                                <span class="card-description">
+                                    Aktuální přehled materiálu
+                                </span>
+
+                            </div>
+
+
+                            <span class="arrow">
+                                ›
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- =============================================
+                         PŘIDAT MATERIÁL
+                    ============================================== -->
+
+                    <a
+                        href="pridat.html"
+                        class="menu-link"
+                    >
+
+                        <div class="menu-card card-pridat">
+
+
+                            <div class="icon icon-plus">
+                                +
+                            </div>
+
+
+                            <div class="card-text">
+
+                                <span class="card-title">
+                                    Přidat materiál
+                                </span>
+
+                                <span class="card-description">
+                                    Evidovat nový materiál
+                                </span>
+
+                            </div>
+
+
+                            <span class="arrow">
+                                ›
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- =============================================
+                         ODEBRAT ZE SKLADU
+                    ============================================== -->
+
+                    <a
+                        href="odebrat.html"
+                        class="menu-link"
+                    >
+
+                        <div class="menu-card card-odebrat">
+
+
+                            <div class="icon icon-minus">
+                                −
+                            </div>
+
+
+                            <div class="card-text">
+
+                                <span class="card-title">
+                                    Odebrat ze skladu
+                                </span>
+
+                                <span class="card-description">
+                                    Vyskladnit materiál
+                                </span>
+
+                            </div>
+
+
+                            <span class="arrow">
+                                ›
+                            </span>
+
+                        </div>
+
+                    </a>
+
+
+
+                    <!-- =============================================
+                         HISTORIE SKLADU
+                    ============================================== -->
+
+                    <a
+                        href="historie.html"
+                        class="menu-link"
+                    >
+
+                        <div class="menu-card card-historie">
+
+
+                            <div class="icon">
+
+                                <svg
+                                    viewBox="0 0 48 48"
+                                    fill="none"
+                                >
+
+                                    <circle
+                                        cx="24"
+                                        cy="24"
+                                        r="20"
+                                        fill="currentColor"
+                                    ></circle>
+
+                                    <path
+                                        d="M24 12v13l9 6"
+                                        stroke="white"
+                                        stroke-width="3.5"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    ></path>
+
+                                </svg>
+
+                            </div>
+
+
+                            <div class="card-text">
+
+                                <span class="card-title">
+                                    Historie skladu
+                                </span>
+
+                                <span class="card-description">
+                                    Přehled všech operací
+                                </span>
+
+                            </div>
+
+
+                            <span class="arrow">
+                                ›
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                </nav>
+
+            </div>
+
+        </main>
+
+    </div>
 
 
 
@@ -939,6 +1167,11 @@
                 SUPABASE_KEY
             );
 
+
+
+        /* =========================================================
+           KONTROLA PŘIHLÁŠENÍ
+        ========================================================= */
 
         async function zkontrolujPrihlaseni() {
 
@@ -965,8 +1198,8 @@
 
 
             /*
-                Stránku zobrazíme až po
-                úspěšné kontrole přihlášení.
+                Stránku zobrazíme až po úspěšné
+                kontrole přihlášení.
             */
 
             document.body.style.display =
@@ -974,10 +1207,14 @@
         }
 
 
+
+        /* =========================================================
+           START
+        ========================================================= */
+
         zkontrolujPrihlaseni();
 
     </script>
-
 
 </body>
 
