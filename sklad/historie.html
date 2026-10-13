@@ -74,6 +74,9 @@
             box-shadow:0 3px 12px rgba(20,45,75,.05);
         }
 
+        .tlacitka-hlavicky { display:flex; align-items:center; gap:8px; }
+        #podrobnejsi { display:none; }
+
         .filtry {
             display:grid;
             grid-template-columns:1fr 1fr;
@@ -241,9 +244,12 @@
 
         <h1>Historie skladu</h1>
 
-        <a class="zpet" href="material.html">
-            ← ZPĚT
-        </a>
+        <div class="tlacitka-hlavicky">
+            <a class="zpet" id="podrobnejsi" href="historiepodrobnější.html">PODROBNĚJŠÍ</a>
+            <a class="zpet" href="material.html">
+                ← ZPĚT
+            </a>
+        </div>
 
     </div>
 
@@ -334,8 +340,24 @@
 
 
             nactiHistorii();
+            zobrazTlacitkoVedeni(data.session.user.id);
         }
 
+
+        async function zobrazTlacitkoVedeni(userId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from("uzivatele")
+                    .select("role")
+                    .eq("user_id", userId)
+                    .maybeSingle();
+                if (!error && data?.role === "vedeni") {
+                    document.getElementById("podrobnejsi").style.display = "inline-flex";
+                }
+            } catch (e) {
+                console.warn("Nepodařilo se ověřit roli pro tlačítko.", e);
+            }
+        }
 
         /*
             NAČTENÍ HISTORIE

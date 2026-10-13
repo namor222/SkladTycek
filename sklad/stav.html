@@ -86,6 +86,17 @@
             background: #f7f9fc;
         }
 
+        /* Pouze rozmisteni tlacitek v hlavicce */
+        .tlacitka-hlavicky {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        @media (max-width: 430px) {
+            .tlacitka-hlavicky { gap: 5px; }
+            .tlacitka-hlavicky .zpet { padding: 0 7px; font-size: 10px; }
+        }
+
         /* =========================
            HLEDÁNÍ
         ========================= */
@@ -502,12 +513,16 @@
 
             <h1>Stav skladu</h1>
 
-            <a
-                class="zpet"
-                href="material.html"
-            >
-                ← ZPĚT
-            </a>
+            <div class="tlacitka-hlavicky">
+                <a id="tlacitkoPodrobnejsi" class="zpet"
+                   href="stavpodrobnější.html" style="display:none">PODROBNĚJŠÍ</a>
+                <a
+                    class="zpet"
+                    href="material.html"
+                >
+                    ← ZPĚT
+                </a>
+            </div>
 
         </div>
 
@@ -595,6 +610,20 @@
                 "block";
 
             nactiSklad();
+            overTlacitkoPodrobnejsi(data.session.user.id);
+        }
+
+        // Tato kontrola nijak nemeni puvodni nacitani skladu.
+        async function overTlacitkoPodrobnejsi(userId) {
+            const { data, error } = await supabaseClient
+                .from("uzivatele")
+                .select("role")
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (!error && data?.role === "vedeni") {
+                document.getElementById("tlacitkoPodrobnejsi").style.display = "inline-flex";
+            }
         }
 
 
