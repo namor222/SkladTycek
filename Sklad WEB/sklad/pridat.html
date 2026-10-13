@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Přidat materiál</title>
+
+
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--navy:#071b3a;--blue:#0d7cf2;--line:#dbe4ee;--muted:#71819a;--green:#00a63c;--red:#e53935}
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--navy);margin:0;padding:24px 28px 50px;display:none;text-align:left}
+.hlavicka{max-width:1440px;margin:0 auto 22px;min-height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:20px}
+.hlavicka h1{margin:0;font-size:38px;line-height:1;font-weight:800;letter-spacing:-.5px}
+.zpet{display:inline-flex;align-items:center;justify-content:center;min-width:118px;height:52px;padding:0 22px;border:1px solid #d5e0ec;border-radius:10px;background:#fff;box-shadow:0 4px 14px rgba(24,50,80,.06);text-decoration:none;color:var(--navy);font-size:17px;font-weight:800;white-space:nowrap}.zpet:hover{background:#f8fbff}
+.obsah{max-width:900px;margin:0 auto}.polozka{background:var(--card);padding:28px 34px 32px;border:1px solid #e1e8f0;border-radius:14px;box-shadow:0 8px 25px rgba(27,52,80,.04)}
+.polozka h2{margin:0 0 22px;font-size:25px;text-align:left}.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;margin-top:20px}.edit-grid .cele{grid-column:1/-1}
+label{display:block;margin:18px 0 7px;font-size:16px;font-weight:800;color:var(--navy)}.edit-grid label{margin-top:0}
+input{width:100%;height:50px;padding:0 14px;border:1px solid #cbd6e2;border-radius:8px;background:#fff;color:var(--navy);font-size:16px;transition:.15s}input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,124,242,.10)}
+.napoveda{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}.skryte-pole{display:none!important}
+.foto-box{position:relative;background:#f7fbff;border:1px solid #d7e7f8;border-radius:10px;padding:18px 20px;margin-bottom:20px;text-align:left}.foto-box h3{margin:0 0 5px;color:var(--navy);font-size:16px}.foto-box p{margin:0 0 13px;color:var(--muted);font-size:14px;line-height:1.4}
+button{width:100%;min-height:52px;padding:13px 18px;margin-top:20px;border:0;border-radius:8px;background:linear-gradient(180deg,#1385ff,#006bea);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 10px rgba(0,105,234,.12)}button:hover{filter:brightness(.97)}button:disabled{opacity:.55;cursor:not-allowed}
+.foto-tlacitko{width:auto;min-height:40px;margin:0;padding:9px 16px;box-shadow:none;font-size:13px}.foto-tlacitko-sekundarni{background:#61758c}.foto-smazat{width:auto;min-height:auto;margin:0;padding:7px 11px;font-size:13px;background:#c62828;box-shadow:none}
+#fotoNahledObal{display:none;margin-top:15px}#fotoGalerie{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px}.foto-karta{background:#fff;border:1px solid #cfd8dc;border-radius:10px;padding:10px}.foto-karta-hlavicka{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-weight:bold}.foto-karta img{display:block;width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:10px}.foto-pocet,.foto-stav{margin-top:10px;font-weight:bold;color:#52647a;line-height:1.4}
+#aiPolozkyBox{display:none;margin-top:18px;text-align:left}#aiPolozkyBox h3{margin:0 0 10px;color:var(--blue)}.ai-polozka{background:#fff;border:1px solid #bcdcff;border-radius:10px;padding:14px;margin:10px 0;cursor:pointer;transition:.15s}.ai-polozka:active{transform:scale(.995)}.ai-polozka-vybrana,.ai-polozka-prvni{border-color:#2e8b57;background:#f5fff7;box-shadow:0 0 0 2px rgba(46,139,87,.10)}.ai-polozka-nadpis{font-size:18px;font-weight:bold;color:#145ca8;margin-bottom:8px}.ai-polozka-radek{margin:4px 0;line-height:1.4}.ai-polozka-radek strong{display:inline-block;min-width:110px}.ai-polozka-info{font-size:13px;color:#666;margin-top:8px}.ai-polozka-ulozena{border-color:#1b8f3a;background:#eefaf1;opacity:.88}.ai-polozka-ulozena .ai-polozka-nadpis{color:#1b8f3a}
+.rozpoznano{background:#eef6ff;border:2px solid #1976d2;border-radius:12px;padding:15px;margin-top:18px;text-align:left}.overeni-box{display:none}.jistota{font-weight:bold}.jistota-vysoka{color:#188038}.jistota-stredni{color:#e37400}.jistota-nizka{color:#c62828}.vypocet{background:#f4faf4;border:2px solid #2e8b57;border-radius:12px;padding:15px;margin-top:18px}.pocet-vysledek{font-size:30px;font-weight:bold;color:#1b8f3a}
+.label-s-info{display:flex;align-items:center;justify-content:space-between;gap:8px}.info-tavba{position:relative;display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border:1.5px solid #64748b;border-radius:50%;font-size:12px;font-weight:700;color:#475569;cursor:help;flex:0 0 auto;user-select:none}.info-tavba .info-bublina{visibility:hidden;opacity:0;position:absolute;right:0;bottom:calc(100% + 8px);width:245px;padding:9px 11px;background:#222;color:#fff;border-radius:7px;font-size:12px;font-weight:400;line-height:1.35;z-index:100;box-shadow:0 3px 10px rgba(0,0,0,.22);transition:opacity .15s}.info-tavba:hover .info-bublina,.info-tavba:focus .info-bublina,.info-tavba:focus-within .info-bublina{visibility:visible;opacity:1}
+.delka-volby{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:7px}.delka-volba{display:flex;align-items:center;justify-content:center;gap:9px;margin:0;padding:13px 10px;border:1px solid #aaa;border-radius:8px;background:#fff;cursor:pointer;font-size:17px;font-weight:bold}.delka-volba input{width:auto;height:auto;margin:0;padding:0;accent-color:#1976d2}.delka-volba:has(input:checked){border:2px solid #1976d2;background:#eef6ff;padding:12px 9px}
+#zprava{font-size:16px;font-weight:bold;margin:15px 0 0;line-height:1.4}.chyba{color:#c62828}.uspech{color:#1b8f3a}
+@media(max-width:700px){body{padding:12px 10px 30px}.hlavicka{min-height:64px;margin-bottom:14px}.hlavicka h1{font-size:25px}.zpet{min-width:auto;height:44px;padding:0 14px;font-size:14px}.obsah{max-width:100%}.polozka{padding:18px 14px 22px;border-radius:10px}.polozka h2{font-size:21px;margin-bottom:16px}.edit-grid{grid-template-columns:1fr;gap:13px;margin-top:16px}.foto-box{padding:14px}.foto-tlacitko{width:100%;margin-top:8px}input{height:48px;font-size:16px}button{font-size:16px}}
+</style>
+</head>
+
+<body>
+
+<div class="hlavicka">
+
+    <h1>Přidat materiál</h1>
+
+    <a class="zpet" href="material.html">
+        ← ZPĚT
+    </a>
+
+</div>
+
+
+<div class="obsah">
+
+<div class="polozka">
+
+<h2>Údaje o materiálu</h2>
+
+
+<!-- =========================
+     FOTO – VÍCE FOTEK, OSTATNÍ FORMULÁŘ BEZE ZMĚNY
+========================= -->
+
+<div class="foto-box">
+<h3>📷 Vyfotit dodací list</h3>
+<p>Vyfoť dodací list zblízka tak, aby byl co nejčitelnější.</p>
+<input id="fotoInput" type="file" accept="image/*" capture="environment" hidden>
+<button type="button" class="foto-tlacitko" onclick="otevriFotoaparat()">📷 PŘIDAT FOTKU</button>
+<div id="fotoNahledObal">
+  <div class="napoveda">Přidané fotografie:</div>
+  <div id="fotoGalerie"></div>
+  <div id="fotoPocet" class="foto-pocet"></div>
+  <button id="precistDodakTlacitko" type="button" onclick="precistDodakAI()">🤖 PŘEČÍST BOTEM</button>
+  <button type="button" class="foto-tlacitko-sekundarni" onclick="otevriFotoaparat()">➕ PŘIDAT DALŠÍ FOTKU</button>
+  <button type="button" class="foto-tlacitko-sekundarni" onclick="zrusFoto()">🗑️ SMAZAT VŠECHNY FOTKY</button>
+</div>
+<div id="fotoStav" class="foto-stav"></div>
+</div>
+
+<div id="aiPolozkyBox">
+  <h3>📦 Nalezené položky na dodacím listu</h3>
+  <div id="aiPolozkySeznam"></div>
+</div>
+
+
+
+<!-- Původní název materiálu zůstává interně pro stávající parser/uložení.
+     Na webu se uživateli nezobrazuje ani se ručně neupravuje. -->
+<input type="hidden" id="nazev" value="">
+
+
+
+<!-- =========================
+     ROZPOZNANÉ ÚDAJE
+========================= -->
+
+<div class="edit-grid" id="editUdaje">
+  <div><label for="editMaterial">Materiál *</label><input id="editMaterial" type="text" autocomplete="off" oninput="zmenaEditUdaju()"></div>
+  <div><label for="editDruh">Druh *</label><input id="editDruh" type="text" autocomplete="off" oninput="zmenaEditUdaju()"></div>
+  <div><label for="editRozmer">Rozměr (mm) *</label><input id="editRozmer" type="text" inputmode="decimal" autocomplete="off" oninput="zmenaEditUdaju()"></div>
+</div>
+
+<!-- Technické údaje zůstávají interně pro skener/Supabase a stávající ukládání.
+     Zaměstnanec je na stránce nekontroluje ani neupravuje. -->
+<div class="skryte-pole" aria-hidden="true">
+  <input id="editJakost" type="text" autocomplete="off">
+  <input id="editStav" type="text" autocomplete="off">
+  <input id="editTolerance" type="text" autocomplete="off">
+</div>
+
+<!-- skryté prvky kvůli stávající logice ověření; uživatel je nevidí -->
+<div class="rozpoznano skryte-pole" aria-hidden="true">
+<span id="nahledMaterial"></span><span id="nahledDruh"></span><span id="nahledRozmer"></span><span id="nahledJakost"></span><span id="nahledStav"></span><span id="nahledTolerance"></span><span id="nahledCsn"></span><span id="nahledEnWnr"></span><span id="nahledJistota" class="jistota"></span><span id="nahledShody"></span>
+</div>
+
+<!-- =========================
+     DALŠÍ ÚDAJE
+========================= -->
+
+<label for="tavba" class="label-s-info"><span>Tavba *</span><span class="info-tavba" tabindex="0" aria-label="Informace k tavbě">i<span class="info-bublina">Pokud není tavba uvedena na dodacím listu, opište ji ze štítku materiálu.</span></span></label>
+<input type="text" id="tavba" autocomplete="off" required oninput="aktualizujAktivniPolozkuZFormulare()">
+<div class="napoveda"></div>
+
+<label for="cisloDodaku" class="skryte-pole">Číslo dodacího listu *</label>
+
+<input
+    type="text"
+    id="cisloDodaku"
+    class="skryte-pole"
+    autocomplete="off"
+    oninput="aktualizujAktivniPolozkuZFormulare()"
+>
+
+
+<!-- Skladová délka se už ručně nevolí. Backend/Supabase dodá pouze 2000 nebo 3000 mm.
+     Hodnota zůstává interní pro výpočet a uložení. -->
+<input type="hidden" id="delkaTyce" name="delkaTyce" value="">
+
+
+<!-- Hmotnost zůstává interní technický údaj pro Supabase/Excel. -->
+<input
+    type="hidden"
+    id="hmotnost"
+    value=""
+>
+
+
+<!-- Výpočet se na webu již nezobrazuje. Supabase dodá výsledná data.
+     Technické prvky zůstávají skryté kvůli kompatibilitě stávajícího JavaScriptu. -->
+<div style="display:none">
+  <span id="vypocetDelka">—</span>
+  <span id="vypocetRozmer">—</span>
+  <span id="vypocetHustota">—</span>
+  <span id="vahaJedneTyce">—</span>
+  <span id="automatickyPocet">—</span>
+  <span id="odhadInfo"></span>
+</div>
+
+<label for="pocetKusu">Počet *</label>
+<input
+    type="text"
+    inputmode="numeric"
+    id="pocetKusu"
+    required
+    oninput="pocetRucneUpraven=true; pocetPredvyplnenyOdhad=false; aktualizujAktivniPolozkuZFormulare()"
+>
+<div class="napoveda"></div>
+
+
+<button
+    id="ulozitTlacitko"
+    type="button"
+    onclick="ulozitPrijem()"
+>
+➕ ULOŽIT PŘÍJEM
+</button>
+
+<p id="zprava"></p>
+
+</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<script>
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+"https://gmawlmsizglrnjmjegmx.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+/* =========================================================
+   PROMĚNNÉ
+========================================================= */
+
+let osobniCisloPrihlaseneho = null;
+
+let rozpoznanyMaterial = "";
+let rozpoznanyDruh = "";
+let rozpoznanyRozmer = null;
+let rozpoznanaJakost = "";
+let rozpoznanaTolerance = "";
+let rozpoznanyStav = "";
+
+let rozpoznaneCsn = "";
+let rozpoznaneEnWnr = "";
+
+let jistotaMaterialu = "";
+let pocetShodMaterialu = 0;
+let pocetIndiciiMaterialu = 0;
+
+let stavRozpoznani = "";
+let druhaJakostRozpoznani = "";
+let druheSkoreRozpoznani = null;
+let nalezeneAliasyRozpoznani = "";
+
+let hustotaZCiselniku = null;
+let hustotaZdroj = "";
+let vypocetniDataSeNacitaji = false; // během dotazu do číselníku nikdy neukazovat lokální fallback
+let toleranceZDatabaze = null;
+let toleranceNacitaniGenerace = 0;
+
+let vypocitanyPocet = null;
+let vypocitanyPocetMin = null;
+let vypocitanyPocetMax = null;
+let pocetRucneUpraven = false;
+let pocetPredvyplnenyOdhad = false;
+
+// Původní délka vrácená AI. Uchovává se jen jako zdrojový údaj z dodáku.
+// Kalkulačka používá výhradně ručně zvolenou skladovou délku 2000/3000 mm.
+let aiDelkaMm = null;
+
+let fotkyDokumentu = [];
+let aiNalezenePolozky = [];
+let aiNacitaniGenerace = 0; // V7: ruší zastaralé async načítání po přepnutí položky
+let aiCisloDodaku = "";
+let aiVybranaPolozkaIndex = 0;
+let aiUlozenePolozky = new Set();
+
+
+/* =========================================================
+   ZÁLOŽNÍ HUSTOTY
+========================================================= */
+
+const hustoty = {
+    "Ocel":7850,
+    "Nerez":8000,
+    "Hliník":2700,
+    "Mosaz":8500
+};
+
+
+/* =========================================================
+   PŘIHLÁŠENÍ
+========================================================= */
+
+async function zkontrolujPrihlaseni(){
+
+    const {data,error} =
+        await supabaseClient.auth.getSession();
+
+    if(error || !data.session){
+
+        window.location.replace("../login.html");
+        return;
+
+    }
+
+    const email =
+        data.session.user.email || "";
+
+    osobniCisloPrihlaseneho =
+        email.split("@")[0];
+
+    if(!osobniCisloPrihlaseneho){
+
+        await supabaseClient.auth.signOut();
+
+        window.location.replace("../login.html");
+        return;
+
+    }
+
+    document.body.style.display="block";
+
+}
+
+
+/* =========================================================
+   FOTO – VÍCE FOTEK (KROK 1)
+========================================================= */
+
+function otevriFotoaparat(){
+    const input=document.getElementById("fotoInput");
+    input.value="";
+    input.click();
+}
+
+document.getElementById("fotoInput").addEventListener("change",function(event){
+    const soubor=event.target.files[0];
+    if(!soubor)return;
+    if(!soubor.type || !soubor.type.startsWith("image/")){
+        document.getElementById("fotoStav").innerText="❌ Vybraný soubor není fotografie.";
+        return;
+    }
+    fotkyDokumentu.push({id:String(Date.now())+"-"+Math.random(),blob:soubor});
+    vykresliFotky();
+    document.getElementById("fotoStav").innerText="✅ Fotografie přidána. Můžeš přidat další.";
+});
+
+function vykresliFotky(){
+    const obal=document.getElementById("fotoNahledObal");
+    const galerie=document.getElementById("fotoGalerie");
+    const pocet=document.getElementById("fotoPocet");
+    galerie.innerHTML="";
+    if(!fotkyDokumentu.length){obal.style.display="none";pocet.innerText="";return;}
+    obal.style.display="block";
+    fotkyDokumentu.forEach((foto,index)=>{
+        const karta=document.createElement("div");karta.className="foto-karta";
+        const h=document.createElement("div");h.className="foto-karta-hlavicka";
+        const t=document.createElement("span");t.innerText="Fotka "+(index+1);
+        const b=document.createElement("button");b.type="button";b.className="foto-smazat";b.innerText="Smazat";b.onclick=()=>smazJednuFotku(foto.id);
+        h.append(t,b);
+        const img=document.createElement("img");const url=URL.createObjectURL(foto.blob);img.onload=()=>URL.revokeObjectURL(url);img.src=url;
+        karta.append(h,img);galerie.appendChild(karta);
+    });
+    pocet.innerText=fotkyDokumentu.length===1?"Přidána 1 fotografie.":"Přidány "+fotkyDokumentu.length+" fotografie.";
+}
+function smazJednuFotku(id){fotkyDokumentu=fotkyDokumentu.filter(f=>f.id!==id);vykresliFotky();}
+function zrusFoto(){fotkyDokumentu=[];document.getElementById("fotoInput").value="";vykresliFotky();document.getElementById("fotoStav").innerText="";const b=document.getElementById("aiPolozkyBox");const s=document.getElementById("aiPolozkySeznam");if(b)b.style.display="none";if(s)s.innerHTML="";aiNalezenePolozky=[];aiCisloDodaku="";aiVybranaPolozkaIndex=0;aiUlozenePolozky.clear();aktualizujUkladaciTlacitko();}
+
+/* =========================================================
+   ÚPLNÝ RESET PO DOKONČENÍ PŘÍJMU
+   Vrátí stránku do stejného datového stavu jako nový formulář.
+========================================================= */
+function resetujCelyPrijem(){
+    clearTimeout(casovacNazvu);
+
+    // Formulář
+    document.getElementById("nazev").value="";
+    document.getElementById("tavba").value="";
+    document.getElementById("cisloDodaku").value="";
+    document.getElementById("delkaTyce").value="";
+    document.getElementById("hmotnost").value="";
+    document.getElementById("pocetKusu").value="";
+    ["editMaterial","editDruh","editRozmer","editJakost","editStav","editTolerance"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+
+    // Rozpoznaná data a výpočet
+    pocetRucneUpraven=false;
+    pocetPredvyplnenyOdhad=false;
+    vypocitanyPocet=null;
+    vypocitanyPocetMin=null;
+    vypocitanyPocetMax=null;
+    aiDelkaMm=null;
+
+    rozpoznanyMaterial="";
+    rozpoznanyDruh="";
+    rozpoznanyRozmer=null;
+    rozpoznanaJakost="";
+    rozpoznanaTolerance="";
+    rozpoznanyStav="";
+
+    resetujOvereniMaterialu();
+
+    // Fotky + všechny AI položky + stav uložených položek
+    fotkyDokumentu=[];
+    document.getElementById("fotoInput").value="";
+    vykresliFotky();
+    document.getElementById("fotoStav").innerText="";
+
+    aiNalezenePolozky=[];
+    aiCisloDodaku="";
+    
+    aiVybranaPolozkaIndex=0;
+    aiUlozenePolozky.clear();
+
+    const box=document.getElementById("aiPolozkyBox");
+    const seznam=document.getElementById("aiPolozkySeznam");
+    if(box) box.style.display="none";
+    if(seznam) seznam.innerHTML="";
+
+    aktualizujNahled();
+    prepocitej();
+    aktualizujUkladaciTlacitko();
+
+    document.getElementById("editMaterial")?.focus();
+}
+
+
+
+/* =========================================================
+   BLOB → DATA URL
+========================================================= */
+
+function blobNaDataURL(blob){
+
+    return new Promise(
+        (resolve,reject)=>{
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                ()=>resolve(reader.result);
+
+            reader.onerror =
+                ()=>reject(
+                    new Error(
+                        "Fotografii se nepodařilo načíst."
+                    )
+                );
+
+            reader.readAsDataURL(blob);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   POMOCNÉ FUNKCE
+========================================================= */
+
+function odstranDiakritiku(text){
+
+    return String(text || "")
+        .normalize("NFD")
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        );
+
+}
+
+
+function cisloZTextu(text){
+
+    const upravene =
+        String(text || "")
+        .trim()
+        .replace(/\s/g,"")
+        .replace(",",".");
+
+    const cislo =
+        Number(upravene);
+
+    if(
+        !Number.isFinite(cislo) ||
+        cislo<=0
+    ){
+        return null;
+    }
+
+    return cislo;
+
+}
+
+
+/* =========================================================
+   RESET OVĚŘENÍ
+========================================================= */
+
+function resetujOvereniMaterialu(){
+
+    rozpoznaneCsn="";
+    rozpoznaneEnWnr="";
+
+    jistotaMaterialu="";
+    pocetShodMaterialu=0;
+    pocetIndiciiMaterialu=0;
+
+    stavRozpoznani="";
+    druhaJakostRozpoznani="";
+    druheSkoreRozpoznani=null;
+    nalezeneAliasyRozpoznani="";
+
+    hustotaZCiselniku=null;
+    hustotaZdroj="";
+    toleranceZDatabaze=null;
+    toleranceNacitaniGenerace++;
+
+}
+
+
+/* =========================================================
+   ZMĚNA NÁZVU RUČNĚ
+========================================================= */
+
+let casovacNazvu=null;
+
+function zmenaNazvu(){
+
+    rozpoznejNazev();
+    aktualizujAktivniPolozkuZFormulare();
+
+    clearTimeout(casovacNazvu);
+
+    casovacNazvu =
+        setTimeout(
+            async ()=>{
+                await overMaterialCiselnikem();
+            },
+            350
+        );
+
+}
+
+
+/* =========================================================
+   LOKÁLNÍ ROZPOZNÁNÍ NÁZVU
+========================================================= */
+
+function rozpoznejNazev(doplnkovyText=""){
+
+    const nazev = document.getElementById("nazev").value.trim();
+    // Při AI čtení používáme i raw_text. Při ruční změně názvu zůstává parser stejný.
+    const text = [nazev, doplnkovyText].filter(Boolean).join("\n");
+    const bezDiakritiky = odstranDiakritiku(text);
+    const t = bezDiakritiky.toUpperCase();
+
+    rozpoznanyMaterial="";
+    rozpoznanyDruh="";
+    rozpoznanyRozmer=null;
+    rozpoznanaJakost="";
+    rozpoznanaTolerance="";
+    rozpoznanyStav="";
+    rozpoznaneCsn="";
+    rozpoznaneEnWnr="";
+
+    resetujOvereniMaterialu();
+
+    /* Scanner Parser 3.0 – rodiny běžných mezinárodních označení. */
+    const sestih = /\b(?:6\s*HR|SK|HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE|OK\s*\d)\b/i.test(bezDiakritiky)
+        || /\bE\s*\d+(?:[.,]\d+)?\b/i.test(text)
+        || t.includes("SESTIHR");
+
+    const kulatina = /\b(?:KR|RD|ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL|STAB)?|RONDO|TONDO|KRUH|KULATINA|KULATY|KULATA)\b/i.test(bezDiakritiky)
+        || /\bTYC\s+KR\b/i.test(bezDiakritiky)
+        || t.includes("KULAT")
+        || t.includes("PRUM");
+
+    const plochac = /\b(?:FLAT(?:\s*BAR)?|FLACH(?:STAHL)?|PIATTO|PLAT|PLOCHAC)\b/i.test(bezDiakritiky);
+    const ctverec = /\b(?:SQUARE(?:\s*BAR)?|SQ|VIERKANT|QUADRO|CTVER(?:EC|HRAN)|4\s*HR)\b/i.test(bezDiakritiky);
+
+    if(sestih) rozpoznanyDruh="Šestihran";
+    else if(kulatina) rozpoznanyDruh="Kulatina";
+    else if(plochac) rozpoznanyDruh="Plochá tyč";
+    else if(ctverec) rozpoznanyDruh="Čtyřhran";
+
+    /* Tolerance – jen skutečné toleranční značky; +C sem nikdy nepatří. */
+    const toleranceMatch = text.match(/(?:^|[\s,;/()])([a-zA-Z])\s*(\d{1,2})(?=$|[\s,;/()])/);
+    if(toleranceMatch){
+        const kandidat = toleranceMatch[1] + toleranceMatch[2];
+        // Odřízneme falešné C30 apod.; běžné ISO tolerance jsou např. h9, k10, f7.
+        if(/^[a-zA-Z]\d{1,2}$/.test(kandidat) && !/^c\d+$/i.test(kandidat)){
+            rozpoznanaTolerance = kandidat;
+        }
+    }
+
+    /* Stav / provedení držíme odděleně od tolerance. */
+    const stavy = [];
+    const stavRegex = /(?:^|[\s,;/])\+(C|SH|SR|A|N|QT|FP|AR|AT|AC|LC|CR|M)(?=$|[\s,;/])/gi;
+    let sm;
+    while((sm=stavRegex.exec(text))!==null) stavy.push("+"+sm[1].toUpperCase());
+    // Hliníkové stavy/tempery držíme odděleně od rozměrové tolerance.
+    // Zachytí např. T4, T5, T6, T8, T651, T6511 apod.
+    const temperRegex = /(?:^|[\s,;/().-])(T\d{1,4})(?=$|[\s,;/().-])/gi;
+    let tm;
+    while((tm=temperRegex.exec(text))!==null) stavy.push(tm[1].toUpperCase());
+    if(/\bANNEALED\b/i.test(text)) stavy.push("annealed");
+    rozpoznanyStav=[...new Set(stavy)].join(" ");
+
+    /* Rozměr – explicitní popisky a známé formáty mají přednost. */
+    const rozmerVzory = [
+        /\bOK\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,                              // OK22
+        /\b(?:SK|6\s*HR)\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,                 // SK 19,00
+        /\b(?:HEX(?:AGON(?:AL)?)?|HEX\s*BAR|SECHSKANT|ESAGONO|ESAGONALE)\s*(?:E\s*)?(\d+(?:[.,]\d+)?)/i,
+        /\bE\s*(\d+(?:[.,]\d+)?)/i,                                     // E 22
+        /\b(?:ROUND(?:\s*BAR)?|ROD|RUND(?:STAHL|STAB)?|RONDO|TONDO|KR|RD)\s*(?:MM\.?\s*)?(?:DIA(?:METER)?\.?\s*)?(?:Ø|⌀)?\s*(\d+(?:[.,]\d+)?)/i,
+        /\bTY[CČ]\s+KR(?:\s+TA)?\s+(\d+(?:[.,]\d+)?)/i,               // Tyč Kr Ta 30
+        /\b(\d+(?:[.,]\d+)?)\s*(?:MM\.?\s*)?SK\b/i,
+        /(?:Ø|⌀|DIA(?:METER)?\.?|PR[UŮ]M(?:ĚR)?\.?)\s*(\d+(?:[.,]\d+)?)\s*(?:MM)?/i,
+        /\b(?:SIZE|ABM\.?|ABMESSUNG|MISURA|DIMENSIONE)\s*[:\-]?\s*(?:ROUND\s*)?(?:MM\.?\s*)?(\d+(?:[.,]\d+)?)/i
+    ];
+
+    let rozmerMatch=null;
+    for(const vzor of rozmerVzory){
+        rozmerMatch=text.match(vzor);
+        if(rozmerMatch) break;
+    }
+    if(rozmerMatch){
+        const n=Number(rozmerMatch[1].replace(",","."));
+        if(Number.isFinite(n) && n>0 && n<2000) rozpoznanyRozmer=n;
+    }
+
+    /* Záchrana pro řádky typu "11SMN30+C 30,00 h9" – číslo před tolerancí je rozměr. */
+    if(!rozpoznanyRozmer && rozpoznanyDruh){
+        const predToleranci = text.match(/\b(\d{1,4}(?:[.,]\d+)?)\s+(?=[hHkKfFgGmMnNpPrRsStTuUxX]\s*\d{1,2}\b)/);
+        if(predToleranci){
+            const n=Number(predToleranci[1].replace(",","."));
+            if(Number.isFinite(n) && n>0 && n<2000) rozpoznanyRozmer=n;
+        }
+    }
+
+    const wnrMatch=text.match(/\b1[.,]\d{4}\b/);
+    if(wnrMatch) rozpoznaneEnWnr=wnrMatch[0].replace(",",".");
+
+    const csnMatch=text.match(/\b\d{2}\s\d{4}\b/);
+    if(csnMatch) rozpoznaneCsn=csnMatch[0].replace(/\s+/g," ");
+
+    const jakostVzory = [
+        /\b\d{1,2}\s*SMn(?:Pb)?\s*\d+\b/i,
+        /\b\d{1,2}\s*MnCrS\s*\d+\b/i,
+        /\b\d{1,3}\s*CrMo\s*\d+\b/i,
+        /\b\d{1,2}\s*CrNiMo\s*[A-Za-z0-9-]*\b/i,
+        /\bCu(?:Zn|Sn|Ni|Cr)[A-Za-z0-9+-]*\b/i,
+        /\bX\d+[A-Za-z0-9-]+\b/i,
+        /\bS\d{3}[A-Za-z0-9-]*\b/i,
+        /\bC\d{2,3}[A-Za-z0-9-]*\b/i,
+        /\bEN\s*AW[-\s]?[A-Za-z0-9-]+\b/i,
+        /\b(?:AISI|SAE)\s*[-:]?\s*\d{3,5}[A-Za-z]?\b/i
+    ];
+
+    let jakostMatch=null;
+
+    // Nejdřív hledej jakost přímo v názvu položky.
+    // raw_text může obsahovat tavbu typu X40809/X40810, která jinak odpovídá
+    // obecnému vzoru X... pro nerezovou jakost a přepíše správnou jakost z názvu.
+    for(const vzor of jakostVzory){
+        jakostMatch=nazev.match(vzor);
+        if(jakostMatch) break;
+    }
+
+    // Teprve když název žádnou jakost neobsahuje, použij celý OCR/raw text.
+    if(!jakostMatch){
+        const aktualniTavba = String(document.getElementById("tavba")?.value || "").trim().toUpperCase();
+
+        for(const vzor of jakostVzory){
+            const kandidati = [...text.matchAll(new RegExp(vzor.source, vzor.flags.includes("g") ? vzor.flags : vzor.flags + "g"))];
+            jakostMatch = kandidati.find(m => String(m[0] || "").trim().toUpperCase() !== aktualniTavba) || null;
+            if(jakostMatch) break;
+        }
+    }
+
+    if(jakostMatch){
+        rozpoznanaJakost=jakostMatch[0]
+            .replace(/^(?:AISI|SAE)\s*[-:]?\s*/i,"")
+            .replace(/\s+/g,"")
+            .trim();
+    } else if(rozpoznaneEnWnr){
+        rozpoznanaJakost=rozpoznaneEnWnr;
+    }
+
+    if(t.includes("NEREZ") || t.includes("INOX") || t.includes("STAINLESS")) rozpoznanyMaterial="Nerez";
+    else if(t.includes("HLIN") || t.includes("ALUMIN") || /\bEN\s*AW/i.test(text)) rozpoznanyMaterial="Hliník";
+    else if(t.includes("MOSAZ") || /\bCUZN/i.test(text) || t.includes("BRASS")) rozpoznanyMaterial="Mosaz";
+    else if(t.includes("OCEL") || t.includes("STEEL") || t.includes("STAHL") || t.includes("ACCIAIO") ||
+            /\b\d{1,2}\s*SMN(?:PB)?\s*\d+/i.test(t) || /\b\d{1,2}\s*MNCRS\s*\d+/i.test(t) ||
+            /^S\d{3}/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Ocel";
+    else if(/^X\d+/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Nerez";
+    else if(/^CUZN/i.test(rozpoznanaJakost)) rozpoznanyMaterial="Mosaz";
+    else if(/^ENAW/i.test(rozpoznanaJakost.replace(/[\s-]/g,""))) rozpoznanyMaterial="Hliník";
+
+    nactiEditPoleZGlobalu();
+    aktualizujNahled();
+    prepocitej();
+}
+/* =========================================================
+   ZÍSKÁNÍ INDICIÍ
+========================================================= */
+
+function vytvorIndicie(){
+
+    const text =
+        document
+        .getElementById("nazev")
+        .value
+        .trim();
+
+    const indicie=[];
+
+    if(rozpoznanaJakost){
+        indicie.push(rozpoznanaJakost);
+    }
+
+    const wnr = text.match(/\b1[.,]\d{4}\b/g);
+
+    if(wnr){
+        for(const hodnota of wnr){
+            indicie.push(hodnota.replace(",","."));
+        }
+    }
+
+    const csn = text.match(/\b\d{2}\s?\d{4}\b/g);
+
+    if(csn){
+        for(const hodnota of csn){
+            indicie.push(hodnota);
+        }
+    }
+
+    /*
+       Další kandidátní indicie z celého názvu.
+       Číselník sám rozhodne, které hodnoty skutečně zná.
+    */
+    const kandidati =
+        text
+        .replace(/[;|,/\\()[\]{}:]/g," ")
+        .split(/\s+/)
+        .map(hodnota=>hodnota.trim())
+        .filter(hodnota=>hodnota.length>=3);
+
+    for(const kandidat of kandidati){
+        indicie.push(kandidat);
+    }
+
+    return [
+        ...new Set(
+            indicie
+            .map(x=>String(x).trim())
+            .filter(Boolean)
+        )
+    ];
+
+}
+
+
+/* =========================================================
+   OVĚŘENÍ PŘES ČÍSELNÍK
+========================================================= */
+
+async function overMaterialCiselnikem(extraIndicie=[], ocekavanaGenerace=null){
+    const jeZastarale = () => ocekavanaGenerace !== null && ocekavanaGenerace !== aiNacitaniGenerace;
+
+    let indicie = vytvorIndicie();
+
+    if(Array.isArray(extraIndicie)){
+        indicie = indicie.concat(extraIndicie);
+    }
+
+    indicie = [
+        ...new Set(
+            indicie
+            .map(x=>String(x || "").trim())
+            .filter(Boolean)
+        )
+    ];
+
+    if(indicie.length===0){
+        resetujOvereniMaterialu();
+        aktualizujNahled();
+        prepocitej();
+        return null;
+    }
+
+    /*
+       DŮLEŽITÉ:
+       Nejdřív ověříme nejsilnější indicii samostatně – jakost, kterou
+       AI přečetla přímo z položky. To je nutné např. pro "C45E/C45".
+       Kdybychom ji hned smíchali se slovy z celého názvu, pomocné
+       kandidáty mohou změnit skóre / vyvolat konflikt a materiál se
+       pak nedoplní, i když samotná jakost je v číselníku známá.
+    */
+    const silneIndicie = [];
+
+    /*
+       Nejdřív vždy přesná jakost z právě vybrané položky.
+       U zápisů s lomítkem přidáme i jednotlivé části jako záložní pokusy.
+       Příklad: C45E/C45 -> nejdřív "C45E/C45", potom "C45E", potom "C45".
+       To je důležité, protože C45 je v číselníku jednoznačně OCEL.
+    */
+    function pridejSilnouIndicii(hodnota){
+        const v=String(hodnota || "").trim();
+        if(!v) return;
+
+        if(!silneIndicie.includes(v)) silneIndicie.push(v);
+
+        if(v.includes("/")){
+            for(const cast of v.split("/")){
+                const c=String(cast || "").trim();
+                if(c && !silneIndicie.includes(c)) silneIndicie.push(c);
+            }
+        }
+    }
+
+    if(rozpoznanaJakost){
+        pridejSilnouIndicii(rozpoznanaJakost);
+    }
+
+    if(Array.isArray(extraIndicie)){
+        for(const x of extraIndicie){
+            pridejSilnouIndicii(x);
+        }
+    }
+
+    async function zavolejSkener(text){
+        const {data,error} = await supabaseClient.rpc(
+            "skener_jakost",
+            { vstupni_text:text }
+        );
+
+        if(error){
+            console.error("Chyba skener_jakost:", error);
+            return {vysledek:null,error};
+        }
+
+        if(!Array.isArray(data) || data.length===0){
+            return {vysledek:null,error:null};
+        }
+
+        return {vysledek:data[0],error:null};
+    }
+
+    let vysledek = null;
+
+    // 1) Nejprve zkoušíme silné indicie jednu po druhé.
+    for(const silna of silneIndicie){
+        const pokus = await zavolejSkener(silna);
+        if(jeZastarale()) return null;
+        if(pokus.error) continue;
+
+        const r=pokus.vysledek;
+        if(r && r.nalezeno===true && r.stav!=="NENALEZENO" && r.stav!=="KONFLIKT"){
+            vysledek=r;
+            break;
+        }
+    }
+
+    // 2) Když samotná jakost nestačí, použijeme původní kombinovaný text.
+    if(!vysledek){
+        const textProSkener = indicie.join("\n");
+        const pokus = await zavolejSkener(textProSkener);
+        if(jeZastarale()) return null;
+
+        if(pokus.error){
+            resetujOvereniMaterialu();
+            aktualizujNahled();
+            prepocitej();
+            return null;
+        }
+
+        vysledek=pokus.vysledek;
+    }
+
+    if(!vysledek){
+        resetujOvereniMaterialu();
+        aktualizujNahled();
+        prepocitej();
+        return null;
+    }
+
+    /* NENALEZENO = nic automaticky neprepisujeme. */
+    if(vysledek.nalezeno!==true || vysledek.stav==="NENALEZENO"){
+        resetujOvereniMaterialu();
+        stavRozpoznani="NENALEZENO";
+        jistotaMaterialu="OVERIT";
+
+        aktualizujNahled();
+        prepocitej();
+        return vysledek;
+    }
+
+    rozpoznaneEnWnr = vysledek.en_wnr || "";
+
+    /* Nova funkce zatim nevraci CSN. Nechame prazdne. */
+    rozpoznaneCsn = "";
+
+    /*
+       Původní text jakosti z dodacího listu zachováme ve formuláři.
+       Kanonickou jakost z číselníku použijeme jen tehdy, když formulář
+       žádnou jakost nemá. Tím např. C45E/C45 zůstane viditelné tak,
+       jak bylo skutečně na dodacím listu, ale číselník jej může interně
+       rozpoznat jako C45.
+    */
+    if(!rozpoznanaJakost && vysledek.jakost){
+        rozpoznanaJakost = vysledek.jakost;
+    }
+
+    /* Kategorie z ciselniku prevedeme na nazvy pouzivane aplikaci. */
+    const materialPodleKategorie = {
+        "NEREZ":"Nerez",
+        "HLINIK":"Hliník",
+        "MOSAZ":"Mosaz",
+        "OCEL":"Ocel",
+        "OCEL AUTOMATOVA":"Ocel",
+        "MED":"Měď",
+        "BRONZ":"Bronz"
+    };
+
+    /*
+       Kategorie může přijít s jinou velikostí písmen nebo mezerami.
+       Proto ji před mapováním sjednotíme.
+    */
+    
+    // V4: Pro určení základního MATERIÁLU je rozhodující jednoznačný úspěšný výsledek číselníku.
+    // Jistota OVERIT znamená "ověřit jakost", nikoli "zahodit známou kategorii materiálu".
+    // Příklad: C45E/C45 -> nalezeno=true, stav=OK, kategorie=OCEL, jistota=OVERIT.
+    if (
+        vysledek &&
+        vysledek.nalezeno === true &&
+        String(vysledek.stav || "").trim().toUpperCase() === "OK" &&
+        String(vysledek.kategorie || "").trim()
+    ) {
+        const kat = String(vysledek.kategorie).trim().toUpperCase();
+        const mapaMaterialuV4 = {
+            "OCEL": "Ocel",
+            "OCEL AUTOMATOVA": "Ocel",
+            "NEREZ": "Nerez",
+            "HLINIK": "Hliník",
+            "MOSAZ": "Mosaz",
+            "MED": "Měď",
+            "BRONZ": "Bronz"
+        };
+        if (mapaMaterialuV4[kat]) {
+            rozpoznanyMaterial = mapaMaterialuV4[kat];
+        }
+    }
+
+    const kategorieNormalizovana =
+        String(vysledek.kategorie || "")
+        .trim()
+        .toUpperCase();
+
+    if(kategorieNormalizovana && materialPodleKategorie[kategorieNormalizovana]){
+        rozpoznanyMaterial = materialPodleKategorie[kategorieNormalizovana];
+    }
+
+    console.log("Číselník – vybraná položka:", {
+        vstupniJakost: rozpoznanaJakost,
+        vysledekJakost: vysledek.jakost || "",
+        kategorie: vysledek.kategorie || "",
+        material: rozpoznanyMaterial || "",
+        stav: vysledek.stav || "",
+        jistota: vysledek.jistota || ""
+    });
+
+    jistotaMaterialu = vysledek.jistota || "";
+    stavRozpoznani = vysledek.stav || "";
+    pocetShodMaterialu = Number(vysledek.pocet_shod || 0);
+    pocetIndiciiMaterialu = indicie.length;
+    druhaJakostRozpoznani = vysledek.druha_jakost || "";
+    druheSkoreRozpoznani =
+        vysledek.druhe_skore===null || vysledek.druhe_skore===undefined
+        ? null
+        : Number(vysledek.druhe_skore);
+    nalezeneAliasyRozpoznani = vysledek.nalezene_aliasy || "";
+
+    if(jeZastarale()) return null;
+
+    await nactiVypocetniData(vysledek,ocekavanaGenerace);
+    if(jeZastarale()) return null;
+
+    aktualizujNahled();
+    prepocitej();
+    aktualizujAktivniPolozkuZFormulare();
+
+    return vysledek;
+}
+
+
+
+/* =========================================================
+   VÝPOČETNÍ ČÍSELNÍK – HUSTOTA + ROZMĚROVÁ TOLERANCE
+   Nemění skener. Pouze načítá doplňková data pro kalkulačku.
+========================================================= */
+
+function kategorieProVypocet(kategorie){
+    return String(kategorie || "").trim().toUpperCase();
+}
+
+function tvarProDatabazi(druh){
+    const mapa={
+        "Kulatina":"ROUND",
+        "Šestihran":"HEX",
+        "Čtyřhran":"SQUARE",
+        "Plochá tyč":"FLAT"
+    };
+    return mapa[druh] || "";
+}
+
+function vyrobniZpusobZTextu(){
+    const nazev=String(document.getElementById("nazev")?.value || "");
+    const t=odstranDiakritiku([nazev,rozpoznanyStav].filter(Boolean).join(" ")).toUpperCase();
+
+    if(/\+SH\b|LOUPAN|PEELED|TURNED|SOUSTRUZ/.test(t)) return "PEELED_TURNED";
+    if(/\+G\b|BROUSEN|GROUND/.test(t)) return "GROUND";
+    if(/\+PL\b|LESTEN|POLISHED/.test(t)) return "POLISHED";
+    if(/\+C\b|TAZEN|DRAWN/.test(t)) return "COLD_DRAWN";
+    if(/LISOVAN|EXTRUD/.test(t)) return "EXTRUDED";
+    if(/VALCOVAN|HOT\s*ROLLED|\+AR\b/.test(t)) return "HOT_ROLLED";
+    if(/KOVAN|FORGED/.test(t)) return "FORGED";
+    return "";
+}
+
+async function nactiVypocetniData(vysledek, ocekavanaGenerace=null){
+    const jeZastarale=()=>ocekavanaGenerace!==null && ocekavanaGenerace!==aiNacitaniGenerace;
+    const mojeGenerace=++toleranceNacitaniGenerace;
+
+    // Nejdřív zobrazíme neutrální mezistav. Fallback se smí použít až poté,
+    // co číselník skutečně odpoví a pro danou jakost/kategorii nic nenajde.
+    vypocetniDataSeNacitaji=true;
+    hustotaZCiselniku=null;
+    hustotaZdroj="";
+    toleranceZDatabaze=null;
+    prepocitej();
+
+    if(!vysledek || vysledek.nalezeno!==true){
+        if(!jeZastarale() && mojeGenerace===toleranceNacitaniGenerace){
+            vypocetniDataSeNacitaji=false;
+            prepocitej();
+        }
+        return;
+    }
+
+    // 1) Hustota konkrétní jakosti.
+    let radek=null;
+    if(vysledek.jakost){
+        const q=await supabaseClient
+            .from("ciselnik_jakosti")
+            .select("jakost,en_wnr,kategorie,hustota_kg_m3,hustota_typ")
+            .eq("jakost",vysledek.jakost)
+            .eq("aktivni",true)
+            .limit(1)
+            .maybeSingle();
+
+        if(!q.error) radek=q.data;
+        else console.error("Hustota jakosti:",q.error);
+    }
+
+    // Záloha přes W.Nr., pokud kanonický název nebyl nalezen.
+    if(!radek && vysledek.en_wnr){
+        const q=await supabaseClient
+            .from("ciselnik_jakosti")
+            .select("jakost,en_wnr,kategorie,hustota_kg_m3,hustota_typ")
+            .eq("en_wnr",vysledek.en_wnr)
+            .eq("aktivni",true)
+            .limit(1)
+            .maybeSingle();
+
+        if(!q.error) radek=q.data;
+        else console.error("Hustota podle W.Nr.:",q.error);
+    }
+
+    if(jeZastarale() || mojeGenerace!==toleranceNacitaniGenerace) return;
+
+    if(radek?.hustota_kg_m3){
+        hustotaZCiselniku=Number(radek.hustota_kg_m3);
+        hustotaZdroj=String(radek.hustota_typ || "GRADE");
+    }else{
+        // 2) Fallback hustota podle kategorie.
+        const kat=kategorieProVypocet(vysledek.kategorie);
+        if(kat){
+            const q=await supabaseClient
+                .from("hustoty_materialu")
+                .select("hustota_kg_m3")
+                .eq("kategorie",kat)
+                .eq("aktivni",true)
+                .limit(1)
+                .maybeSingle();
+
+            if(!q.error && q.data?.hustota_kg_m3){
+                hustotaZCiselniku=Number(q.data.hustota_kg_m3);
+                hustotaZdroj="FAMILY";
+            }else if(q.error){
+                console.error("Fallback hustota:",q.error);
+            }
+        }
+    }
+
+    if(jeZastarale() || mojeGenerace!==toleranceNacitaniGenerace) return;
+
+    // 3) Tolerance z DB. Nejdřív přesná třída (h9 apod.).
+    const rozmer=Number(rozpoznanyRozmer);
+    const trida=String(rozpoznanaTolerance || "").trim();
+    const tvar=tvarProDatabazi(rozpoznanyDruh);
+    const kat=kategorieProVypocet(vysledek.kategorie);
+    const proces=vyrobniZpusobZTextu();
+
+    if(Number.isFinite(rozmer) && rozmer>0 && tvar){
+        let query=supabaseClient
+            .from("tolerance_rozmeru")
+            .select("norma,vyrobni_zpusob,trida_tolerance,rozmer_od_mm,rozmer_do_mm,horni_odchylka_mm,dolni_odchylka_mm,skupina_slitiny")
+            .eq("aktivni",true)
+            .eq("tvar",tvar)
+            .lt("rozmer_od_mm",rozmer)
+            .gte("rozmer_do_mm",rozmer);
+
+        if(kat) query=query.eq("kategorie",kat);
+        if(trida) query=query.ilike("trida_tolerance",trida);
+
+        const q=await query.limit(20);
+
+        if(!q.error && Array.isArray(q.data) && q.data.length){
+            let kandidati=q.data;
+
+            // Pokud známe výrobní způsob, dáme mu přednost.
+            if(proces){
+                const presne=kandidati.filter(x=>String(x.vyrobni_zpusob || "").toUpperCase()===proces);
+                if(presne.length) kandidati=presne;
+            }
+
+            toleranceZDatabaze=kandidati[0] || null;
+        }else if(q.error){
+            console.error("Tolerance z databáze:",q.error);
+        }
+    }
+
+    if(jeZastarale() || mojeGenerace!==toleranceNacitaniGenerace) return;
+    vypocetniDataSeNacitaji=false;
+    prepocitej();
+}
+
+/* =========================================================
+   NÁHLED
+========================================================= */
+
+function aktualizujNahled(){
+
+    document
+    .getElementById("nahledMaterial")
+    .innerText =
+    rozpoznanyMaterial || "—";
+
+
+    document
+    .getElementById("nahledDruh")
+    .innerText =
+    rozpoznanyDruh || "—";
+
+
+    document
+    .getElementById("nahledRozmer")
+    .innerText =
+    rozpoznanyRozmer
+    ? rozpoznanyRozmer+" mm"
+    : "—";
+
+
+    document
+    .getElementById("nahledJakost")
+    .innerText =
+    rozpoznanaJakost || "—";
+
+
+    document
+    .getElementById("nahledStav")
+    .innerText =
+    rozpoznanyStav || "—";
+
+
+    document
+    .getElementById("nahledCsn")
+    .innerText =
+    rozpoznaneCsn || "—";
+
+
+    document
+    .getElementById("nahledEnWnr")
+    .innerText =
+    rozpoznaneEnWnr || "—";
+
+
+    document
+    .getElementById("nahledTolerance")
+    .innerText =
+    rozpoznanaTolerance || "—";
+const jistota =
+        document.getElementById(
+            "nahledJistota"
+        );
+
+    const shody =
+        document.getElementById(
+            "nahledShody"
+        );
+
+
+    if(!jistotaMaterialu){
+
+        jistota.innerText = "—";
+        jistota.className = "jistota";
+        shody.innerText = "Materiál zatím nebyl ověřen číselníkem.";
+        return;
+    }
+
+    if(stavRozpoznani==="NENALEZENO"){
+        jistota.innerText = "● NENALEZENO";
+        jistota.className = "jistota jistota-nizka";
+        shody.innerText = "Na štítku nebyla nalezena známá jakost. Údaj zkontroluj ručně.";
+        return;
+    }
+
+    if(stavRozpoznani==="KONFLIKT"){
+        jistota.innerText = "⚠️ KONFLIKT – OVERIT";
+        jistota.className = "jistota jistota-nizka";
+
+        let textKonfliktu =
+            "Nalezeno více možných jakostí. Hlavní: "+
+            (rozpoznanaJakost || "—");
+
+        if(druhaJakostRozpoznani){
+            textKonfliktu += " | Druhá: "+druhaJakostRozpoznani;
+        }
+
+        shody.innerText = textKonfliktu;
+        return;
+    }
+
+    jistota.innerText = "● "+jistotaMaterialu;
+
+    if(jistotaMaterialu==="JISTE"){
+        jistota.className = "jistota jistota-vysoka";
+    }
+    else if(jistotaMaterialu==="PRAVDEPODOBNE"){
+        jistota.className = "jistota jistota-stredni";
+    }
+    else{
+        jistota.className = "jistota jistota-nizka";
+    }
+
+    let textShod =
+        pocetShodMaterialu+
+        " nalezených shod. Stav: "+
+        (stavRozpoznani || "OK")+".";
+
+    if(nalezeneAliasyRozpoznani){
+        textShod += " Alias: "+nalezeneAliasyRozpoznani+".";
+    }
+
+    shody.innerText = textShod;
+
+}
+
+
+
+/* =========================================================
+   KROK 3 – ZOBRAZENÍ VŠECH POLOŽEK Z DODÁKU
+========================================================= */
+function htmlBezpecne(hodnota){
+    return String(hodnota ?? "").replace(/[&<>"']/g, znak => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[znak]));
+}
+
+function hodnotaPolozky(p, ...klice){
+    for(const klic of klice){
+        const v=p?.[klic];
+        if(v!==null && v!==undefined && String(v).trim()!=="") return v;
+    }
+    return "";
+}
+
+function polozkyZAI(vysledek){
+    if(Array.isArray(vysledek?.items) && vysledek.items.length) return vysledek.items;
+    if(Array.isArray(vysledek?.polozky) && vysledek.polozky.length) return vysledek.polozky;
+    if(Array.isArray(vysledek?.materialy) && vysledek.materialy.length) return vysledek.materialy;
+    return [vysledek];
+}
+
+
+/* =========================================================
+   ŽIVÁ SYNCHRONIZACE FORMULÁŘE -> AKTIVNÍ KARTA
+   Nic neukládá do Supabase a nevolá OpenAI.
+========================================================= */
+let synchronizujiAktivniKartu = false;
+let nacitamEditFormular = false;
+
+function nactiEditPoleZGlobalu(){
+    nacitamEditFormular=true;
+    try{
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??"";};
+        set("editMaterial",rozpoznanyMaterial); set("editDruh",rozpoznanyDruh);
+        set("editRozmer",rozpoznanyRozmer); set("editJakost",rozpoznanaJakost);
+        set("editStav",rozpoznanyStav); set("editTolerance",rozpoznanaTolerance);
+    }finally{nacitamEditFormular=false;}
+}
+function zmenaEditUdaju(){
+    if(nacitamEditFormular)return;
+    const val=id=>document.getElementById(id)?.value.trim()||"";
+    rozpoznanyMaterial=val("editMaterial"); rozpoznanyDruh=val("editDruh");
+    rozpoznanyRozmer=cisloZTextu(val("editRozmer")); rozpoznanaJakost=val("editJakost");
+    rozpoznanyStav=val("editStav"); rozpoznanaTolerance=val("editTolerance");
+    aktualizujNahled(); prepocitej(); aktualizujAktivniPolozkuZFormulare();
+}
+
+
+function zvolenaDelkaTyceMm(){
+    const n=Number(document.getElementById("delkaTyce")?.value);
+    return (n===2000 || n===3000) ? n : null;
+}
+
+function nastavZvolenouDelkuTyce(mm){
+    const el=document.getElementById("delkaTyce");
+    if(!el) return;
+    const n=Number(mm);
+    el.value=(n===2000 || n===3000) ? String(n) : "";
+}
+
+function aktualizujAktivniPolozkuZFormulare(){
+    if(synchronizujiAktivniKartu || nacitamEditFormular) return;
+    if(!Array.isArray(aiNalezenePolozky) || !aiNalezenePolozky.length) return;
+    const p=aiNalezenePolozky[aiVybranaPolozkaIndex]; if(!p)return;
+    const pocetText=document.getElementById("pocetKusu")?.value.trim()||"";
+    p._edit={
+      nazev:document.getElementById("nazev")?.value.trim()||"", material:rozpoznanyMaterial||"", druh:rozpoznanyDruh||"",
+      rozmer:rozpoznanyRozmer||"", jakost:rozpoznanaJakost||"", stav:rozpoznanyStav||"", tolerance:rozpoznanaTolerance||"",
+      tavba:document.getElementById("tavba")?.value.trim()||"", cisloDodaku:document.getElementById("cisloDodaku")?.value.trim()||"",
+      delka_sklad_mm:zvolenaDelkaTyceMm()||"", hmotnost:document.getElementById("hmotnost")?.value.trim()||"",
+      pocet:pocetText, pocetRucneUpraven, pocetPredvyplnenyOdhad
+    };
+}
+
+// ALMIO / obecně dodací listy: explicitně vytištěný počet typu "51ks" má
+// absolutní přednost před počtem dopočítaným z hmotnosti.
+// Čteme pouze zápis s jednotkou ks, takže se nemůže splést s kg, rozměrem ani tavbou.
+function najdiExplicitniPocetKusu(p){
+    const zdroje = [
+        p?.raw_text,
+        p?.nazev,
+        p?.nazev_materialu,
+        p?.popis,
+        p?.oznaceni,
+        p?.rozmer_text,
+        p?.delka_text
+    ].filter(v => v !== null && v !== undefined && String(v).trim() !== "");
+
+    for(const zdroj of zdroje){
+        const text = String(zdroj);
+        const shody = [...text.matchAll(/(?:^|[\s\/|,;])([1-9]\d{0,5})\s*(?:ks|kus(?:y|ů)?)\b/gi)];
+        if(shody.length){
+            const n = Number(shody[shody.length-1][1]);
+            if(Number.isInteger(n) && n > 0) return n;
+        }
+    }
+    return null;
+}
+
+async function zpracujPolozkuPresSupabase(polozka, detailDodaku={}){
+    const text = (v) => (v===null || v===undefined || String(v).trim()==="") ? null : String(v).trim();
+    const prvni = (...klice) => hodnotaPolozky(polozka, ...klice);
+
+    /*
+       DŮLEŽITÉ:
+       Edge Function může vracet část údajů jen v raw_text / popisu položky.
+       Před uložením RAW skenu proto uděláme bezpečné fallbacky.
+       Supabase zůstává zdrojem pravdy: výsledný počet stále určuje
+       zpracovat_raw_sken(), pokud na dodáku není explicitně uveden počet ks.
+    */
+    const rawText = [
+        prvni("raw_text"),
+        prvni("nazev"),
+        prvni("nazev_materialu"),
+        prvni("popis"),
+        prvni("oznaceni"),
+        prvni("rozmer_text"),
+        prvni("delka_text")
+    ].filter(v => v!==null && v!==undefined && String(v).trim()!=="")
+     .map(v => String(v).trim())
+     .join("\n");
+
+    // V14: Počet z AI nikdy neposíláme jako RAW počet jen proto, že ho AI odhadla.
+    // SKENER smí vyhrát pouze tehdy, když je v textu položky opravdu explicitně
+    // vytištěno např. "51 ks". Jinak necháme pocet_raw = NULL a Supabase
+    // dopočítá počet z hmotnosti, rozměru, délky a hustoty (zdroj VYPOCET).
+    let pocetRaw = null;
+    const explicitniPocet = najdiExplicitniPocetKusu(polozka);
+    if(Number.isInteger(explicitniPocet) && explicitniPocet>0){
+        pocetRaw = `${explicitniPocet} ks`;
+    }
+
+    // V14: Pro fallback rozměru prohledáme i ostatní textové hodnoty AI položky.
+    // Některé modely vrátí např. "KR 8" v jiném poli než raw_text/rozmer_text.
+    const vsechnyTextyPolozky = (() => {
+        const out=[];
+        const projdi=(v,hloubka=0)=>{
+            if(hloubka>3 || v===null || v===undefined) return;
+            if(typeof v === "string" || typeof v === "number"){
+                const t=String(v).trim();
+                if(t) out.push(t);
+                return;
+            }
+            if(Array.isArray(v)){
+                v.forEach(x=>projdi(x,hloubka+1));
+                return;
+            }
+            if(typeof v === "object"){
+                Object.entries(v).forEach(([k,x])=>{
+                    if(!String(k).startsWith("_")) projdi(x,hloubka+1);
+                });
+            }
+        };
+        projdi(polozka);
+        return [...new Set(out)].join("\n");
+    })();
+
+    // Pomocné fallbacky z textu položky.
+    const najdiDelku = () => {
+        const prima = text(prvni("delka_raw","delka_dokument","delka_text","delka_original","delka","delka_mm"));
+        if(prima) return prima;
+
+        const m = rawText.match(/\b([23](?:[.,]\d{3}|[ .]?\d{3}))\s*(?:mm)?\b/i);
+        if(m) return m[1].replace(/\s/g,"");
+
+        const mMetry = rawText.match(/\b([23](?:[.,]\d+)?)\s*m\b/i);
+        if(mMetry){
+            const n = Number(mMetry[1].replace(",","."));
+            if(Number.isFinite(n)) return String(Math.round(n*1000));
+        }
+        return null;
+    };
+
+    const najdiHmotnost = () => {
+        const prima = text(prvni("hmotnost_raw","hmotnost_kg","hmotnost"));
+        if(prima) return prima;
+
+        // Hledáme pouze číslo svázané s KG, ne rozměr/tavbu.
+        const shody = [...rawText.matchAll(/\b(\d{1,6}(?:[.,]\d+)?)\s*kg\b/gi)];
+        if(shody.length) return shody[shody.length-1][1];
+        return null;
+    };
+
+    const najdiRozmer = () => {
+        const prima = text(prvni("rozmer_raw","rozmer_text","rozmer","rozmer_mm","prumer","prumer_mm","diameter","diameter_mm","size","size_mm"));
+        if(prima){
+            const n=cisloZTextu(prima);
+            if(Number.isFinite(n) && n>0 && n<1000) return String(n);
+        }
+
+        const vzory = [
+            /\b6\s*HR\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,
+            /\b(?:SK|HEX|SESTIHRAN|ŠESTIHRAN)\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,
+            /\b(?:KR|RD|ROUND|KULATINA|KULAT[ÁA]\s+TY[CČ])\s*[-:]?\s*(?:Ø|⌀)?\s*(\d+(?:[.,]\d+)?)/i,
+            /(?:Ø|⌀|DIA(?:METER)?)\s*[-:]?\s*(\d+(?:[.,]\d+)?)/i,
+            /\b(\d+(?:[.,]\d+)?)\s*(?:mm)?\s+(?=[hHkKfFgGmMnNpPrRsStTuUxX]\s*\d{1,2}\b)/i
+        ];
+
+        // Nejprve úzký rawText, potom celý objekt AI položky.
+        for(const zdroj of [rawText,vsechnyTextyPolozky]){
+            for(const vzor of vzory){
+                const m=String(zdroj || "").match(vzor);
+                if(m){
+                    const n=Number(String(m[1]).replace(",","."));
+                    if(Number.isFinite(n) && n>0 && n<1000) return String(n);
+                }
+            }
+        }
+        return null;
+    };
+
+    const najdiTavbu = () => {
+        const prima = text(prvni("tavba_raw","tavba","cislo_tavby"));
+        if(prima) return prima;
+
+        // Typické označení za textem "tavba", "heat", "číslo materiálu zákazníka" apod.
+        const m = rawText.match(/(?:tavba|heat|č(?:í|i)slo\s+tavby)\s*[:#-]?\s*([A-Z0-9-]{5,20})/i);
+        return m ? m[1] : null;
+    };
+
+    const raw = {
+        dodavatel: text(prvni("dodavatel","supplier") || detailDodaku?.dodavatel),
+        cislo_dodaciho_listu: text(
+            prvni("cislo_dodaciho_listu","cislo_dodaku") ||
+            detailDodaku?.cislo_dodaciho_listu ||
+            detailDodaku?.cislo_dodaku
+        ),
+        material_raw: text(prvni("material_raw","material")) || text(prvni("jakost_raw","jakost")) || rawText || null,
+        druh_raw: text(prvni("druh_raw","druh","tvar")) || rawText || null,
+        rozmer_raw: najdiRozmer(),
+        jakost_raw: text(prvni("jakost_raw","jakost")) || rawText || null,
+        stav_raw: text(prvni("stav_raw","stav")),
+        tolerance_raw: text(prvni("tolerance_raw","tolerance")),
+        tavba_raw: najdiTavbu(),
+        delka_raw: najdiDelku(),
+        hmotnost_raw: najdiHmotnost(),
+        pocet_raw: pocetRaw,
+        vyrobni_zpusob_raw: text(prvni("vyrobni_zpusob_raw","vyrobni_zpusob")),
+        atest_raw: text(prvni("atest_raw","atest","atest_cislo","cislo_atestu") || detailDodaku?.atest),
+        davka_raw: text(prvni("davka_raw","davka","batch","lot") || detailDodaku?.davka)
+    };
+
+    console.log("RAW sken před uložením:", raw, "AI položka:", polozka);
+
+    const {data:vlozeny,error:insertError} = await supabaseClient
+        .from("skeny_dodacich_listu")
+        .insert(raw)
+        .select("id")
+        .single();
+
+    if(insertError) throw insertError;
+
+    const {data:zpracovano,error:rpcError} = await supabaseClient.rpc(
+        "zpracovat_raw_sken",
+        {p_sken_id:vlozeny.id}
+    );
+
+    if(rpcError) throw rpcError;
+
+    const r = Array.isArray(zpracovano) ? zpracovano[0] : zpracovano;
+
+    if(!r){
+        throw new Error("Supabase nevrátila výsledek zpracování skenu.");
+    }
+
+    if(r.stav_zpracovani !== "HOTOVO"){
+        console.error("Sken nebyl dokončen:", {
+            sken_id:vlozeny.id,
+            raw,
+            vysledek:r
+        });
+        throw new Error(
+            (r.chyba || `Sken ${vlozeny.id} nebyl dokončen (${r.stav_zpracovani || "neznámý stav"}).`) +
+            ` [sken ID ${vlozeny.id}]`
+        );
+    }
+
+    return {
+        ...polozka,
+
+        // Normalizované hodnoty ze Supabase.
+        material: r.material,
+        druh: r.druh,
+        tvar: r.druh,
+        rozmer: r.rozmer,
+        rozmer_mm: r.rozmer,
+        tavba: r.tavba,
+        cislo_tavby: r.tavba,
+
+        // Technické údaje ponecháme i z AI, aby je následný formulář neztratil.
+        jakost: r.jakost ?? prvni("jakost","jakost_raw"),
+        stav: r.stav ?? prvni("stav","stav_raw"),
+        tolerance: r.tolerance ?? prvni("tolerance","tolerance_raw"),
+        delka_mm: r.delka_mm ?? prvni("delka_mm","delka"),
+        hmotnost_kg: r.hmotnost_kg ?? prvni("hmotnost_kg","hmotnost"),
+
+        pocet: r.pocet,
+        pocet_kusu: r.pocet,
+        kusy: r.pocet,
+
+        cislo_dodaciho_listu:
+            r.cislo_dodaciho_listu ??
+            prvni("cislo_dodaciho_listu","cislo_dodaku") ??
+            detailDodaku?.cislo_dodaciho_listu ??
+            detailDodaku?.cislo_dodaku ??
+            null,
+
+        _sken_id: r.sken_id ?? vlozeny.id,
+        _zdroj_poctu: r.zdroj_poctu,
+        _stav_zpracovani: r.stav_zpracovani
+    };
+}
+
+function vykresliAIPolozky(vysledek){
+    const box=document.getElementById("aiPolozkyBox");
+    const seznam=document.getElementById("aiPolozkySeznam");
+    const polozky=polozkyZAI(vysledek).filter(Boolean);
+    aiNalezenePolozky = polozky;
+
+    if(!polozky.length){
+        box.style.display="none";
+        seznam.innerHTML="";
+        return [];
+    }
+
+    seznam.innerHTML=polozky.map((p,index)=>{
+        const material=hodnotaPolozky(p,"material") || "—";
+        const druh=hodnotaPolozky(p,"druh","tvar") || "—";
+        const rozmer=hodnotaPolozky(p,"rozmer","rozmer_mm");
+        const tavba=hodnotaPolozky(p,"tavba","cislo_tavby") || "—";
+        const pocet=hodnotaPolozky(p,"pocet","pocet_kusu","kusy");
+        const zdroj=p?._zdroj_poctu ? ` <span class="ai-polozka-info">(${htmlBezpecne(p._zdroj_poctu)})</span>` : "";
+        return `
+        <div class="ai-polozka ${index===aiVybranaPolozkaIndex?'ai-polozka-vybrana':''} ${aiUlozenePolozky.has(index)?'ai-polozka-ulozena':''}" onclick="nactiAIPolozku(${index})">
+          <div class="ai-polozka-nadpis">Svazek ${index+1}</div>
+          <div class="ai-polozka-radek"><strong>Materiál:</strong> ${htmlBezpecne(material)}</div>
+          <div class="ai-polozka-radek"><strong>Druh:</strong> ${htmlBezpecne(druh)}</div>
+          <div class="ai-polozka-radek"><strong>Rozměr:</strong> ${htmlBezpecne(rozmer || '—')}${rozmer ? ' mm' : ''}</div>
+          <div class="ai-polozka-radek"><strong>Tavba:</strong> ${htmlBezpecne(tavba)}</div>
+          <div class="ai-polozka-radek"><strong>Počet:</strong> ${htmlBezpecne(pocet || '—')}${pocet ? ' ks' : ''}${zdroj}</div>
+          ${aiUlozenePolozky.has(index) ? '<div class="ai-polozka-info">✅ ULOŽENO DO SKLADU</div>' : (index===aiVybranaPolozkaIndex ? '<div class="ai-polozka-info">✏️ Zkontroluj 5 údajů níže.</div>' : '<div class="ai-polozka-info">Klepni sem pro kontrolu této položky.</div>')}
+        </div>`;
+    }).join("");
+
+    box.style.display="block";
+    aktualizujUkladaciTlacitko();
+    return polozky;
+}
+
+/* =========================================================
+   KROK 4 – VÝBĚR A ÚPRAVA JEDNÉ AI POLOŽKY
+========================================================= */
+function aktualizujUkladaciTlacitko(){
+    const b=document.getElementById("ulozitTlacitko");
+    if(!b) return;
+    const celkem=aiNalezenePolozky.length;
+    const ulozeno=aiUlozenePolozky.size;
+    if(celkem>1){
+        if(ulozeno>=celkem){
+            b.textContent="✅ DODACÍ LIST DOKONČEN";
+            b.disabled=true;
+        }else{
+            b.textContent=`➕ ULOŽIT POLOŽKU ${aiVybranaPolozkaIndex+1}/${celkem}`;
+            b.disabled=aiUlozenePolozky.has(aiVybranaPolozkaIndex);
+        }
+    }else{
+        b.textContent="➕ ULOŽIT PŘÍJEM";
+        b.disabled=false;
+    }
+}
+
+
+async function nactiAIPolozku(index){
+    const p=aiNalezenePolozky[index];
+    if(!p) return;
+
+    aiVybranaPolozkaIndex=index;
+    const edit=p._edit || null;
+
+    rozpoznanyMaterial = edit ? edit.material : String(p.material ?? "").trim();
+    rozpoznanyDruh = edit ? edit.druh : String(p.druh ?? p.tvar ?? "").trim();
+    rozpoznanyRozmer = edit ? cisloZTextu(edit.rozmer) : cisloZTextu(p.rozmer ?? p.rozmer_mm);
+
+    // Technické údaje zůstávají pouze pro finální uložení/Excel.
+    rozpoznanaJakost = String(p.jakost ?? "").trim();
+    rozpoznanyStav = String(p.stav ?? "").trim();
+    rozpoznanaTolerance = String(p.tolerance ?? "").trim();
+    rozpoznaneCsn = String(p.csn ?? "").trim();
+    rozpoznaneEnWnr = String(p.en_wnr ?? p.wnr ?? "").trim();
+
+    const nazev=hodnotaPolozky(p,"nazev","nazev_materialu","popis") || "";
+    const tavba=edit ? edit.tavba : (hodnotaPolozky(p,"tavba","cislo_tavby") || "");
+    const hmotnost=edit ? edit.hmotnost : hodnotaPolozky(p,"hmotnost_kg","hmotnost");
+    const pocet=edit ? Number(edit.pocet) : Number(hodnotaPolozky(p,"pocet","pocet_kusu","kusy"));
+    const delka=Number(edit ? edit.delka_sklad_mm : hodnotaPolozky(p,"delka_sklad_mm","delka_mm"));
+
+    document.getElementById("nazev").value=edit ? (edit.nazev || nazev) : nazev;
+    document.getElementById("tavba").value=tavba;
+    document.getElementById("cisloDodaku").value=aiCisloDodaku || hodnotaPolozky(p,"cislo_dodaciho_listu","cislo_dodaku") || "";
+    document.getElementById("hmotnost").value=(hmotnost!==null && hmotnost!==undefined && hmotnost!=="") ? String(hmotnost).replace(".",",") : "";
+    nastavZvolenouDelkuTyce(delka);
+
+    nactiEditPoleZGlobalu();
+
+    document.getElementById("pocetKusu").value = Number.isInteger(pocet) && pocet>0 ? String(pocet) : "";
+    pocetRucneUpraven=!!edit?.pocetRucneUpraven;
+    pocetPredvyplnenyOdhad=false;
+
+    aktualizujAktivniPolozkuZFormulare();
+    vykresliAIPolozky({items:aiNalezenePolozky});
+    aktualizujUkladaciTlacitko();
+    document.getElementById("editUdaje")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+/* =========================================================
+   AI ČTENÍ
+========================================================= */
+
+async function precistDodakAI(){
+    const stav=document.getElementById("fotoStav");
+    const tlacitko=document.getElementById("precistDodakTlacitko");
+
+    if(!fotkyDokumentu.length){
+        stav.innerText="❌ Nejdřív vyfoť nebo vyber fotografii.";
+        return;
+    }
+
+    tlacitko.disabled=true;
+    stav.innerText="🤖 Čtu dokument a zpracovávám data v Supabase…";
+
+    try{
+        const imagesBase64=await Promise.all(fotkyDokumentu.map(foto=>blobNaDataURL(foto.blob)));
+        const {data:sessionData,error:sessionError}=await supabaseClient.auth.getSession();
+        if(sessionError || !sessionData.session?.access_token){
+            throw new Error("Přihlášení vypršelo. Přihlas se znovu.");
+        }
+
+        const response=await fetch(`${SUPABASE_URL}/functions/v1/cteni-dodaku`,{
+            method:"POST",
+            headers:{
+                "Authorization":`Bearer ${sessionData.session.access_token}`,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({imageBase64:imagesBase64[0],imagesBase64})
+        });
+
+        let data;
+        try{ data=await response.json(); }
+        catch(_){ throw new Error("Server vrátil neplatnou odpověď. HTTP "+response.status); }
+        if(!response.ok) throw new Error(data?.error || data?.message || "Edge Function vrátila chybu HTTP "+response.status);
+        if(!data || data.success!==true || !data.data) throw new Error(data?.error || "AI nevrátila použitelné údaje.");
+
+        const detailDodaku=data.data;
+        const detailPolozky=polozkyZAI(detailDodaku).filter(Boolean);
+        if(!detailPolozky.length) throw new Error("Na dodacím listu nebyla nalezena žádná položka.");
+
+        aiCisloDodaku=detailDodaku.cislo_dodaciho_listu || detailDodaku.cislo_dodaku || "";
+        aiUlozenePolozky.clear();
+        stav.innerText=`🤖 Supabase zpracovává ${detailPolozky.length} ${detailPolozky.length===1?'položku':'položky'}…`;
+
+        const hotove=[];
+        for(let i=0;i<detailPolozky.length;i++){
+            const detail={
+                ...detailPolozky[i],
+                dodavatel: detailPolozky[i]?.dodavatel || detailDodaku?.dodavatel || null,
+                cislo_dodaciho_listu: detailPolozky[i]?.cislo_dodaciho_listu || detailPolozky[i]?.cislo_dodaku || aiCisloDodaku || null,
+                atest: detailPolozky[i]?.atest || detailDodaku?.atest || null,
+                davka: detailPolozky[i]?.davka || detailDodaku?.davka || null
+            };
+            hotove.push(await zpracujPolozkuPresSupabase(detail,detailDodaku));
+        }
+
+        aiVybranaPolozkaIndex=0;
+        aiNalezenePolozky=hotove;
+        vykresliAIPolozky({items:hotove});
+        await nactiAIPolozku(0);
+        stav.innerText="✅ Supabase data zpracovala. Zkontroluj 5 údajů a ulož příjem.";
+
+    }catch(error){
+        console.error("Chyba čtení/zpracování:",error);
+        stav.innerText="❌ "+(error?.message || "Dokument se nepodařilo zpracovat.");
+    }finally{
+        tlacitko.disabled=false;
+    }
+}
+
+/* =========================================================
+   ZMĚNA VSTUPŮ VÝPOČTU
+========================================================= */
+
+function zmenaVypoctu(){
+    prepocitej();
+    aktualizujAktivniPolozkuZFormulare();
+}
+
+function rozsahDelkyZTextu(text){
+    if(!text) return null;
+
+    let t=String(text)
+        .trim()
+        .toLowerCase()
+        .replace(/\u00a0/g," ")
+        .replace(/[−–—]/g,"-")
+        .replace(/…/g,"...")
+        .replace(/\s+/g," ")
+        .trim();
+
+    if(!t) return null;
+
+    const n = String.raw`(\d+(?:[.,]\d+)?)`;
+
+    // Přímé rozsahy délky: 3000/3100, 3000-3100, 3000 až 3100,
+    // 3000 to 3100, 3000 bis 3100, 3000...3100 (+ volitelné mm).
+    const primeVzory = [
+        new RegExp(`^${n}\\s*\\/\\s*${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s*-\\s*${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s+(?:až|az|to|bis)\\s+${n}\\s*(?:mm)?$`,"i"),
+        new RegExp(`^${n}\\s*\\.{2,3}\\s*${n}\\s*(?:mm)?$`,"i")
+    ];
+
+    for(const re of primeVzory){
+        const m=t.match(re);
+        if(!m) continue;
+        let a=parseEvropskeCislo(m[1]);
+        let b=parseEvropskeCislo(m[2]);
+        if(!Number.isFinite(a) || !Number.isFinite(b) || a<=0 || b<=0) continue;
+        if(b<a) [a,b]=[b,a];
+        if(a===b) return null;
+        // Ochrana proti záměně rozměru 20/22 za délku.
+        if(a<100 || b>20000) return null;
+        return {minMm:a,maxMm:b,stredMm:(a+b)/2,typ:"rozsah"};
+    }
+
+    // Jmenovitá délka + kladná tolerance. Nejdřív explicitní zápisy v závorkách.
+    let m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\(\\s*-?0\\s*\\/\\s*\\+\\s*${n}\\s*(?:mm)?\\s*\\)$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\(\\s*\\+\\s*${n}\\s*(?:mm)?\\s*\\/\\s*-?0\\s*\\)$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\+\\s*${n}\\s*(?:mm)?(?:\\s*\\/\\s*-?0|\\s*-\\s*0)?$`,"i"));
+    if(!m) m=t.match(new RegExp(`^${n}\\s*(?:mm)?\\s*\\+\\s*0\\s*\\/\\s*\\+\\s*${n}\\s*(?:mm)?$`,"i"));
+
+    if(m){
+        const nums=(m.slice(1).filter(v=>v!==undefined).map(parseEvropskeCislo).filter(Number.isFinite));
+        const zaklad=nums[0];
+        const plus=nums[nums.length-1];
+        if(Number.isFinite(zaklad) && Number.isFinite(plus) && zaklad>=100 && plus>0 && zaklad+plus<=20000){
+            return {minMm:zaklad,maxMm:zaklad+plus,stredMm:zaklad+plus/2,zakladMm:zaklad,plusMm:plus,typ:"tolerance_plus"};
+        }
+    }
+
+    return null;
+}
+
+/* =========================================================
+   DÉLKA
+========================================================= */
+
+function prevedDelkuNaMm(text){
+
+    if(!text) return aiDelkaMm || null;
+
+    let t = String(text).trim().toLowerCase();
+    if(!t) return aiDelkaMm || null;
+
+    // Výrobní přídavek/tolerance: pro skladový výpočet používáme základní délku.
+    // 3000 +100, 3000mm (-0/+100mm) => 3000 mm.
+    const zakladSPřidavkem = t.match(/^\s*([\d.,\s]+)\s*(?:mm)?\s*(?:\(|\s)*(?:[-+]?\s*\d+\s*\/\s*)?\+\s*\d+/i);
+    if(zakladSPřidavkem){
+        const mm = parseEvropskeCislo(zakladSPřidavkem[1]);
+        if(mm && mm>0) return mm;
+    }
+
+    const jednotkaM = /(?:^|\s)m\s*$/.test(t) && !/mm\s*$/.test(t);
+    const cisloMatch = t.match(/[\d][\d\s.,]*/);
+    if(!cisloMatch) return aiDelkaMm || null;
+
+    const hodnota = parseEvropskeCislo(cisloMatch[0]);
+    if(!Number.isFinite(hodnota) || hodnota<=0) return aiDelkaMm || null;
+
+    if(jednotkaM) return hodnota*1000;
+
+    // Bez jednotky malé hodnoty chápeme jako metry stejně jako dosud.
+    if(!/mm/i.test(t) && hodnota<=20) return hodnota*1000;
+
+    return hodnota;
+}
+
+function parseEvropskeCislo(text){
+    let x = String(text || "").trim().replace(/\s+/g, "");
+    if(!x) return null;
+
+    const posledniTecka = x.lastIndexOf(".");
+    const posledniCarka = x.lastIndexOf(",");
+
+    if(posledniTecka>=0 && posledniCarka>=0){
+        // 3.050,00 nebo 3,050.00 – poslední oddělovač je desetinný.
+        const decimal = posledniTecka > posledniCarka ? "." : ",";
+        const thousands = decimal === "." ? "," : ".";
+        x = x.split(thousands).join("");
+        if(decimal === ",") x = x.replace(",", ".");
+    }
+    else if(posledniCarka>=0){
+        const casti=x.split(",");
+        if(casti.length===2 && casti[1].length===3 && casti[0].length<=3) x=casti.join("");
+        else x=x.replace(",", ".");
+    }
+    else if(posledniTecka>=0){
+        const casti=x.split(".");
+        if(casti.length===2 && casti[1].length===3 && casti[0].length<=3) x=casti.join("");
+        else if(casti.length>2) x=casti.join("");
+    }
+
+    const n=Number(x);
+    return Number.isFinite(n) ? n : null;
+}
+
+/* =========================================================
+   PRŮŘEZ
+========================================================= */
+
+function plochaPrurezu(
+    druh,
+    rozmer
+){
+
+    if(druh==="Kulatina"){
+
+        return(
+            Math.PI *
+            rozmer *
+            rozmer /
+            4
+        );
+
+    }
+
+
+    if(druh==="Šestihran"){
+
+        return(
+            Math.sqrt(3) /
+            2 *
+            rozmer *
+            rozmer
+        );
+
+    }
+
+
+    return 0;
+
+}
+
+
+/* =========================================================
+   HMOTNOST TYČE
+========================================================= */
+
+function hmotnostTyce(
+    druh,
+    rozmerMm,
+    delkaMm,
+    hustota
+){
+
+    const plochaMm2 =
+        plochaPrurezu(
+            druh,
+            rozmerMm
+        );
+
+
+    if(!plochaMm2){
+        return 0;
+    }
+
+
+    const plochaM2 =
+        plochaMm2 /
+        1000000;
+
+
+    const delkaM =
+        delkaMm /
+        1000;
+
+
+    return(
+        plochaM2 *
+        delkaM *
+        hustota
+    );
+
+}
+
+
+/* =========================================================
+   PŘEPOČET
+========================================================= */
+
+function isoItToleranceMm(jmenovityRozmerMm, tolerance){
+    const m=String(tolerance || "").trim().match(/^([hH])(\d{1,2})$/);
+    if(!m) return null;
+
+    const grade=Number(m[2]);
+    if(grade<5 || grade>18 || !Number.isFinite(jmenovityRozmerMm) || jmenovityRozmerMm<=0) return null;
+
+    // ISO 286 – standardní toleranční jednotka i [µm].
+    // D je geometrický průměr příslušného rozměrového stupně.
+    const stupne=[1,3,6,10,18,30,50,80,120,180,250,315,400,500];
+    let dolni=0.5, horni=null;
+    for(const h of stupne){
+        if(jmenovityRozmerMm<=h){ horni=h; break; }
+        dolni=h;
+    }
+    if(horni===null) return null;
+    if(jmenovityRozmerMm<=1){ dolni=0; horni=1; }
+
+    const D=Math.sqrt(Math.max(dolni,0.001)*horni);
+    const i=0.45*Math.cbrt(D)+0.001*D; // µm
+    const nasobky={5:7,6:10,7:16,8:25,9:40,10:64,11:100,12:160,13:250,14:400,15:640,16:1000,17:1600,18:2500};
+    const itUm=i*nasobky[grade];
+    const itMm=itUm/1000;
+
+    // h = hřídel: horní odchylka 0, dolní -IT. H = díra: dolní 0, horní +IT.
+    if(m[1]==="h") return {min:jmenovityRozmerMm-itMm,max:jmenovityRozmerMm,itMm};
+    return {min:jmenovityRozmerMm,max:jmenovityRozmerMm+itMm,itMm};
+}
+
+function zaokrouhliPocet(x){
+    // Math.round v JS zaokrouhluje kladné hodnoty .5 nahoru – přesně podle domluvy.
+    return Math.max(1,Math.round(x));
+}
+
+function prepocitej(){
+    // Kalkulačka byla přesunuta do Supabase (zpracovat_raw_sken / urcit_pocet_materialu_v3).
+    // Funkce zůstává pouze kvůli kompatibilitě starších event handlerů na stránce.
+    return;
+}
+
+
+function nastavZpravu(text, typ="") {
+    const el = document.getElementById("zprava");
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.remove("chyba", "uspech");
+    if (typ === "chyba" || typ === "uspech") {
+        el.classList.add(typ);
+    }
+}
+
+async function ulozitPrijem(){
+
+    nastavZpravu("","");
+
+    const tlacitko = document.getElementById("ulozitTlacitko");
+
+    // Ověříme čerstvou Supabase session přímo před RPC.
+    const {data:sessionData,error:sessionError} = await supabaseClient.auth.getSession();
+    if(sessionError || !sessionData?.session?.user){
+        nastavZpravu("Přihlášení vypršelo. Přihlas se znovu.","chyba");
+        return;
+    }
+
+    const material = String(rozpoznanyMaterial || "").trim();
+    const druh = String(rozpoznanyDruh || "").trim();
+    const rozmer = Number(rozpoznanyRozmer);
+    const tavba = String(document.getElementById("tavba")?.value || "").trim();
+    const pocetText = String(document.getElementById("pocetKusu")?.value || "").trim();
+    const pocet = /^\d+$/.test(pocetText) ? Number(pocetText) : null;
+
+    if(!material){
+        nastavZpravu("Vyplň materiál.","chyba");
+        document.getElementById("editMaterial")?.focus();
+        return;
+    }
+    if(!druh){
+        nastavZpravu("Vyplň druh materiálu.","chyba");
+        document.getElementById("editDruh")?.focus();
+        return;
+    }
+    if(!Number.isFinite(rozmer) || rozmer<=0){
+        nastavZpravu("Vyplň správný rozměr materiálu.","chyba");
+        document.getElementById("editRozmer")?.focus();
+        return;
+    }
+    if(!tavba){
+        nastavZpravu("Vyplň tavbu materiálu. Pokud není na dodacím listu, zjisti ji ze štítku materiálu.","chyba");
+        document.getElementById("tavba")?.focus();
+        return;
+    }
+    if(!Number.isInteger(pocet) || pocet<=0){
+        nastavZpravu("Počet kusů musí být celé číslo větší než 0.","chyba");
+        document.getElementById("pocetKusu")?.focus();
+        return;
+    }
+
+    if(!Array.isArray(aiNalezenePolozky) || aiNalezenePolozky.length===0){
+        nastavZpravu("Není načtena žádná položka dodacího listu.","chyba");
+        return;
+    }
+    if(aiVybranaPolozkaIndex<0 || aiVybranaPolozkaIndex>=aiNalezenePolozky.length){
+        nastavZpravu("Vybraná položka dodacího listu není platná.","chyba");
+        return;
+    }
+    if(aiUlozenePolozky.has(aiVybranaPolozkaIndex)){
+        nastavZpravu("Tato položka už byla uložena do skladu.","chyba");
+        aktualizujUkladaciTlacitko();
+        return;
+    }
+
+    const detailPolozky = aiNalezenePolozky[aiVybranaPolozkaIndex] || {};
+    const skenId = Number(detailPolozky._sken_id);
+    if(!Number.isInteger(skenId) || skenId<=0){
+        nastavZpravu("Položka nemá platné ID skenu. Načti dodací list znovu.","chyba");
+        console.error("Chybí _sken_id:",detailPolozky);
+        return;
+    }
+
+    if(tlacitko){
+        tlacitko.disabled=true;
+        tlacitko.textContent="⏳ UKLÁDÁM DO SKLADU…";
+    }
+    nastavZpravu("Ukládám příjem do skladu…");
+
+    try{
+        // Jediné místo, kde vzniká skutečný skladový příjem.
+        const {data:prijemId,error:rpcError} = await supabaseClient.rpc(
+            "ulozit_sken_jako_prijem",
+            {
+                p_sken_id:skenId,
+                p_material:material,
+                p_druh:druh,
+                p_rozmer:rozmer,
+                p_tavba:tavba,
+                p_pocet:pocet
+            }
+        );
+
+        if(rpcError) throw rpcError;
+        if(prijemId===null || prijemId===undefined){
+            throw new Error("Databáze nevrátila ID vytvořeného příjmu.");
+        }
+
+        console.log("Příjem úspěšně uložen:",{skenId,prijemId,material,druh,rozmer,tavba,pocet});
+
+        const aktualniPolozka=aiNalezenePolozky[aiVybranaPolozkaIndex];
+        if(aktualniPolozka){
+            aktualniPolozka.material=material;
+            aktualniPolozka.druh=druh;
+            aktualniPolozka.tvar=druh;
+            aktualniPolozka.rozmer=rozmer;
+            aktualniPolozka.rozmer_mm=rozmer;
+            aktualniPolozka.tavba=tavba;
+            aktualniPolozka.cislo_tavby=tavba;
+            aktualniPolozka.pocet=pocet;
+            aktualniPolozka.pocet_kusu=pocet;
+            aktualniPolozka.kusy=pocet;
+            aktualniPolozka._prijem_id=prijemId;
+            aktualniPolozka._ulozeno=true;
+        }
+
+        const ulozenyIndex=aiVybranaPolozkaIndex;
+        aiUlozenePolozky.add(ulozenyIndex);
+        const celkemPolozek=aiNalezenePolozky.length;
+        const pocetUlozenych=aiUlozenePolozky.size;
+        const dalsiIndex=aiNalezenePolozky.findIndex((_,index)=>!aiUlozenePolozky.has(index));
+
+        if(dalsiIndex>=0){
+            vykresliAIPolozky({items:aiNalezenePolozky});
+            nastavZpravu(`✅ Položka ${ulozenyIndex+1}/${celkemPolozek} byla přijata do skladu. Načítám další položku.`,"uspech");
+            await nactiAIPolozku(dalsiIndex);
+            aktualizujUkladaciTlacitko();
+            return;
+        }
+
+        const zpravaHotovo = celkemPolozek>1
+            ? `✅ Dodací list dokončen – ${pocetUlozenych}/${celkemPolozek} položek přijato do skladu.`
+            : "✅ Příjem byl úspěšně uložen do skladu.";
+
+        resetujCelyPrijem();
+        nastavZpravu(zpravaHotovo+" Formulář je připraven pro nový příjem.","uspech");
+
+    }catch(error){
+        console.error("Chyba ukládání příjmu:",error);
+        let zprava=error?.message || "Neznámá chyba při ukládání příjmu.";
+
+        if(zprava.includes("Uživatel není přihlášen")){
+            zprava="Databáze nevidí přihlášeného uživatele. Obnov stránku a přihlas se znovu.";
+        }else if(zprava.includes("Chybí materiál")){
+            zprava="Databázi chybí materiál. Zkontroluj pole Materiál.";
+        }else if(zprava.includes("již byl") || zprava.includes("už byl")){
+            zprava="Tento sken už byl přijat do skladu. Druhý příjem nebyl vytvořen.";
+        }
+
+        nastavZpravu("❌ Příjem se nepodařilo uložit: "+zprava,"chyba");
+    }finally{
+        aktualizujUkladaciTlacitko();
+    }
+}
+
+/* =========================================================
+   START
+========================================================= */
+
+console.log("PRIDAT BUILD: SUPABASE-SOURCE-OF-TRUTH-V14-DIMENSION-COUNT-FIX");
+zkontrolujPrihlaseni();
+
+</script>
+
+</body>
+</html>
