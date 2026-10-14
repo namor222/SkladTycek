@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podrobnější stav skladu</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        :root { --bg:#f4f7fb; --line:#dfe7f0; --text:#071a38; --blue:#1688f5; --muted:#6f8097; }
+        body { margin:0; padding:24px 28px 38px; background:var(--bg); color:var(--text); font-family:Arial,Helvetica,sans-serif; display:none; }
+        .hlavicka,.ovladani,.obsah { width:min(1450px,100%); margin-left:auto; margin-right:auto; }
+        .hlavicka { min-height:74px; display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+        h1 { margin:0; font-size:32px; font-weight:800; }
+        .zpet { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 20px; border:1px solid #d6e0eb; border-radius:10px; background:#fff; color:var(--text); text-decoration:none; font-size:15px; font-weight:800; white-space:nowrap; }
+        .akce-hlavicky { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+        .ovladani { margin-bottom:14px; }
+        .filtry { display:grid; grid-template-columns:repeat(4,minmax(150px,1fr)); gap:10px; margin-bottom:10px; }
+        .filtr { display:flex; flex-direction:column; gap:6px; min-width:0; }
+        .filtr label { font-size:11px; font-weight:800; color:#52667f; }
+        .filtr input { width:100%; height:44px; padding:0 12px; border:1px solid #d6e0eb; border-radius:9px; background:#fff; color:var(--text); font-size:13px; outline:none; }
+        .filtr input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(22,136,245,.08); }
+        .tabulka-kontejner { width:min(1450px,100%); margin:0 auto; }
+        .tabulka-kontejner .zprava { width:100%; }
+        .pocitadlo { color:var(--muted); font-size:13px; font-weight:700; white-space:nowrap; }
+        .skupina-materialu { margin:0 0 18px; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 4px 14px rgba(20,45,75,.04); }
+        .skupina-materialu h2 { margin:0; padding:13px 18px; background:#edf2f7; border-bottom:1px solid var(--line); font-size:18px; font-weight:900; }
+        .tabulka-obal { width:100%; overflow-x:visible; }
+        table { border-collapse:collapse; width:100%; table-layout:auto; font-size:12px; }
+        thead th { position:sticky; top:0; z-index:5; background:#edf2f7; color:#52667f; text-align:left; font-size:10px; font-weight:800; padding:12px 8px; border-bottom:1px solid var(--line); }
+        tbody td { padding:11px 8px; border-bottom:1px solid #e9eef4; vertical-align:top; overflow-wrap:anywhere; }
+        tbody tr:last-child td { border-bottom:0; }
+        tbody tr:hover { background:#f7fbff; }
+        .operace { font-weight:900; }
+        .prijem { color:#08aa43; }
+        .vydej { color:#ef3737; }
+        .tavba { color:#0877e8; font-weight:800; }
+        .pocet-malo { color:#ef3737; font-weight:900; }
+        .pocet-stred { color:#f28a00; font-weight:900; }
+        .pocet-ok { color:#08aa43; font-weight:900; }
+        .zprava { background:white; border:1px solid var(--line); border-radius:10px; padding:22px; line-height:1.5; }
+        .napoveda { color:var(--muted); font-size:12px; margin:9px 0 0; }
+        @media (max-width:900px) {
+            .tabulka-obal { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+            table { min-width:1050px; }
+            thead th, tbody td { white-space:nowrap; }
+        }
+        @media (max-width:900px) { .filtry { grid-template-columns:repeat(2,minmax(0,1fr)); } body { padding:12px 10px 28px; } .hlavicka { min-height:58px; margin-bottom:12px; } h1 { font-size:21px; } .zpet { min-height:40px; padding:0 12px; font-size:13px; } .ovladani { flex-wrap:wrap; gap:8px; } .pocitadlo { padding-left:2px; } }
+        @media (max-width:400px) { .filtry { grid-template-columns:1fr 1fr; gap:8px; } .filtr input { font-size:12px; } h1 { font-size:18px; } .zpet { font-size:12px; padding:0 9px; } }
+    </style>
+</head>
+<body>
+    <div class="hlavicka">
+        <h1>Podrobnější stav skladu</h1>
+        <div class="akce-hlavicky">
+            <a class="zpet" href="historiepodrobnější.html">HISTORIE</a>
+            <a class="zpet" href="stav.html">← ZPĚT</a>
+        </div>
+    </div>
+    <div class="ovladani">
+        <div class="filtry">
+            <div class="filtr"><label for="filtrMaterialId">ID MATERIÁLU</label><input id="filtrMaterialId" data-sloupec="material_id" type="search" placeholder="Hledat ID..." autocomplete="off"></div>
+            <div class="filtr"><label for="filtrCsn">ČSN</label><input id="filtrCsn" data-sloupec="csn" type="search" placeholder="Hledat ČSN..." autocomplete="off"></div>
+            <div class="filtr"><label for="filtrEn">EN/W.Nr.</label><input id="filtrEn" data-sloupec="en_wnr" type="search" placeholder="Hledat EN/W.Nr...." autocomplete="off"></div>
+            <div class="filtr"><label for="filtrTavba">TAVBA</label><input id="filtrTavba" data-sloupec="tavba" type="search" placeholder="Hledat tavbu..." autocomplete="off"></div>
+        </div>
+        <span id="pocitadlo" class="pocitadlo"></span>
+    </div>
+    <div class="obsah">
+        <div class="tabulka-kontejner">
+            <div id="seznam" class="zprava">Ověřuji přístup...</div>
+        </div>
+    </div>
+    <script>
+        const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sloupce = [
+            ["csn", "ČSN"],
+            ["en_wnr", "EN / WNR"],
+            ["material", "MATERIÁL"],
+            ["druh", "DRUH"],
+            ["rozmer", "ROZMĚR"],
+            ["tavba", "TAVBA"],
+            ["jakost", "JAKOST"],
+            ["tolerance", "TOLERANCE"],
+            ["pocet_zbyva", "POČET ZBÝVÁ"],
+            ["material_id", "ID MATERIÁLU"]
+        ];
+        let stavData = [];
+        const seznam = document.getElementById("seznam");
+        const pocitadlo = document.getElementById("pocitadlo");
+        function escapeHtml(hodnota) {
+            return String(hodnota ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+        }
+        function formatHodnota(klic, hodnota) {
+            if (hodnota === null || hodnota === undefined || hodnota === "") return "—";
+            if ((klic === "datum_operace" || klic === "datum_prijmu") && typeof hodnota === "string") {
+                const shoda = hodnota.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+                if (shoda) return `${shoda[3]}. ${shoda[2]}. ${shoda[1]}${klic === "datum_operace" && shoda[4] ? ` ${shoda[4]}:${shoda[5]}:${shoda[6] || "00"}` : ""}`;
+            }
+            return String(hodnota);
+        }
+        function zobrazStav() {
+            const podminky = Array.from(document.querySelectorAll(".filtr input"))
+                .map(input => [input.dataset.sloupec, input.value.trim().toLocaleLowerCase("cs")])
+                .filter(([, hodnota]) => hodnota !== "");
+            const filtrovana = stavData.filter(zaznam => podminky.every(([klic, hledat]) =>
+                String(zaznam[klic] ?? "").trim().toLocaleLowerCase("cs") === hledat));
+            pocitadlo.textContent = `${filtrovana.length} z ${stavData.length} položek`;
+            if (!filtrovana.length) {
+                seznam.className = "zprava";
+                seznam.textContent = "Žádné položky nebyly nalezeny.";
+                return;
+            }
+            const hlavicka = sloupce.map(([, nazev]) => `<th scope="col">${escapeHtml(nazev)}</th>`).join("");
+            const poradi = ["OCEL", "NEREZ", "HLINÍK", "MOSAZ"];
+            const skupiny = new Map();
+            filtrovana.forEach(zaznam => {
+                const puvodni = String(zaznam.material ?? "NEUVEDENO").trim().toLocaleUpperCase("cs");
+                const material = puvodni === "HLINIK" ? "HLINÍK" : puvodni;
+                if (!skupiny.has(material)) skupiny.set(material, []);
+                skupiny.get(material).push(zaznam);
+            });
+            const nazvy = Array.from(skupiny.keys()).sort((a, b) => {
+                const ia = poradi.indexOf(a), ib = poradi.indexOf(b);
+                if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+                return a.localeCompare(b, "cs");
+            });
+            seznam.className = "";
+            seznam.innerHTML = nazvy.map(material => {
+                const radky = skupiny.get(material).map(zaznam => "<tr>" + sloupce.map(([klic]) => {
+                    let trida = klic === "tavba" ? "tavba" : "";
+                    if (klic === "pocet_zbyva") {
+                        const pocet = Number(zaznam[klic]);
+                        trida = pocet <= 10 ? "pocet-malo" : pocet <= 20 ? "pocet-stred" : "pocet-ok";
+                    }
+                    return `<td class="${trida}">${escapeHtml(formatHodnota(klic, zaznam[klic]))}</td>`;
+                }).join("") + "</tr>").join("");
+                return `<section class="skupina-materialu"><h2>${escapeHtml(material)}</h2><div class="tabulka-obal"><table><thead><tr>${hlavicka}</tr></thead><tbody>${radky}</tbody></table></div></section>`;
+            }).join("");
+        }
+        async function spustit() {
+            try {
+                const { data: prihlaseni, error: chybaPrihlaseni } = await supabaseClient.auth.getSession();
+                if (chybaPrihlaseni || !prihlaseni.session) { window.location.replace("../login.html"); return; }
+                document.body.style.display = "block";
+                const { data: uzivatel, error: chybaRole } = await supabaseClient.from("uzivatele")
+                    .select("role").eq("user_id", prihlaseni.session.user.id).maybeSingle();
+                if (chybaRole || uzivatel?.role !== "vedeni") {
+                    seznam.textContent = "Přístup zamítnut. Podrobnější stav je dostupný pouze vedení.";
+                    return;
+                }
+                seznam.textContent = "Načítám podrobnější stav...";
+                // RPC musí na serveru ověřovat auth.uid() a roli vedeni.
+                const { data, error } = await supabaseClient.rpc("nacti_stav_podrobnejsi");
+                if (error) { seznam.textContent = "Chyba při načítání podrobnějšího stavu: " + error.message; return; }
+                stavData = data || [];
+                zobrazStav();
+            } catch (chyba) {
+                document.body.style.display = "block";
+                seznam.textContent = "Chyba při načítání stránky: " + (chyba?.message || String(chyba));
+            }
+        }
+        document.querySelectorAll(".filtr input").forEach(input =>
+            input.addEventListener("input", () => { if (stavData.length) zobrazStav(); }));
+        spustit();
+    </script>
+</body>
+</html>

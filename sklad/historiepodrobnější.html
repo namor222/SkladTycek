@@ -36,6 +36,11 @@
         .tavba { color:#0877e8; font-weight:800; }
         .zprava { background:white; border:1px solid var(--line); border-radius:10px; padding:22px; line-height:1.5; }
         .napoveda { color:var(--muted); font-size:12px; margin:9px 0 0; }
+        .plovouci-posuvnik { position:fixed; top:0; z-index:22; overflow-x:auto; overflow-y:hidden; height:19px; background:#fff; border:1px solid var(--line); }
+        .plovouci-posuvnik > div { height:1px; }
+        .plovouci-hlavicka { position:fixed; top:0; overflow:hidden; z-index:20; pointer-events:none; background:#edf2f7; border:1px solid var(--line); box-shadow:0 2px 8px rgba(20,45,75,.08); }
+        .plovouci-hlavicka table { transform:none; width:max-content; min-width:0; table-layout:fixed; margin:0; }
+        .plovouci-hlavicka th { position:static; }
         @media (max-width:900px) { .filtry { grid-template-columns:repeat(2,minmax(0,1fr)); } body { padding:12px 10px 28px; } .hlavicka { min-height:58px; margin-bottom:12px; } h1 { font-size:21px; } .zpet { min-height:40px; padding:0 12px; font-size:13px; } .ovladani { flex-wrap:wrap; gap:8px; } .pocitadlo { padding-left:2px; } }
         @media (max-width:400px) { .filtry { grid-template-columns:1fr 1fr; gap:8px; } .filtr input { font-size:12px; } h1 { font-size:18px; } .zpet { font-size:12px; padding:0 9px; } }
     </style>
@@ -45,6 +50,7 @@
         <h1>Podrobnější historie skladu</h1>
         <div class="akce-hlavicky">
             <a class="zpet" href="stavpodrobnější.html">STAV</a>
+            <a class="zpet" href="grafcena.html">CENA ZA KG</a>
             <a class="zpet" href="historie.html">← ZPĚT</a>
         </div>
     </div>
@@ -85,11 +91,13 @@
             ["objednavka", "OBJEDNÁVKA"],
             ["dodavatel", "DODAVATEL"],
             ["cislo_dodaciho_listu", "ČÍSLO DODACÍHO LISTU"],
-            ["datum_prijmu", "DATUM PŘÍJMU"],
             ["stav", "STAV"],
             ["cena_za_kg", "CENA ZA KG"]
         ];
         let historieData = [];
+        let plovouciHlavicka = null;
+        let plovouciPosuvnik = null;
+        let uzivatelPosouvaPlovouci = false;
         const seznam = document.getElementById("seznam");
         const pocitadlo = document.getElementById("pocitadlo");
         function escapeHtml(hodnota) {
@@ -104,6 +112,84 @@
             }
             return String(hodnota);
         }
+        function aktualizujPlovouciHlavicku() {
+            const obal = seznam.classList.contains("tabulka-obal") ? seznam : null;
+            const tabulka = obal?.querySelector("table");
+            const hlavicka = tabulka?.querySelector("thead");
+            if (!obal || !hlavicka || !plovouciHlavicka) {
+                if (plovouciPosuvnik) plovouciPosuvnik.hidden = true;
+                if (plovouciHlavicka) plovouciHlavicka.hidden = true;
+                return;
+            }
+            const obalRect = obal.getBoundingClientRect();
+            const hlavickaRect = hlavicka.getBoundingClientRect();
+            const vyskaHlavicky = hlavickaRect.height;
+            const viditelna = hlavickaRect.bottom < 0 && obalRect.bottom > vyskaHlavicky;
+            plovouciHlavicka.hidden = !viditelna;
+            if (plovouciPosuvnik) {
+                plovouciPosuvnik.hidden = !viditelna;
+                if (viditelna) {
+                    plovouciPosuvnik.style.left = obalRect.left + "px";
+                    plovouciPosuvnik.style.width = obalRect.width + "px";
+                    plovouciPosuvnik.firstElementChild.style.width = obal.scrollWidth + "px";
+                    // Při tažení posuvníku nesmíme přepisovat jeho pozici.
+                    if (!uzivatelPosouvaPlovouci && plovouciPosuvnik.scrollLeft !== obal.scrollLeft) plovouciPosuvnik.scrollLeft = obal.scrollLeft;
+                }
+            }
+            if (!viditelna) return;
+            plovouciHlavicka.style.top = "19px";
+            plovouciHlavicka.style.left = obalRect.left + "px";
+            plovouciHlavicka.style.width = obalRect.width + "px";
+            const originalniBunky = Array.from(hlavicka.querySelectorAll("th"));
+            const kopie = plovouciHlavicka.querySelector("table");
+            const kopieBunky = Array.from(kopie.querySelectorAll("th"));
+            originalniBunky.forEach((bunka, index) => {
+                const sirka = bunka.getBoundingClientRect().width;
+                kopieBunky[index].style.width = sirka + "px";
+                kopieBunky[index].style.minWidth = sirka + "px";
+                kopieBunky[index].style.maxWidth = sirka + "px";
+            });
+            kopie.style.transform = `translateX(${-obal.scrollLeft}px)`;
+        }
+        function pripravPlovouciHlavicku() {
+            if (plovouciHlavicka) plovouciHlavicka.remove();
+            if (plovouciPosuvnik) plovouciPosuvnik.remove();
+            plovouciPosuvnik = document.createElement("div");
+            plovouciPosuvnik.className = "plovouci-posuvnik";
+            plovouciPosuvnik.hidden = true;
+            plovouciPosuvnik.appendChild(document.createElement("div"));
+            document.body.appendChild(plovouciPosuvnik);
+            // Synchronizace pouze ve směru aktivního ovládání; žádné přetahování dvou posuvníků.
+            plovouciPosuvnik.addEventListener("pointerdown", () => { uzivatelPosouvaPlovouci = true; });
+            window.addEventListener("pointerup", () => { uzivatelPosouvaPlovouci = false; }, { passive:true });
+            window.addEventListener("pointercancel", () => { uzivatelPosouvaPlovouci = false; }, { passive:true });
+            plovouciPosuvnik.addEventListener("scroll", () => {
+                if (seznam.classList.contains("tabulka-obal") && uzivatelPosouvaPlovouci) {
+                    seznam.scrollLeft = plovouciPosuvnik.scrollLeft;
+                    const kopie = plovouciHlavicka?.querySelector("table");
+                    if (kopie) kopie.style.transform = `translateX(${-seznam.scrollLeft}px)`;
+                }
+            }, { passive:true });
+            plovouciPosuvnik.addEventListener("wheel", event => {
+                if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+                    uzivatelPosouvaPlovouci = true;
+                    requestAnimationFrame(() => { uzivatelPosouvaPlovouci = false; });
+                }
+            }, { passive:true });
+            plovouciHlavicka = document.createElement("div");
+            plovouciHlavicka.className = "plovouci-hlavicka";
+            plovouciHlavicka.hidden = true;
+            const original = seznam.querySelector("thead");
+            if (!original) return;
+            const tabulka = document.createElement("table");
+            tabulka.appendChild(original.cloneNode(true));
+            plovouciHlavicka.appendChild(tabulka);
+            document.body.appendChild(plovouciHlavicka);
+            seznam.addEventListener("scroll", aktualizujPlovouciHlavicku, { passive:true });
+            aktualizujPlovouciHlavicku();
+        }
+        window.addEventListener("scroll", aktualizujPlovouciHlavicku, { passive:true });
+        window.addEventListener("resize", aktualizujPlovouciHlavicku);
         function zobrazHistorii() {
             const podminky = Array.from(document.querySelectorAll(".filtr input"))
                 .map(input => [input.dataset.sloupec, input.value.trim().toLocaleLowerCase("cs")])
@@ -111,7 +197,7 @@
             const filtrovana = historieData.filter(zaznam => podminky.every(([klic, hledat]) =>
                 String(zaznam[klic] ?? "").trim().toLocaleLowerCase("cs") === hledat));
             pocitadlo.textContent = `${filtrovana.length} z ${historieData.length} záznamů`;
-            if (!filtrovana.length) { seznam.className = "zprava"; seznam.textContent = "Žádné záznamy nebyly nalezeny."; return; }
+            if (!filtrovana.length) { seznam.className = "zprava"; seznam.textContent = "Žádné záznamy nebyly nalezeny."; if (plovouciHlavicka) plovouciHlavicka.hidden = true; return; }
             const hlavicka = sloupce.map(([, nazev]) => `<th scope="col">${escapeHtml(nazev)}</th>`).join("");
             const radky = filtrovana.map(zaznam => "<tr>" + sloupce.map(([klic]) => {
                 const hodnota = formatHodnota(klic, zaznam[klic]);
@@ -125,6 +211,7 @@
             }).join("") + "</tr>").join("");
             seznam.className = "tabulka-obal";
             seznam.innerHTML = `<table><thead><tr>${hlavicka}</tr></thead><tbody>${radky}</tbody></table>`;
+            pripravPlovouciHlavicku();
         }
         async function spustit() {
             try {
