@@ -1661,6 +1661,32 @@ async function nactiAIPolozku(index){
 }
 
 /* =========================================================
+   ARCHIV FOTOGRAFIÍ DODACÍCH LISTŮ – NEZÁVISLÝ NA AI
+   Vyžaduje soukromý Storage bucket "dodaci-listy" a INSERT policy.
+========================================================= */
+const archivovaneFotky = new WeakSet();
+
+async function archivujFotkyDodaku(fotky, userId){
+    for(const foto of fotky){
+        if(archivovaneFotky.has(foto.blob)) continue;
+        try{
+            const pripona = (foto.blob.type || "").split("/")[1]?.toLowerCase();
+            const typ = pripona === "jpeg" ? "jpg" : pripona === "png" ? "png" : pripona === "webp" ? "webp" : pripona === "heic" ? "heic" : "img";
+            const cesta = `${userId}/${crypto.randomUUID()}.${typ}`;
+            const {error} = await supabaseClient.storage.from("dodaci-listy").upload(cesta, foto.blob, {
+                contentType: foto.blob.type || "application/octet-stream",
+                upsert: false
+            });
+            if(error) throw error;
+            archivovaneFotky.add(foto.blob);
+        }catch(chyba){
+            // Archivace nesmí nikdy zastavit AI čtení ani příjem do skladu.
+            console.error("Archivace fotografie dodacího listu se nezdařila:", chyba);
+        }
+    }
+}
+
+/* =========================================================
    AI ČTENÍ
 ========================================================= */
 
@@ -1682,6 +1708,11 @@ async function precistDodakAI(){
         if(sessionError || !sessionData.session?.access_token){
             throw new Error("Přihlášení vypršelo. Přihlas se znovu.");
         }
+
+        // Samostatná archivace originálních fotek; neblokuje původní AI postup.
+        // Snapshot chrání před změnou seznamu fotografií během čtení.
+        void archivujFotkyDodaku([...fotkyDokumentu], sessionData.session.user.id)
+            .catch(chyba => console.error("Archiv dodacích listů:", chyba));
 
         const response=await fetch(`${SUPABASE_URL}/functions/v1/cteni-dodaku`,{
             method:"POST",
