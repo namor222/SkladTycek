@@ -66,13 +66,13 @@ main{max-width:1500px;margin:auto}.head{display:flex;align-items:center;justify-
 
 <section class="card chart-card">
 
-<div class="chart-top"><div><h2>Vývoj ceny za kg</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot"></i>Jednotlivé dodávky</span><span><i class="dot red"></i>Průměrná cena (denní)</span></div></div>
+<div class="chart-top"><div><h2>Vývoj ceny za kg</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
 
 <div class="graph-wrap" id="graphWrap"><canvas id="graf"></canvas><div id="tooltip" class="tooltip"></div></div>
 
 </section>
 
-<section class="card table-card"><h2>Detailní přehled dodávek</h2><div id="pocitadlo" class="counter"></div><div class="table-scroll"><table><thead><tr><th>DATUM PŘÍJMU</th><th>MATERIÁL</th><th>DRUH</th><th>ROZMĚR</th><th>EN / WNR</th><th>DODAVATEL</th><th>CENA ZA KG (Kč)</th></tr></thead><tbody id="radky"><tr><td colspan="7" class="empty">Načítám ceny...</td></tr></tbody></table></div></section>
+<section class="card table-card"><h2>Detailní přehled</h2><div class="table-scroll"><table><thead><tr><th>DATUM PŘÍJMU</th><th>MATERIÁL</th><th>DRUH</th><th>ROZMĚR</th><th>EN / WNR</th><th>DODAVATEL</th><th>CENA ZA KG (Kč)</th></tr></thead><tbody id="radky"><tr><td colspan="7" class="empty">Načítám ceny...</td></tr></tbody></table></div></section>
 
 </main>
 
@@ -114,7 +114,7 @@ vybrane.sort((a,b)=>new Date(a.datum_prijmu)-new Date(b.datum_prijmu));
 
 $("popis").textContent=[ $("material").value,$("druh").value,$("rozmer").value,$("en").value].filter(Boolean).join(" · ")||"Všechny materiály a dodávky";
 
-$("pocitadlo").textContent=vybrane.length+" dodávek s vyplněnou cenou";
+
 
 const radky=$("radky");radky.innerHTML=vybrane.length?[...vybrane].reverse().map(r=>`<tr><td>${esc(datum(r.datum_prijmu))}</td><td>${esc(r.material)}</td><td>${esc(r.druh)}</td><td>${esc(r.rozmer)}</td><td>${esc(r.en_wnr)}</td><td>${esc(r.dodavatel)}</td><td class="price">${cena(r.cena_za_kg)} Kč</td></tr>`).join(""):'<tr><td colspan="7" class="empty">Pro zadané filtry nejsou dostupné žádné ceny.</td></tr>';
 
@@ -123,45 +123,31 @@ nakresli();
 }
 
 function nakresli(){
-
 const canvas=$("graf"),rect=canvas.getBoundingClientRect(),w=Math.max(300,rect.width),h=Math.max(240,rect.height),dpr=window.devicePixelRatio||1;
-
 canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
-
-const left=62,right=18,top=20,bottom=47,cw=w-left-right,ch=h-top-bottom;
-
+const left=70,right=22,top=25,bottom=53,cw=w-left-right,ch=h-top-bottom;
 const platne=vybrane.filter(r=>Number.isFinite(Number(r.cena_za_kg))&&Number(r.cena_za_kg)>=0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
-
-bodyGrafu=[];plochaGrafu={left,top,cw,ch};
-
-ctx.font="12px Arial";ctx.textAlign="left";
-
+bodyGrafu=[];plochaGrafu={left,top,cw,ch};ctx.font="12px Arial";
 if(!platne.length){ctx.fillStyle="#69809b";ctx.textAlign="center";ctx.fillText("Žádná data pro zvolené filtry",w/2,h/2);return}
-
-let minT=Math.min(...platne.map(r=>new Date(r.datum_prijmu).getTime())),maxT=Math.max(...platne.map(r=>new Date(r.datum_prijmu).getTime()));
-
+// Průměr za každý kalendářní den. Všechna původní data dodávek zůstávají v tabulce.
+const dny=new Map();for(const r of platne){const date=new Date(r.datum_prijmu),key=date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");if(!dny.has(key))dny.set(key,{sum:0,count:0});const d=dny.get(key);d.sum+=Number(r.cena_za_kg);d.count++}
+const prumery=[...dny].sort((a,b)=>a[0].localeCompare(b[0])).map(([key,m])=>({key,value:m.sum/m.count,time:new Date(key+"T12:00:00").getTime(),count:m.count}));
+let minT=prumery[0].time,maxT=prumery[prumery.length-1].time;
 if(minT===maxT){minT-=86400000;maxT+=86400000}
-
-let maxY=Math.max(...platne.map(r=>Number(r.cena_za_kg)));maxY=Math.max(10,Math.ceil(maxY*1.12/10)*10);
-
-const x=t=>left+(t-minT)/(maxT-minT)*cw,y=v=>top+ch-(v/maxY)*ch;
-
-ctx.strokeStyle="#e4ebf4";ctx.fillStyle="#57708f";ctx.lineWidth=1;
-
-for(let i=0;i<=5;i++){let yy=top+i*ch/5;ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+cw,yy);ctx.stroke();ctx.textAlign="right";ctx.fillText((maxY*(5-i)/5).toLocaleString("cs-CZ"),left-10,yy+4)}
-
-const n=w<600?4:8;for(let i=0;i<=n;i++){let t=minT+(maxT-minT)*i/n,xx=x(t);ctx.beginPath();ctx.moveTo(xx,top);ctx.lineTo(xx,top+ch);ctx.stroke();ctx.textAlign="center";ctx.fillText(new Date(t).toLocaleDateString("cs-CZ",{month:"2-digit",year:"numeric"}),xx,h-17)}
-
-ctx.save();ctx.translate(16,top+ch/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#4f6888";ctx.fillText("Cena za kg (Kč)",0,0);ctx.restore();
-
-const dny=new Map();for(const r of platne){const date=new Date(r.datum_prijmu),key=date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");if(!dny.has(key))dny.set(key,{sum:0,count:0,dates:[]});const d=dny.get(key);d.sum+=Number(r.cena_za_kg);d.count++;d.dates.push(date.getTime())}
-
-const prumery=[...dny].sort((a,b)=>a[0].localeCompare(b[0])).map(([key,m])=>({key,value:m.sum/m.count,time:m.dates.reduce((a,b)=>a+b,0)/m.count,count:m.count}));
-
-if(prumery.length){ctx.beginPath();prumery.forEach((p,i)=>{const xx=x(p.time),yy=y(p.value);if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy)});ctx.lineWidth=2.5;ctx.strokeStyle="#ed3544";ctx.stroke();for(const p of prumery){ctx.beginPath();ctx.arc(x(p.time),y(p.value),4,0,Math.PI*2);ctx.fillStyle="#ed3544";ctx.fill();bodyGrafu.push({x:x(p.time),y:y(p.value),label:`${p.key.slice(8)}.${p.key.slice(5,7)}.${p.key.slice(0,4)}`,text:`Průměrná cena: ${cena(p.value)} Kč<br>Počet dodávek: ${p.count}`,typ:"prumer"})}}
-
-for(const r of platne){const xx=x(new Date(r.datum_prijmu).getTime()),yy=y(Number(r.cena_za_kg));ctx.beginPath();ctx.arc(xx,yy,3.5,0,Math.PI*2);ctx.fillStyle="#1688f5";ctx.fill();bodyGrafu.push({x:xx,y:yy,label:datum(r.datum_prijmu),text:`Cena: ${cena(r.cena_za_kg)} Kč<br>Dodavatel: ${esc(r.dodavatel||"neuveden")}`,typ:"dodavka"})}
-
+const ceny=prumery.map(p=>p.value),minimum=Math.min(...ceny),maximum=Math.max(...ceny),rozpeti=Math.max(1,maximum-minimum);
+const minY=Math.max(0,minimum-rozpeti*.18),maxY=maximum+rozpeti*.18;
+const x=t=>left+(t-minT)/(maxT-minT)*cw,y=v=>top+ch-(v-minY)/(maxY-minY)*ch;
+ctx.strokeStyle="#e6edf5";ctx.fillStyle="#57708f";ctx.lineWidth=1;
+for(let i=0;i<=4;i++){const hodnota=minY+(maxY-minY)*(4-i)/4,yy=top+i*ch/4;ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+cw,yy);ctx.stroke();ctx.textAlign="right";ctx.fillText(hodnota.toLocaleString("cs-CZ",{maximumFractionDigits:2})+" Kč",left-10,yy+4)}
+// Popisky osy X jsou skutečné dny s dodávkami, bez opakování stejného měsíce.
+const maxPopisku=w<600?4:8,krok=Math.max(1,Math.ceil(prumery.length/maxPopisku));
+const popisky=prumery.filter((_,i)=>i%krok===0||i===prumery.length-1);
+let posledniPravy=-Infinity;
+for(const p of popisky){const xx=x(p.time),text=p.key.slice(8)+". "+p.key.slice(5,7)+". "+p.key.slice(0,4);ctx.textAlign="center";const sirka=ctx.measureText(text).width;if(xx-sirka/2<posledniPravy+10)continue;ctx.fillText(text,xx,h-16);posledniPravy=xx+sirka/2}
+ctx.save();ctx.translate(17,top+ch/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#4f6888";ctx.fillText("Cena za kg (Kč)",0,0);ctx.restore();
+// Každý úsek je zelený při růstu, červený při poklesu, šedý beze změny.
+for(let i=1;i<prumery.length;i++){const pred=prumery[i-1],akt=prumery[i];ctx.beginPath();ctx.moveTo(x(pred.time),y(pred.value));ctx.lineTo(x(akt.time),y(akt.value));ctx.strokeStyle=akt.value>pred.value?"#13a34a":akt.value<pred.value?"#ed3544":"#8190a4";ctx.lineWidth=2.8;ctx.stroke()}
+for(let i=0;i<prumery.length;i++){const p=prumery[i],pred=prumery[i-1];const barva=!pred?"#1688f5":p.value>pred.value?"#13a34a":p.value<pred.value?"#ed3544":"#8190a4";const xx=x(p.time),yy=y(p.value);ctx.beginPath();ctx.arc(xx,yy,4.5,0,Math.PI*2);ctx.fillStyle=barva;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke();bodyGrafu.push({x:xx,y:yy,label:p.key.slice(8)+". "+p.key.slice(5,7)+". "+p.key.slice(0,4),text:`Průměrná cena: ${cena(p.value)} Kč/kg<br>Počet dodávek: ${p.count}`,typ:"prumer"})}
 }
 
 $("graf").addEventListener("mousemove",e=>{const r=$("graf").getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;let best=null,dist=Infinity;for(const p of bodyGrafu){const d=Math.hypot(p.x-px,p.y-py);if(d<dist){dist=d;best=p}}const tip=$("tooltip");if(!best||dist>18){tip.style.display="none";return}tip.innerHTML=`<strong>${best.label}</strong><br>${best.text}`;tip.style.display="block";tip.style.left=Math.max(0,Math.min(r.width-205,px+14))+"px";tip.style.top=Math.max(0,py-70)+"px"});
