@@ -66,7 +66,7 @@ main{max-width:1500px;margin:auto}.head{display:flex;align-items:center;justify-
 
 <section class="card chart-card">
 
-<div class="chart-top"><div><h2>Vývoj ceny za kg</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
+<div class="chart-top"><div><h2>Vývoj ceny</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
 
 <div class="graph-wrap" id="graphWrap"><canvas id="graf"></canvas><div id="tooltip" class="tooltip"></div></div>
 
@@ -112,7 +112,7 @@ vybrane=vse.filter(r=>(!mat||norm(r.material)===mat)&&(!dr||norm(r.druh)===dr)&&
 
 vybrane.sort((a,b)=>new Date(a.datum_prijmu)-new Date(b.datum_prijmu));
 
-$("popis").textContent=[ $("material").value,$("druh").value,$("rozmer").value,$("en").value].filter(Boolean).join(" · ")||"Všechny materiály a dodávky";
+$("popis").textContent=[ $("material").value,$("druh").value,$("rozmer").value,$("en").value].filter(Boolean).join(" · ")||"Všechny materiály";
 
 
 
