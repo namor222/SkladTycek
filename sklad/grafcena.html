@@ -66,13 +66,18 @@ main{max-width:1500px;margin:auto}.head{display:flex;align-items:center;justify-
 
 <section class="card chart-card">
 
-<div class="chart-top"><div><h2>Vývoj ceny</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
+<div class="chart-top"><div><h2>Vývoj ceny za kg</h2><div class="subtitle" id="popis">Vyber materiál a sleduj vývoj cen jednotlivých dodávek</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
 
 <div class="graph-wrap" id="graphWrap"><canvas id="graf"></canvas><div id="tooltip" class="tooltip"></div></div>
 
 </section>
 
-<section class="card table-card"><h2>Detailní přehled</h2><div class="table-scroll"><table><thead><tr><th>DATUM PŘÍJMU</th><th>MATERIÁL</th><th>DRUH</th><th>ROZMĚR</th><th>EN / WNR</th><th>DODAVATEL</th><th>CENA ZA KG (Kč)</th></tr></thead><tbody id="radky"><tr><td colspan="7" class="empty">Načítám ceny...</td></tr></tbody></table></div></section>
+<section class="card chart-card">
+<div class="chart-top"><div><h2>Vývoj ceny za dopravu</h2><div class="subtitle" id="popisDoprava">Průměrná cena dopravy podle dne příjmu</div></div><div class="legend"><span><i class="dot" style="background:#13a34a"></i>Růst ceny</span><span><i class="dot red"></i>Pokles ceny</span><span><i class="dot" style="background:#8190a4"></i>Beze změny</span></div></div>
+<div class="graph-wrap" id="graphWrapDoprava"><canvas id="grafDoprava"></canvas><div id="tooltipDoprava" class="tooltip"></div></div>
+</section>
+
+<section class="card table-card"><h2>Detailní přehled</h2><div class="table-scroll"><table><thead><tr><th>DATUM PŘÍJMU</th><th>MATERIÁL</th><th>DRUH</th><th>ROZMĚR</th><th>EN / WNR</th><th>DODAVATEL</th><th>CENA ZA KG (Kč)</th><th>CENA ZA DOPRAVU (Kč)</th></tr></thead><tbody id="radky"><tr><td colspan="8" class="empty">Načítám ceny...</td></tr></tbody></table></div></section>
 
 </main>
 
@@ -86,9 +91,9 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const $=id=>document.getElementById(id);
 
-const sloupce=["cena_za_kg","datum_prijmu","material","druh","rozmer","en_wnr","dodavatel"];
+const sloupce=["cena_za_kg","datum_prijmu","material","druh","rozmer","en_wnr","dodavatel","cena_za_dopravu"];
 
-let vse=[],vybrane=[],bodyGrafu=[],plochaGrafu=null;
+let vse=[],vybrane=[],bodyGrafu=[],bodyGrafuDoprava=[],plochaGrafu=null;
 
 const norm=v=>String(v??"").trim().toLocaleLowerCase("cs");
 
@@ -113,12 +118,14 @@ vybrane=vse.filter(r=>(!mat||norm(r.material)===mat)&&(!dr||norm(r.druh)===dr)&&
 vybrane.sort((a,b)=>new Date(a.datum_prijmu)-new Date(b.datum_prijmu));
 
 $("popis").textContent=[ $("material").value,$("druh").value,$("rozmer").value,$("en").value].filter(Boolean).join(" · ")||"Všechny materiály";
+$("popisDoprava").textContent=$("popis").textContent;
 
 
 
-const radky=$("radky");radky.innerHTML=vybrane.length?[...vybrane].reverse().map(r=>`<tr><td>${esc(datum(r.datum_prijmu))}</td><td>${esc(r.material)}</td><td>${esc(r.druh)}</td><td>${esc(r.rozmer)}</td><td>${esc(r.en_wnr)}</td><td>${esc(r.dodavatel)}</td><td class="price">${cena(r.cena_za_kg)} Kč</td></tr>`).join(""):'<tr><td colspan="7" class="empty">Pro zadané filtry nejsou dostupné žádné ceny.</td></tr>';
+const radky=$("radky");radky.innerHTML=vybrane.length?[...vybrane].reverse().map(r=>`<tr><td>${esc(datum(r.datum_prijmu))}</td><td>${esc(r.material)}</td><td>${esc(r.druh)}</td><td>${esc(r.rozmer)}</td><td>${esc(r.en_wnr)}</td><td>${esc(r.dodavatel)}</td><td class="price">${cena(r.cena_za_kg)} Kč</td><td class="price">${r.cena_za_dopravu==null?"—":cena(r.cena_za_dopravu)+" Kč"}</td></tr>`).join(""):'<tr><td colspan="8" class="empty">Pro zadané filtry nejsou dostupné žádné ceny.</td></tr>';
 
 nakresli();
+nakresliDopravu();
 
 }
 
@@ -150,13 +157,46 @@ for(let i=1;i<prumery.length;i++){const pred=prumery[i-1],akt=prumery[i];ctx.beg
 for(let i=0;i<prumery.length;i++){const p=prumery[i],pred=prumery[i-1];const barva=!pred?"#1688f5":p.value>pred.value?"#13a34a":p.value<pred.value?"#ed3544":"#8190a4";const xx=x(p.time),yy=y(p.value);ctx.beginPath();ctx.arc(xx,yy,4.5,0,Math.PI*2);ctx.fillStyle=barva;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke();bodyGrafu.push({x:xx,y:yy,label:p.key.slice(8)+". "+p.key.slice(5,7)+". "+p.key.slice(0,4),text:`Průměrná cena: ${cena(p.value)} Kč/kg<br>Počet dodávek: ${p.count}`,typ:"prumer"})}
 }
 
+function nakresliDopravu(){
+const canvas=$("grafDoprava"),rect=canvas.getBoundingClientRect(),w=Math.max(300,rect.width),h=Math.max(240,rect.height),dpr=window.devicePixelRatio||1;
+canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+const left=70,right=22,top=25,bottom=53,cw=w-left-right,ch=h-top-bottom;
+const platne=vybrane.filter(r=>r.cena_za_dopravu!=null&&Number.isFinite(Number(r.cena_za_dopravu))&&Number(r.cena_za_dopravu)>=0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
+bodyGrafuDoprava=[];plochaGrafu={left,top,cw,ch};ctx.font="12px Arial";
+if(!platne.length){ctx.fillStyle="#69809b";ctx.textAlign="center";ctx.fillText("Žádná data pro zvolené filtry",w/2,h/2);return}
+// Průměr za každý kalendářní den. Všechna původní data dodávek zůstávají v tabulce.
+const dny=new Map();for(const r of platne){const date=new Date(r.datum_prijmu),key=date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");if(!dny.has(key))dny.set(key,{sum:0,count:0});const d=dny.get(key);d.sum+=Number(r.cena_za_dopravu);d.count++}
+const prumery=[...dny].sort((a,b)=>a[0].localeCompare(b[0])).map(([key,m])=>({key,value:m.sum/m.count,time:new Date(key+"T12:00:00").getTime(),count:m.count}));
+let minT=prumery[0].time,maxT=prumery[prumery.length-1].time;
+if(minT===maxT){minT-=86400000;maxT+=86400000}
+const ceny=prumery.map(p=>p.value),minimum=Math.min(...ceny),maximum=Math.max(...ceny),rozpeti=Math.max(1,maximum-minimum);
+const minY=Math.max(0,minimum-rozpeti*.18),maxY=maximum+rozpeti*.18;
+const x=t=>left+(t-minT)/(maxT-minT)*cw,y=v=>top+ch-(v-minY)/(maxY-minY)*ch;
+ctx.strokeStyle="#e6edf5";ctx.fillStyle="#57708f";ctx.lineWidth=1;
+for(let i=0;i<=4;i++){const hodnota=minY+(maxY-minY)*(4-i)/4,yy=top+i*ch/4;ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(left+cw,yy);ctx.stroke();ctx.textAlign="right";ctx.fillText(hodnota.toLocaleString("cs-CZ",{maximumFractionDigits:2})+" Kč",left-10,yy+4)}
+// Popisky osy X jsou skutečné dny s dodávkami, bez opakování stejného měsíce.
+const maxPopisku=w<600?4:8,krok=Math.max(1,Math.ceil(prumery.length/maxPopisku));
+const popisky=prumery.filter((_,i)=>i%krok===0||i===prumery.length-1);
+let posledniPravy=-Infinity;
+for(const p of popisky){const xx=x(p.time),text=p.key.slice(8)+". "+p.key.slice(5,7)+". "+p.key.slice(0,4);ctx.textAlign="center";const sirka=ctx.measureText(text).width;if(xx-sirka/2<posledniPravy+10)continue;ctx.fillText(text,xx,h-16);posledniPravy=xx+sirka/2}
+ctx.save();ctx.translate(17,top+ch/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#4f6888";ctx.fillText("Cena za dopravu (Kč)",0,0);ctx.restore();
+// Každý úsek je zelený při růstu, červený při poklesu, šedý beze změny.
+for(let i=1;i<prumery.length;i++){const pred=prumery[i-1],akt=prumery[i];ctx.beginPath();ctx.moveTo(x(pred.time),y(pred.value));ctx.lineTo(x(akt.time),y(akt.value));ctx.strokeStyle=akt.value>pred.value?"#13a34a":akt.value<pred.value?"#ed3544":"#8190a4";ctx.lineWidth=2.8;ctx.stroke()}
+for(let i=0;i<prumery.length;i++){const p=prumery[i],pred=prumery[i-1];const barva=!pred?"#1688f5":p.value>pred.value?"#13a34a":p.value<pred.value?"#ed3544":"#8190a4";const xx=x(p.time),yy=y(p.value);ctx.beginPath();ctx.arc(xx,yy,4.5,0,Math.PI*2);ctx.fillStyle=barva;ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=1.5;ctx.stroke();bodyGrafuDoprava.push({x:xx,y:yy,label:p.key.slice(8)+". "+p.key.slice(5,7)+". "+p.key.slice(0,4),text:`Průměrná doprava: ${cena(p.value)} Kč<br>Počet dodávek: ${p.count}`,typ:"prumer"})}
+}
+
 $("graf").addEventListener("mousemove",e=>{const r=$("graf").getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;let best=null,dist=Infinity;for(const p of bodyGrafu){const d=Math.hypot(p.x-px,p.y-py);if(d<dist){dist=d;best=p}}const tip=$("tooltip");if(!best||dist>18){tip.style.display="none";return}tip.innerHTML=`<strong>${best.label}</strong><br>${best.text}`;tip.style.display="block";tip.style.left=Math.max(0,Math.min(r.width-205,px+14))+"px";tip.style.top=Math.max(0,py-70)+"px"});
 
 $("graf").addEventListener("mouseleave",()=>$("tooltip").style.display="none");
 
+$("grafDoprava").addEventListener("mousemove",e=>{const r=$("grafDoprava").getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;let best=null,dist=Infinity;for(const p of bodyGrafuDoprava){const d=Math.hypot(p.x-px,p.y-py);if(d<dist){dist=d;best=p}}const tip=$("tooltipDoprava");if(!best||dist>18){tip.style.display="none";return}tip.innerHTML=`<strong>${best.label}</strong><br>${best.text}`;tip.style.display="block";tip.style.left=Math.max(0,Math.min(r.width-205,px+14))+"px";tip.style.top=Math.max(0,py-70)+"px"});
+
+$("grafDoprava").addEventListener("mouseleave",()=>$("tooltipDoprava").style.display="none");
+
 for(const id of ["material","druh","rozmer","en","dodavatel","obdobi"])$(id).addEventListener(["rozmer","en"].includes(id)?"input":"change",()=>{if(id==="material"){moznosti("druh",vse.filter(r=>!$("material").value||norm(r.material)===norm($("material").value)).map(r=>r.druh))}vyfiltruj()});
 
 new ResizeObserver(()=>nakresli()).observe($("graphWrap"));
+new ResizeObserver(()=>nakresliDopravu()).observe($("graphWrapDoprava"));
 
 async function start(){
 
@@ -176,7 +216,7 @@ while(true){
 
 const {data,error}=await supabaseClient.from("graf_cena").select(sloupce.join(",")).order("datum_prijmu",{ascending:true}).range(offset,offset+limit-1);
 
-if(error){chyba("Nepodařilo se načíst graf_cena: "+error.message);$("radky").innerHTML='<tr><td colspan="7" class="empty">Data se nepodařilo načíst.</td></tr>';return}
+if(error){chyba("Nepodařilo se načíst graf_cena: "+error.message);$("radky").innerHTML='<tr><td colspan="8" class="empty">Data se nepodařilo načíst.</td></tr>';return}
 
 vse.push(...(data||[]));if(!data||data.length<limit)break;offset+=limit;
 
