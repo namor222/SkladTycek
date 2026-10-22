@@ -31,6 +31,7 @@
         tbody td { padding:11px 8px; border-bottom:1px solid #e9eef4; vertical-align:top; overflow-wrap:anywhere; }
         tbody tr:last-child td { border-bottom:0; }
         tbody tr:hover { background:#f7fbff; }
+        tbody tr.novy-rozmer td { box-shadow:inset 0 1px 0 #222; }
         .operace { font-weight:900; }
         .prijem { color:#08aa43; }
         .vydej { color:#ef3737; }
@@ -130,14 +131,27 @@
             });
             seznam.className = "";
             seznam.innerHTML = nazvy.map(material => {
-                const radky = skupiny.get(material).map(zaznam => "<tr>" + sloupce.map(([klic]) => {
+                const serazene = [...skupiny.get(material)].sort((a, b) => {
+                    const rozmerA = String(a.rozmer ?? "").trim();
+                    const rozmerB = String(b.rozmer ?? "").trim();
+                    const cisloA = Number(rozmerA.replace(",", "."));
+                    const cisloB = Number(rozmerB.replace(",", "."));
+                    const obaCiselne = rozmerA !== "" && rozmerB !== "" && Number.isFinite(cisloA) && Number.isFinite(cisloB);
+                    const rozdilRozmeru = obaCiselne ? cisloA - cisloB : rozmerA.localeCompare(rozmerB, "cs", { numeric: true });
+                    if (rozdilRozmeru !== 0) return rozdilRozmeru;
+                    return Number(a.material_id) - Number(b.material_id);
+                });
+                const radky = serazene.map((zaznam, index, polozky) => {
+                    const novyRozmer = index > 0 && String(zaznam.rozmer ?? "").trim() !== String(polozky[index - 1].rozmer ?? "").trim();
+                    return `<tr${novyRozmer ? ' class="novy-rozmer"' : ""}>` + sloupce.map(([klic]) => {
                     let trida = klic === "tavba" ? "tavba" : "";
                     if (klic === "pocet_zbyva") {
                         const pocet = Number(zaznam[klic]);
                         trida = pocet <= 10 ? "pocet-malo" : pocet <= 20 ? "pocet-stred" : "pocet-ok";
                     }
                     return `<td class="${trida}">${escapeHtml(formatHodnota(klic, zaznam[klic]))}</td>`;
-                }).join("") + "</tr>").join("");
+                    }).join("") + "</tr>";
+                }).join("");
                 return `<section class="skupina-materialu"><h2>${escapeHtml(material)}</h2><div class="tabulka-obal"><table><thead><tr>${hlavicka}</tr></thead><tbody>${radky}</tbody></table></div></section>`;
             }).join("");
         }
