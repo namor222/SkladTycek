@@ -565,6 +565,23 @@ body{
                                         placeholder="např. 123/ABC"
                                     >
 
+                                    <br><br>
+
+                                    <label>
+                                        Kolik kusů zbývá do konce zakázky?
+                                    </label>
+
+                                    <br><br>
+
+                                    <input
+                                        type="number"
+                                        id="zbyvaZakazka${index}"
+                                        min="0"
+                                        step="1"
+                                        inputmode="numeric"
+                                        placeholder="např. 200 nebo 0"
+                                    >
+
                                     <br>
 
                                     <button
@@ -666,6 +683,12 @@ body{
                 );
 
 
+            const zbyvaInput =
+                document.getElementById(
+                    "zbyvaZakazka" + index
+                );
+
+
             const tlacitko =
                 document.getElementById(
                     "tlacitko" + index
@@ -692,6 +715,20 @@ body{
                 objednavkaInput
                     .value
                     .trim();
+
+
+            const zbyvaZakazka =
+                Number(zbyvaInput.value);
+
+            if (
+                zbyvaInput.value.trim() === "" ||
+                !Number.isSafeInteger(zbyvaZakazka) ||
+                zbyvaZakazka < 0
+            ) {
+                chyba.textContent =
+                    "Zadej počet kusů zbývajících do konce zakázky (případně 0).";
+                return;
+            }
 
 
             /*
@@ -747,6 +784,9 @@ body{
             objednavkaInput.disabled =
                 true;
 
+            zbyvaInput.disabled =
+                true;
+
             tlacitko.disabled =
                 true;
 
@@ -793,7 +833,10 @@ body{
                                 pocetOdebrat,
 
                             p_objednavka:
-                                objednavka || null
+                                objednavka || null,
+
+                            p_obsazeno:
+                                zbyvaZakazka
 
                         }
                     );
@@ -811,6 +854,9 @@ body{
                     false;
 
                 objednavkaInput.disabled =
+                    false;
+
+                zbyvaInput.disabled =
                     false;
 
                 tlacitko.disabled =

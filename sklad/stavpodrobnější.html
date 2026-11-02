@@ -38,6 +38,7 @@
         .prijem { color:#08aa43; }
         .vydej { color:#ef3737; }
         .tavba { color:#0877e8; font-weight:800; }
+        .obsazeno { color:#000; font-weight:900; }
         .pocet-malo { color:#ef3737; font-weight:900; }
         .pocet-stred { color:#f28a00; font-weight:900; }
         .pocet-ok { color:#08aa43; font-weight:900; }
@@ -90,6 +91,7 @@
             ["jakost", "JAKOST"],
             ["tolerance", "TOLERANCE"],
             ["pocet_zbyva", "POČET ZBÝVÁ"],
+            ["obsazeno", "OBSAZENO"],
             ["material_id", "ID MATERIÁLU"]
         ];
         let stavData = [];
@@ -146,7 +148,7 @@
                 const radky = serazene.map((zaznam, index, polozky) => {
                     const novyRozmer = index > 0 && String(zaznam.rozmer ?? "").trim() !== String(polozky[index - 1].rozmer ?? "").trim();
                     return `<tr${novyRozmer ? ' class="novy-rozmer"' : ""}>` + sloupce.map(([klic]) => {
-                    let trida = klic === "tavba" ? "tavba" : "";
+                    let trida = klic === "tavba" ? "tavba" : (klic === "obsazeno" && Number(zaznam[klic]) !== 0 && zaznam[klic] != null) ? "obsazeno" : "";
                     if (klic === "pocet_zbyva") {
                         const pocet = Number(zaznam[klic]);
                         trida = pocet <= 10 ? "pocet-malo" : pocet <= 20 ? "pocet-stred" : "pocet-ok";
