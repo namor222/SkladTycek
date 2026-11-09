@@ -126,6 +126,14 @@ body{
   .atest button{margin-top:3px}
 }
 
+
+/* Samostatné obsazené objednávky */
+.obsazeno-seznam{grid-column:1;margin:0 0 12px;font-size:14px}
+.obsazeno-nadpis{color:#667991;font-weight:700;margin-bottom:5px}
+.obsazeno-radek{display:flex;gap:12px;justify-content:space-between;max-width:300px;padding:3px 0;color:#ff7600;font-weight:800}
+.obsazeno-radek strong{color:#ff7600;white-space:nowrap}
+@media(max-width:700px){.obsazeno-seznam{grid-column:1}}
+
 </style>
 
 </head>
@@ -181,6 +189,7 @@ body{
 
 
         let ulozenySklad = [];
+        let ulozeneObjednavky = [];
         let zobrazeneTavby = [];
 
 
@@ -275,13 +284,29 @@ body{
                 await supabaseClient
                     .from("web_stav_skladu")
                     .select(
-                        "material, druh, rozmer, tavba, delka_mm, pocet, obsazeno"
+                        "material, druh, rozmer, tavba, delka_mm, pocet"
                     )
                     .gt("pocet", 0)
                     .order("material", { ascending: true })
                     .order("druh", { ascending: true })
                     .order("rozmer", { ascending: true })
                     .order("tavba", { ascending: true });
+
+            // Samostatné objednávky – pouze aktivní záznamy.
+            const { data: objednavkyData, error: objednavkyError } =
+                await supabaseClient
+                    .from("obsazene_objednavky")
+                    .select("material, druh, rozmer, delka_mm, tavba, objednavka, obsazeno")
+                    .gt("obsazeno", 0);
+
+            if (objednavkyError) {
+                seznam.innerHTML =
+                    "<p>Chyba při načítání obsazených objednávek:<br>" +
+                    escapeHtml(objednavkyError.message) + "</p>";
+                return;
+            }
+
+            ulozeneObjednavky = objednavkyData || [];
 
             if (error) {
 
@@ -398,7 +423,7 @@ body{
                             tavba: tavba,
                             delka_mm: delkaMm,
                             pocet: 0,
-                            obsazeno: 0
+                            objednavky: []
                         };
                     }
 
@@ -413,12 +438,30 @@ body{
                     }
 
                     tavbaObj.pocet += radekPocet;
-                    tavbaObj.obsazeno += Number(polozka.obsazeno ?? 0);
                     skupiny[hlavniKlic].celkem += radekPocet;
 
 
                 }
             );
+
+             // Rezervace přiřadíme přesně k materiálu, druhu, rozměru,
+             // délce a tavbě; každá objednávka zůstává samostatná.
+             const normalizuj = hodnota => String(hodnota ?? "").trim().toLocaleUpperCase("cs");
+             const stejnyRozmer = (a, b) => Number(a) === Number(b);
+             ulozeneObjednavky.forEach(obj => {
+                 Object.values(skupiny).forEach(skupina => {
+                     if (normalizuj(skupina.material) !== normalizuj(obj.material) ||
+                         normalizuj(skupina.druh) !== normalizuj(obj.druh) ||
+                         !stejnyRozmer(skupina.rozmer, obj.rozmer) ||
+                         !stejnyRozmer(skupina.delka_mm, obj.delka_mm)) return;
+                     Object.values(skupina.tavby).forEach(tavba => {
+                         if (normalizuj(tavba.tavba) === normalizuj(obj.tavba) &&
+                             Number(obj.obsazeno) > 0) {
+                             tavba.objednavky.push(obj);
+                         }
+                     });
+                 });
+             });
 
             const poradiMaterialu = {
                 "OCEL": 1,
@@ -514,6 +557,11 @@ body{
                             const trida =
                                 tridaPoctu(tavba.pocet);
 
+                             const obsazeneRadky = tavba.objednavky
+                                 .sort((a, b) => String(a.objednavka).localeCompare(String(b.objednavka), "cs"))
+                                 .map(obj => `<div class="obsazeno-radek"><span>${escapeHtml(obj.objednavka)}</span><strong>${Number(obj.obsazeno)} ks</strong></div>`)
+                                 .join("");
+
                             htmlAtesty += `
 
                                 <div
@@ -535,12 +583,7 @@ body{
                                         </span>
                                     </p>
 
-                                    <p>
-                                        Obsazeno:
-                                        <span style="color:#ff7600;font-weight:800">
-                                            ${tavba.obsazeno} ks
-                                        </span>
-                                    </p>
+                                    ${obsazeneRadky ? `<div class="obsazeno-seznam"><div class="obsazeno-nadpis">Obsazeno podle objednávek:</div>${obsazeneRadky}</div>` : ""}
 
                                     <br>
 

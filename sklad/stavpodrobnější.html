@@ -38,7 +38,7 @@
         .prijem { color:#08aa43; }
         .vydej { color:#ef3737; }
         .tavba { color:#0877e8; font-weight:800; }
-        .obsazeno { color:#000; font-weight:900; }
+        .obsazeno { color:#ff7600; font-weight:900; }
         .pocet-malo { color:#ef3737; font-weight:900; }
         .pocet-stred { color:#f28a00; font-weight:900; }
         .pocet-ok { color:#08aa43; font-weight:900; }
@@ -95,6 +95,20 @@
             ["material_id", "ID MATERIÁLU"]
         ];
         let stavData = [];
+        let obsazeneObjednavky = [];
+        let delkyPodleId = new Map();
+        function normalizuj(v) { return String(v ?? "").trim().toLocaleUpperCase("cs"); }
+        function cislo(v) { return Number(String(v ?? "").replace(",", ".")); }
+        function klicMaterialu(v) {
+            return [normalizuj(v.material), normalizuj(v.druh), cislo(v.rozmer),
+                normalizuj(v.tavba), cislo(v.delka_mm)].join("|");
+        }
+        function objednavkyProRadek(zaznam) {
+            const delka = zaznam.delka_mm ?? delkyPodleId.get(String(zaznam.material_id));
+            if (delka == null) return [];
+            const klic = klicMaterialu({...zaznam, delka_mm: delka});
+            return obsazeneObjednavky.filter(o => klicMaterialu(o) === klic && Number(o.obsazeno) > 0);
+        }
         const seznam = document.getElementById("seznam");
         function escapeHtml(hodnota) {
             return String(hodnota ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -134,6 +148,7 @@
                 return a.localeCompare(b, "cs");
             });
             seznam.className = "";
+            const jizZobrazene = new Set();
             seznam.innerHTML = nazvy.map(material => {
                 const serazene = [...skupiny.get(material)].sort((a, b) => {
                     const rozmerA = String(a.rozmer ?? "").trim();
@@ -152,6 +167,17 @@
                     if (klic === "pocet_zbyva") {
                         const pocet = Number(zaznam[klic]);
                         trida = pocet <= 10 ? "pocet-malo" : pocet <= 20 ? "pocet-stred" : "pocet-ok";
+                    }
+                    if (klic === "obsazeno") {
+                        const delka = zaznam.delka_mm ?? delkyPodleId.get(String(zaznam.material_id));
+                        const identita = delka == null ? null : klicMaterialu({...zaznam, delka_mm: delka});
+                        const objednavky = identita && !jizZobrazene.has(identita)
+                            ? objednavkyProRadek(zaznam) : [];
+                        if (identita && objednavky.length) jizZobrazene.add(identita);
+                        const obsah = objednavky.map(o =>
+                            `<div>${escapeHtml(o.objednavka)}: ${escapeHtml(o.obsazeno)} ks</div>`
+                        ).join("");
+                        return `<td class="obsazeno">${obsah || "—"}</td>`;
                     }
                     return `<td class="${trida}">${escapeHtml(formatHodnota(klic, zaznam[klic]))}</td>`;
                     }).join("") + "</tr>";
@@ -175,6 +201,24 @@
                 const { data, error } = await supabaseClient.rpc("nacti_stav_podrobnejsi");
                 if (error) { seznam.textContent = "Chyba při načítání podrobnějšího stavu: " + error.message; return; }
                 stavData = data || [];
+                // Objednávky čteme odděleně; historie a skladová ID zůstávají nedotčené.
+                const [rezervace, sklad] = await Promise.all([
+                    supabaseClient.from("obsazene_objednavky")
+                        .select("material,druh,rozmer,delka_mm,tavba,objednavka,obsazeno")
+                        .gt("obsazeno", 0).order("objednavka", { ascending: true }),
+                    supabaseClient.from("web_stav_skladu")
+                        .select("material_id,delka_mm")
+                ]);
+                if (rezervace.error) {
+                    seznam.textContent = "Chyba při načítání obsazených objednávek: " + rezervace.error.message;
+                    return;
+                }
+                if (sklad.error) {
+                    seznam.textContent = "Chyba při přiřazování délek materiálu: " + sklad.error.message;
+                    return;
+                }
+                obsazeneObjednavky = rezervace.data || [];
+                delkyPodleId = new Map((sklad.data || []).map(r => [String(r.material_id), r.delka_mm]));
                 zobrazStav();
             } catch (chyba) {
                 document.body.style.display = "block";
