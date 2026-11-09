@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-
+    <link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -274,7 +275,7 @@ body{
                 await supabaseClient
                     .from("web_stav_skladu")
                     .select(
-                        "material, druh, rozmer, tavba, delka_mm, pocet"
+                        "material, druh, rozmer, tavba, delka_mm, pocet, obsazeno"
                     )
                     .gt("pocet", 0)
                     .order("material", { ascending: true })
@@ -396,7 +397,8 @@ body{
                             rozmer: rozmer,
                             tavba: tavba,
                             delka_mm: delkaMm,
-                            pocet: 0
+                            pocet: 0,
+                            obsazeno: 0
                         };
                     }
 
@@ -411,6 +413,7 @@ body{
                     }
 
                     tavbaObj.pocet += radekPocet;
+                    tavbaObj.obsazeno += Number(polozka.obsazeno ?? 0);
                     skupiny[hlavniKlic].celkem += radekPocet;
 
 
@@ -532,6 +535,13 @@ body{
                                         </span>
                                     </p>
 
+                                    <p>
+                                        Obsazeno:
+                                        <span style="color:#ff7600;font-weight:800">
+                                            ${tavba.obsazeno} ks
+                                        </span>
+                                    </p>
+
                                     <br>
 
                                     <label>
@@ -562,6 +572,23 @@ body{
                                         type="text"
                                         id="objednavka${index}"
                                         placeholder="např. 123/ABC"
+                                    >
+
+                                    <br><br>
+
+                                    <label>
+                                        Kolik kusů zbývá do konce zakázky?
+                                    </label>
+
+                                    <br><br>
+
+                                    <input
+                                        type="number"
+                                        id="zbyvaZakazka${index}"
+                                        min="0"
+                                        step="1"
+                                        inputmode="numeric"
+                                        placeholder="např. 200 nebo 0"
                                     >
 
                                     <br>
@@ -665,6 +692,12 @@ body{
                 );
 
 
+            const zbyvaInput =
+                document.getElementById(
+                    "zbyvaZakazka" + index
+                );
+
+
             const tlacitko =
                 document.getElementById(
                     "tlacitko" + index
@@ -691,6 +724,20 @@ body{
                 objednavkaInput
                     .value
                     .trim();
+
+
+            const zbyvaZakazka =
+                Number(zbyvaInput.value);
+
+            if (
+                zbyvaInput.value.trim() === "" ||
+                !Number.isSafeInteger(zbyvaZakazka) ||
+                zbyvaZakazka < 0
+            ) {
+                chyba.textContent =
+                    "Zadej počet kusů zbývajících do konce zakázky (případně 0).";
+                return;
+            }
 
 
             /*
@@ -746,6 +793,9 @@ body{
             objednavkaInput.disabled =
                 true;
 
+            zbyvaInput.disabled =
+                true;
+
             tlacitko.disabled =
                 true;
 
@@ -792,7 +842,10 @@ body{
                                 pocetOdebrat,
 
                             p_objednavka:
-                                objednavka || null
+                                objednavka || null,
+
+                            p_obsazeno:
+                                zbyvaZakazka
 
                         }
                     );
@@ -810,6 +863,9 @@ body{
                     false;
 
                 objednavkaInput.disabled =
+                    false;
+
+                zbyvaInput.disabled =
                     false;
 
                 tlacitko.disabled =
