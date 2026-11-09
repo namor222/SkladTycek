@@ -275,7 +275,7 @@ body{
                 await supabaseClient
                     .from("web_stav_skladu")
                     .select(
-                        "material, druh, rozmer, tavba, delka_mm, pocet"
+                        "material, druh, rozmer, tavba, delka_mm, pocet, obsazeno"
                     )
                     .gt("pocet", 0)
                     .order("material", { ascending: true })
@@ -397,7 +397,8 @@ body{
                             rozmer: rozmer,
                             tavba: tavba,
                             delka_mm: delkaMm,
-                            pocet: 0
+                            pocet: 0,
+                            obsazeno: 0
                         };
                     }
 
@@ -412,6 +413,7 @@ body{
                     }
 
                     tavbaObj.pocet += radekPocet;
+                    tavbaObj.obsazeno += Number(polozka.obsazeno ?? 0);
                     skupiny[hlavniKlic].celkem += radekPocet;
 
 
@@ -530,6 +532,13 @@ body{
                                         Na skladě:
                                         <span class="${trida}">
                                             ${tavba.pocet} ks
+                                        </span>
+                                    </p>
+
+                                    <p>
+                                        Obsazeno:
+                                        <span style="color:#ff7600;font-weight:800">
+                                            ${tavba.obsazeno} ks
                                         </span>
                                     </p>
 
