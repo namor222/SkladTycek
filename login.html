@@ -14,6 +14,7 @@
     <title>KOVOHLADIL | Přihlášení</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <style>
 
@@ -879,6 +880,8 @@
                  PŘIHLÁSIT
                  ================================ -->
 
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAAF7yLi-JJZQqsuSp" style="display:flex;justify-content:center;margin:12px 0;"></div>
+
             <button
                 type="submit"
                 id="prihlasitButton"
@@ -1018,6 +1021,12 @@
             }
 
 
+            const captchaToken = window.turnstile?.getResponse();
+            if (!captchaToken) {
+                chyba.textContent = "Počkej na ověření CAPTCHA.";
+                return;
+            }
+
             const email =
                 osobniCislo +
                 "@kovohladil.local";
@@ -1042,13 +1051,15 @@
 
                             email: email,
 
-                            password: heslo
+                            password: heslo,
+                            options: { captchaToken }
 
                         });
 
 
                 if (error) {
 
+                    window.turnstile?.reset();
                     chyba.textContent =
                         "Nesprávné osobní číslo nebo heslo.";
 
