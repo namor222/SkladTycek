@@ -1195,6 +1195,8 @@
                     try {
                         await overSchvalenyProhlizec();
                     } catch (chybaProhlizece) {
+                        // Neúspěšné schválení nesmí ponechat aktivní přihlášení.
+                        await supabaseClient.auth.signOut({ scope: "local" });
                         chyba.textContent = chybaProhlizece?.message ||
                             "Prohlížeč nebyl ověřen. Zkus to znovu.";
                         obnovTlacitko();
