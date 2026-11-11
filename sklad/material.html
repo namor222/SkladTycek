@@ -4497,267 +4497,128 @@
 
 
     <script>
-
-
-
-
-
-
-
-        const SUPABASE_URL =
-
-
-
-            "https://gmawlmsizglrnjmjegmx.supabase.co";
-
-
-
-
-
-
-
-        const SUPABASE_KEY =
-
-
-
-            "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
-
-
-
-
-
-
-
-
-
-
-
-        const supabaseClient =
-
-
-
-            window.supabase.createClient(
-
-
-
-                SUPABASE_URL,
-
-
-
-                SUPABASE_KEY
-
-
-
-            );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         /* =========================================================
-
-
-
-           KONTROLA PŘIHLÁŠENÍ
-
-
-
-        ========================================================= */
-
-
-
-
-
-
-
-        async function zkontrolujPrihlaseni() {
-
-
-
-
-
-
-
-            const {
-
-
-
-                data,
-
-
-
-                error
-
-
-
-            } =
-
-
-
-                await supabaseClient
-
-
-
-                    .auth
-
-
-
-                    .getSession();
-
-
-
-
-
-
-
-
-
-
-
-            if (
-
-
-
-                error ||
-
-
-
-                !data.session
-
-
-
-            ) {
-
-
-
-
-
-
-
-                window.location.replace(
-
-
-
-                    "../login.html"
-
-
-
-                );
-
-
-
-
-
-
-
-                return;
-
-
-
+           SCHVÁLENÝ PROHLÍŽEČ – SERVEROVÉ OVĚŘENÍ PODPISU
+           ========================================================= */
+
+        function otevriDatabaziProhlizece() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("kovohladil-prohlizec", 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains("klice")) {
+                        db.createObjectStore("klice");
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function nactiExistujiciKlic() {
+            if (!window.isSecureContext || !crypto.subtle || !window.indexedDB) {
+                throw new Error("Prohlížeč nepodporuje bezpečné ověření.");
             }
-
-
-
-
-
-
-
-
-
-
-
-            /*
-
-
-
-                Stránku zobrazíme až po úspěšné
-
-
-
-                kontrole přihlášení.
-
-
-
-            */
-
-
-
-
-
-
-
-                        // Tlačítko dodacích listů zobrazíme pouze ověřené roli vedení.
+            const db = await otevriDatabaziProhlizece();
             try {
-                const { data: roleUzivatele, error: chybaRole } = await supabaseClient
-                    .from("uzivatele")
-                    .select("role")
-                    .eq("user_id", data.session.user.id)
-                    .maybeSingle();
-                if (!chybaRole && roleUzivatele?.role === "vedeni") {
-                    document.getElementById("menuDodaciListy").style.display = "block";
+                const par = await new Promise((resolve, reject) => {
+                    const tx = db.transaction("klice", "readonly");
+                    const request = tx.objectStore("klice").get("identita");
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+                if (!par?.privateKey || !par?.publicKey) {
+                    throw new Error("V tomto prohlížeči není uložen schválený klíč.");
                 }
-            } catch (chyba) {
-                console.error("Kontrola přístupu k dodacím listům:", chyba);
+                const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
+                return {
+                    par,
+                    verejnyKlic: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y }
+                };
+            } finally {
+                db.close();
             }
+        }
 
-            document.body.style.display =
+        function kodujBase64url(buffer) {
+            let text = "";
+            for (const byte of new Uint8Array(buffer)) text += String.fromCharCode(byte);
+            return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
 
+        async function zavolejSchvalovani(body) {
+            const { data, error } = await supabaseClient.functions.invoke(
+                "schvalovani-prohlizecu", { body }
+            );
+            if (error) throw error;
+            if (data?.chyba) throw new Error(data.chyba);
+            return data;
+        }
 
-
-                "block";
-
-
-
+        async function overSchvalenyProhlizec() {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const vyzva = await zavolejSchvalovani({
+                akce: "vyzva",
+                verejny_klic: verejnyKlic
+            });
+            if (typeof vyzva?.vyzva !== "string" || !vyzva?.vyzva_id) {
+                throw new Error("Server nevrátil platnou výzvu.");
+            }
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                par.privateKey,
+                new TextEncoder().encode(vyzva.vyzva)
+            );
+            const vysledek = await zavolejSchvalovani({
+                akce: "overit",
+                verejny_klic: verejnyKlic,
+                vyzva_id: vyzva.vyzva_id,
+                podpis: kodujBase64url(podpis)
+            });
+            if (vysledek?.overeno !== true) {
+                throw new Error("Prohlížeč není schválený.");
+            }
         }
 
 
+        async function zkontrolujPrihlaseni() {
+            try {
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (error || !data.session) {
+                    window.location.replace("../login.html");
+                    return;
+                }
 
+                // Nabídka skladu se zobrazí až po serverovém ověření podpisu.
+                await overSchvalenyProhlizec();
 
+                // Zachováváme původní řízení viditelnosti archivu dodacích listů.
+                // Serverové vynucení role musí být provedeno také u datového API.
+                try {
+                    const { data: roleUzivatele, error: chybaRole } = await supabaseClient
+                        .from("uzivatele")
+                        .select("role")
+                        .eq("user_id", data.session.user.id)
+                        .maybeSingle();
+                    if (!chybaRole && roleUzivatele?.role === "vedeni") {
+                        document.getElementById("menuDodaciListy").style.display = "block";
+                    }
+                } catch (chyba) {
+                    console.error("Kontrola přístupu k dodacím listům:", chyba);
+                }
 
-
-
-
-
-
-
-
-
-
-
-        /* =========================================================
-
-
-
-           START
-
-
-
-        ========================================================= */
-
-
-
-
-
-
+                document.body.style.display = "block";
+            } catch (error) {
+                console.warn("Přístup zamítnut – ověření prohlížeče:", error);
+                window.location.replace("../login.html");
+            }
+        }
 
         zkontrolujPrihlaseni();
-
-
-
-
-
-
-
     </script>
 
 
