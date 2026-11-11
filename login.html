@@ -940,6 +940,84 @@
 
 
         /* =========================================================
+           TESTOVACÍ EVIDENCE PROHLÍŽEČE (BEZ BLOKOVÁNÍ SKLADU)
+           Soukromý klíč zůstává v IndexedDB tohoto prohlížeče.
+           ========================================================= */
+
+        function otevriDatabaziProhlizece() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("kovohladil-prohlizec", 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains("klice")) {
+                        db.createObjectStore("klice");
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function nactiKlicZDatabaze(db) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("klice", "readonly");
+                const request = tx.objectStore("klice").get("identita");
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function ulozKlicDoDatabaze(db, par) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("klice", "readwrite");
+                tx.objectStore("klice").put(par, "identita");
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error);
+            });
+        }
+
+        async function ziskejVerejnyKlicProhlizece() {
+            if (!window.isSecureContext || !crypto.subtle || !window.indexedDB) {
+                throw new Error("Prohlížeč nepodporuje bezpečné uložení klíče.");
+            }
+
+            const db = await otevriDatabaziProhlizece();
+            try {
+                let par = await nactiKlicZDatabaze(db);
+                if (!par) {
+                    par = await crypto.subtle.generateKey(
+                        { name: "ECDSA", namedCurve: "P-256" },
+                        false,
+                        ["sign", "verify"]
+                    );
+                    await ulozKlicDoDatabaze(db, par);
+                }
+                const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
+                return { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y };
+            } finally {
+                db.close();
+            }
+        }
+
+        async function odesliTestovaciZadostProhlizece() {
+            const verejnyKlic = await ziskejVerejnyKlicProhlizece();
+            const { data, error } = await supabaseClient.functions.invoke(
+                "schvalovani-prohlizecu",
+                {
+                    body: {
+                        akce: "zadost",
+                        verejny_klic: verejnyKlic,
+                        nazev_prohlizece: navigator.userAgent.slice(0, 100)
+                    }
+                }
+            );
+            if (error) throw error;
+            if (data?.chyba) throw new Error(data.chyba);
+            console.info("Test schvalování prohlížeče – stav:", data?.stav);
+        }
+
+        /* =========================================================
            ZOBRAZIT / SKRÝT HESLO
            ========================================================= */
 
@@ -1070,6 +1148,18 @@
 
 
                 if (data.session) {
+
+                    // Testovací evidence: případná chyba nikdy nezablokuje sklad.
+                    try {
+                        await Promise.race([
+                            odesliTestovaciZadostProhlizece(),
+                            new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error("Časový limit žádosti")), 5000)
+                            )
+                        ]);
+                    } catch (chybaProhlizece) {
+                        console.warn("Test schvalování prohlížeče:", chybaProhlizece);
+                    }
 
                     window.location.replace(
                         "index.html"
