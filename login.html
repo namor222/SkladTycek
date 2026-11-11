@@ -977,7 +977,7 @@
             });
         }
 
-        async function ziskejVerejnyKlicProhlizece() {
+        async function ziskejParKlicuProhlizece() {
             if (!window.isSecureContext || !crypto.subtle || !window.indexedDB) {
                 throw new Error("Prohlížeč nepodporuje bezpečné uložení klíče.");
             }
@@ -994,27 +994,66 @@
                     await ulozKlicDoDatabaze(db, par);
                 }
                 const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
-                return { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y };
+                return {
+                    par,
+                    verejnyKlic: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y }
+                };
             } finally {
                 db.close();
             }
         }
 
-        async function odesliTestovaciZadostProhlizece() {
-            const verejnyKlic = await ziskejVerejnyKlicProhlizece();
+        function kodujBase64url(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let text = "";
+            for (const byte of bytes) text += String.fromCharCode(byte);
+            return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        async function zavolejOvereniProhlizece(body) {
             const { data, error } = await supabaseClient.functions.invoke(
-                "schvalovani-prohlizecu",
-                {
-                    body: {
-                        akce: "zadost",
-                        verejny_klic: verejnyKlic,
-                        nazev_prohlizece: navigator.userAgent.slice(0, 100)
-                    }
-                }
+                "schvalovani-prohlizecu", { body }
             );
             if (error) throw error;
             if (data?.chyba) throw new Error(data.chyba);
-            console.info("Test schvalování prohlížeče – stav:", data?.stav);
+            return data;
+        }
+
+        // Test bez blokování skladu: původní žádosti fungují i nadále.
+        async function odesliTestovaciZadostProhlizece() {
+            const { par, verejnyKlic } = await ziskejParKlicuProhlizece();
+            const zadost = await zavolejOvereniProhlizece({
+                akce: "zadost",
+                verejny_klic: verejnyKlic,
+                nazev_prohlizece: navigator.userAgent.slice(0, 100)
+            });
+
+            console.info("Test schvalování prohlížeče – stav:", zadost?.stav);
+            if (zadost?.stav !== "schvaleno") return;
+
+            const vyzva = await zavolejOvereniProhlizece({
+                akce: "vyzva",
+                verejny_klic: verejnyKlic
+            });
+            if (typeof vyzva?.vyzva !== "string" || !vyzva?.vyzva_id) {
+                throw new Error("Server nevrátil platnou výzvu.");
+            }
+
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                par.privateKey,
+                new TextEncoder().encode(vyzva.vyzva)
+            );
+            const vysledek = await zavolejOvereniProhlizece({
+                akce: "overit",
+                verejny_klic: verejnyKlic,
+                vyzva_id: vyzva.vyzva_id,
+                podpis: kodujBase64url(podpis)
+            });
+            if (vysledek?.overeno !== true) {
+                throw new Error("Ověření podpisu nebylo potvrzeno.");
+            }
+            console.info("TEST PROHLÍŽEČE: kryptografický podpis úspěšně ověřen.");
         }
 
         /* =========================================================
