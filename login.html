@@ -940,7 +940,7 @@
 
 
         /* =========================================================
-           TESTOVACÍ EVIDENCE PROHLÍŽEČE (BEZ BLOKOVÁNÍ SKLADU)
+           OVĚŘENÍ SCHVÁLENÉHO PROHLÍŽEČE
            Soukromý klíč zůstává v IndexedDB tohoto prohlížeče.
            ========================================================= */
 
@@ -1019,8 +1019,8 @@
             return data;
         }
 
-        // Test bez blokování skladu: původní žádosti fungují i nadále.
-        async function odesliTestovaciZadostProhlizece() {
+        // Schválení je povinné i pro již existující přihlášení.
+        async function overSchvalenyProhlizec() {
             const { par, verejnyKlic } = await ziskejParKlicuProhlizece();
             const zadost = await zavolejOvereniProhlizece({
                 akce: "zadost",
@@ -1028,15 +1028,19 @@
                 nazev_prohlizece: navigator.userAgent.slice(0, 100)
             });
 
-            console.info("Test schvalování prohlížeče – stav:", zadost?.stav);
-            if (zadost?.stav !== "schvaleno") return;
+            if (zadost?.stav !== "schvaleno") {
+                if (zadost?.stav === "zamitnuto") {
+                    throw new Error("Tento prohlížeč byl zamítnut. Kontaktuj správce.");
+                }
+                throw new Error("Prohlížeč čeká na schválení správcem. Přístup zatím není povolen.");
+            }
 
             const vyzva = await zavolejOvereniProhlizece({
                 akce: "vyzva",
                 verejny_klic: verejnyKlic
             });
-            if (typeof vyzva?.vyzva !== "string" || !vyzva?.vyzva_id) {
-                throw new Error("Server nevrátil platnou výzvu.");
+            if (typeof vyzva?.vyzva !== "string" || !vyzva.vyzva_id) {
+                throw new Error("Server nevrátil bezpečnostní výzvu.");
             }
 
             const podpis = await crypto.subtle.sign(
@@ -1051,9 +1055,9 @@
                 podpis: kodujBase64url(podpis)
             });
             if (vysledek?.overeno !== true) {
-                throw new Error("Ověření podpisu nebylo potvrzeno.");
+                throw new Error("Kryptografické ověření prohlížeče selhalo.");
             }
-            console.info("TEST PROHLÍŽEČE: kryptografický podpis úspěšně ověřen.");
+            return true;
         }
 
         /* =========================================================
@@ -1188,16 +1192,13 @@
 
                 if (data.session) {
 
-                    // Testovací evidence: případná chyba nikdy nezablokuje sklad.
                     try {
-                        await Promise.race([
-                            odesliTestovaciZadostProhlizece(),
-                            new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error("Časový limit žádosti")), 5000)
-                            )
-                        ]);
+                        await overSchvalenyProhlizec();
                     } catch (chybaProhlizece) {
-                        console.warn("Test schvalování prohlížeče:", chybaProhlizece);
+                        chyba.textContent = chybaProhlizece?.message ||
+                            "Prohlížeč nebyl ověřen. Zkus to znovu.";
+                        obnovTlacitko();
+                        return;
                     }
 
                     window.location.replace(
@@ -1298,16 +1299,23 @@
                         .getSession();
 
 
-                if (
-                    !error &&
-                    data.session
-                ) {
-
-                    window.location.replace(
-                        "index.html"
-                    );
-
+                if (!error && data.session) {
+                    const chyba = document.getElementById("chyba");
+                    const button = document.getElementById("prihlasitButton");
+                    button.disabled = true;
+                    button.innerHTML = "<span>OVĚŘUJI PROHLÍŽEČ...</span>";
+                    try {
+                        await overSchvalenyProhlizec();
+                        window.location.replace("index.html");
+                        return;
+                    } catch (chybaProhlizece) {
+                        chyba.textContent = chybaProhlizece?.message ||
+                            "Prohlížeč nebyl ověřen.";
+                    } finally {
+                        obnovTlacitko();
+                    }
                 }
+
 
 
             } catch (error) {
