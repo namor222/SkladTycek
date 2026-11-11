@@ -630,6 +630,100 @@
 
 
         /* ==========================================================
+            PODEPSANÉ ČTENÍ SKLADU – BEZ ZMĚNY ZOBRAZOVACÍ LOGIKY
+        ========================================================== */
+
+        function otevriDatabaziKlicu() {
+            return new Promise((resolve, reject) => {
+                const r = indexedDB.open("kovohladil-prohlizec", 1);
+                r.onsuccess = () => resolve(r.result);
+                r.onerror = () => reject(r.error);
+            });
+        }
+
+        async function nactiParKlicu() {
+            const db = await otevriDatabaziKlicu();
+            try {
+                return await new Promise((resolve, reject) => {
+                    if (!db.objectStoreNames.contains("klice")) {
+                        reject(new Error("V prohlížeči není uložen schválený klíč."));
+                        return;
+                    }
+                    const r = db.transaction("klice", "readonly")
+                        .objectStore("klice").get("identita");
+                    r.onsuccess = () => resolve(r.result);
+                    r.onerror = () => reject(r.error);
+                });
+            } finally {
+                db.close();
+            }
+        }
+
+        function base64url(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let bin = "";
+            for (const b of bytes) bin += String.fromCharCode(b);
+            return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        async function nactiSkladBezpecne() {
+            const { data: { session }, error: chybaSession } =
+                await supabaseClient.auth.getSession();
+            if (chybaSession || !session) throw new Error("Nejdřív se přihlas.");
+
+            const par = await nactiParKlicu();
+            if (!par?.privateKey || !par?.publicKey) {
+                throw new Error("Schválený klíč prohlížeče nebyl nalezen.");
+            }
+            const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
+            const verejny_klic = { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y };
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vyzvaResponse = await fetch(base + "schvalovani-prohlizecu", {
+                method: "POST", headers,
+                body: JSON.stringify({ akce: "vyzva", verejny_klic })
+            });
+            const vyzva = await vyzvaResponse.json();
+            if (!vyzvaResponse.ok || !vyzva.vyzva || !vyzva.vyzva_id) {
+                throw new Error(vyzva.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            }
+
+            const prikaz = {
+                akce: "cteni-stavu",
+                metoda: "POST",
+                cesta: "/functions/v1/sklad-bezpecny",
+                parametry: null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const zprava = `${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`;
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" }, par.privateKey,
+                new TextEncoder().encode(zprava)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method: "POST", headers,
+                body: JSON.stringify({
+                    ...prikaz, verejny_klic,
+                    vyzva_id: vyzva.vyzva_id,
+                    podpis: base64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek.overeno !== true || !Array.isArray(vysledek.data)) {
+                throw new Error(vysledek.chyba || vysledek.detail || "Načtení skladu selhalo.");
+            }
+            return vysledek.data;
+        }
+
+        /* ==========================================================
            NAČTENÍ SKLADU
         ========================================================== */
 
@@ -640,14 +734,13 @@
                     "seznam"
                 );
 
-            const { data, error } =
-                await supabaseClient
-                    .from(
-                        "web_stav_skladu"
-                    )
-                    .select(
-                        "material, druh, rozmer, tavba, pocet"
-                    );
+            let data;
+            let error = null;
+            try {
+                data = await nactiSkladBezpecne();
+            } catch (e) {
+                error = e;
+            }
 
             if (error) {
 
