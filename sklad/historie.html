@@ -449,6 +449,60 @@
             }
         }
 
+        // Podepsané čtení historie přes sklad-bezpecny (verze 4).
+        async function nactiHistoriiBezpecne() {
+            const { data: { session }, error: chybaSession } =
+                await supabaseClient.auth.getSession();
+            if (chybaSession || !session) throw new Error("Nejdřív se přihlas.");
+
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vyzvaResponse = await fetch(base + "schvalovani-prohlizecu", {
+                method: "POST", headers,
+                body: JSON.stringify({ akce: "vyzva", verejny_klic: verejnyKlic })
+            });
+            const vyzva = await vyzvaResponse.json();
+            if (!vyzvaResponse.ok || !vyzva.vyzva || !vyzva.vyzva_id) {
+                throw new Error(vyzva.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            }
+
+            const prikaz = {
+                akce: "cteni-historie",
+                metoda: "POST",
+                cesta: "/functions/v1/sklad-bezpecny",
+                parametry: null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const zprava = `${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`;
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" }, par.privateKey,
+                new TextEncoder().encode(zprava)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method: "POST", headers,
+                body: JSON.stringify({
+                    ...prikaz,
+                    verejny_klic: verejnyKlic,
+                    vyzva_id: vyzva.vyzva_id,
+                    podpis: kodujBase64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek.overeno !== true || !Array.isArray(vysledek.data)) {
+                throw new Error(vysledek.chyba || vysledek.detail || "Načtení historie selhalo.");
+            }
+            return vysledek.data;
+        }
+
         /*
             NAČTENÍ HISTORIE
         */
@@ -459,12 +513,13 @@
                 document.getElementById("seznam");
 
 
-            const { data, error } =
-                await supabaseClient
-                    .from("web_historie")
-                    .select("datum, osobni_cislo, akce, material, druh, rozmer, tavba, pocet, objednavka")
-                    .order("datum", { ascending: false })
-                    .order("id", { ascending: false });
+            let data;
+            let error = null;
+            try {
+                data = await nactiHistoriiBezpecne();
+            } catch (chyba) {
+                error = chyba;
+            }
 
 
             if (error) {
