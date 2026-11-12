@@ -173,6 +173,7 @@
             ["tolerance", "TOLERANCE"],
             ["pocet_zbyva", "POČET ZBÝVÁ"],
             ["kg_zbyva", "KG NA SKLADĚ"],
+            ["hodnota_skladu_kc", "HODNOTA NA SKLADĚ"],
             ["obsazeno", "OBSAZENO"],
             ["material_id", "ID MATERIÁLU"]
         ];
@@ -201,6 +202,12 @@
             if ((klic === "datum_operace" || klic === "datum_prijmu") && typeof hodnota === "string") {
                 const shoda = hodnota.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
                 if (shoda) return `${shoda[3]}. ${shoda[2]}. ${shoda[1]}${klic === "datum_operace" && shoda[4] ? ` ${shoda[4]}:${shoda[5]}:${shoda[6] || "00"}` : ""}`;
+            }
+            if (klic === "hodnota_skladu_kc") {
+                const kc = Number(hodnota);
+                return Number.isFinite(kc)
+                    ? kc.toLocaleString("cs-CZ", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " Kč"
+                    : "—";
             }
             if (klic === "kg_zbyva") {
                 const kg = Number(hodnota);
