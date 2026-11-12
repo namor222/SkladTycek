@@ -298,6 +298,47 @@ window.supabase.createClient(
             return vysledek.data;
         }
 
+        async function ulozPrijemBezpecne(parametry) {
+            const {data:{session},error:chybaSession} = await supabaseClient.auth.getSession();
+            if(chybaSession || !session?.access_token) throw new Error("Přihlášení vypršelo. Přihlas se znovu.");
+            const {par,verejnyKlic} = await nactiExistujiciKlic();
+            const vyzva = await zavolejSchvalovani({akce:"vyzva",verejny_klic:verejnyKlic});
+            if(typeof vyzva?.vyzva !== "string" || !vyzva.vyzva_id)
+                throw new Error("Server nevrátil platnou výzvu.");
+            const prikaz = {
+                akce:"ulozit-prijem",metoda:"POST",
+                cesta:"/functions/v1/sklad-bezpecny",
+                parametry
+            };
+            const otiskBuffer = await crypto.subtle.digest(
+                "SHA-256",new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(otiskBuffer)]
+                .map(b=>b.toString(16).padStart(2,"0")).join("");
+            const podpis = await crypto.subtle.sign(
+                {name:"ECDSA",hash:"SHA-256"},par.privateKey,
+                new TextEncoder().encode(`${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`)
+            );
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/sklad-bezpecny`,{
+                method:"POST",
+                headers:{
+                    Authorization:`Bearer ${session.access_token}`,
+                    apikey:SUPABASE_KEY,
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    ...prikaz,verejny_klic:verejnyKlic,
+                    vyzva_id:vyzva.vyzva_id,podpis:kodujBase64url(podpis)
+                })
+            });
+            let vysledek;
+            try { vysledek = await response.json(); }
+            catch(_) { throw new Error("Server vrátil neplatnou odpověď. HTTP "+response.status); }
+            if(!response.ok || vysledek?.overeno !== true)
+                throw new Error(vysledek?.detail || vysledek?.chyba || "Uložení příjmu se nezdařilo.");
+            return vysledek.data;
+        }
+
         async function overSchvalenyProhlizec() {
             const { par, verejnyKlic } = await nactiExistujiciKlic();
             const vyzva = await zavolejSchvalovani({
@@ -2226,19 +2267,14 @@ async function ulozitPrijem(){
 
     try{
         // Jediné místo, kde vzniká skutečný skladový příjem.
-        const {data:prijemId,error:rpcError} = await supabaseClient.rpc(
-            "ulozit_sken_jako_prijem",
-            {
+        const prijemId = await ulozPrijemBezpecne({
                 p_sken_id:skenId,
                 p_material:material,
                 p_druh:druh,
                 p_rozmer:rozmer,
                 p_tavba:tavba,
                 p_pocet:pocet
-            }
-        );
-
-        if(rpcError) throw rpcError;
+            });
         if(prijemId===null || prijemId===undefined){
             throw new Error("Databáze nevrátila ID vytvořeného příjmu.");
         }
