@@ -247,6 +247,26 @@ async function overSchvalenyProhlizec() {
   if (vysledek?.overeno !== true) throw new Error("Prohlížeč není schválený.");
 }
 
+async function nactiStrankuGrafuBezpecne(session, offset, limit) {
+  const {par, verejnyKlic} = await nactiExistujiciKlic();
+  const headers = {Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_KEY, "Content-Type": "application/json"};
+  const base = `${SUPABASE_URL}/functions/v1/`;
+  const vr = await fetch(base + "schvalovani-prohlizecu", {method:"POST", headers, body:JSON.stringify({akce:"vyzva", verejny_klic:verejnyKlic})});
+  const vyzva = await vr.json();
+  if (!vr.ok || !vyzva?.vyzva || !vyzva?.vyzva_id) throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+  const prikaz = {akce:"cteni-grafu-cen", metoda:"POST", cesta:"/functions/v1/sklad-bezpecny", parametry:{offset, limit}};
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(prikaz)));
+  const otisk = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,"0")).join("");
+  const podpis = await crypto.subtle.sign({name:"ECDSA", hash:"SHA-256"}, par.privateKey,
+    new TextEncoder().encode(`${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`));
+  const response = await fetch(base + "sklad-bezpecny", {method:"POST", headers,
+    body:JSON.stringify({...prikaz, verejny_klic:verejnyKlic, vyzva_id:vyzva.vyzva_id, podpis:kodujBase64url(podpis)})});
+  const vysledek = await response.json();
+  if (!response.ok || vysledek?.overeno !== true || !Array.isArray(vysledek.data))
+    throw new Error(vysledek?.chyba || vysledek?.detail || "Načtení grafu cen selhalo.");
+  return vysledek.data;
+}
+
 async function start(){
 
 const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
@@ -265,9 +285,13 @@ let offset=0;const limit=1000;
 
 while(true){
 
-const {data,error}=await supabaseClient.from("graf_cena").select(sloupce.join(",")).order("datum_prijmu",{ascending:true}).range(offset,offset+limit-1);
-
-if(error){chyba("Nepodařilo se načíst graf_cena: "+error.message);$("radky").innerHTML='<tr><td colspan="8" class="empty">Data se nepodařilo načíst.</td></tr>';return}
+let data;
+try { data = await nactiStrankuGrafuBezpecne(session, offset, limit); }
+catch(error) {
+  chyba("Nepodařilo se načíst graf_cena: "+(error?.message||String(error)));
+  $("radky").innerHTML='<tr><td colspan="8" class="empty">Data se nepodařilo načíst.</td></tr>';
+  return;
+}
 
 vse.push(...(data||[]));if(!data||data.length<limit)break;offset+=limit;
 
