@@ -339,48 +339,69 @@ body{
             NAČTENÍ SKLADU – pouze přesný počet kusů
         */
 
+        // Jen cteni skladu a rezervaci. FIFO vydej zustava na puvodnim RPC.
+        async function nactiVydejBezpecne() {
+            const {data:{session},error:sessionError} = await supabaseClient.auth.getSession();
+            if (sessionError || !session) throw new Error("Nejdřív se přihlas.");
+            const {par, verejnyKlic} = await nactiExistujiciKlic();
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vr = await fetch(base + "schvalovani-prohlizecu", {
+                method:"POST", headers,
+                body:JSON.stringify({akce:"vyzva",verejny_klic:verejnyKlic})
+            });
+            const vyzva = await vr.json();
+            if (!vr.ok || !vyzva?.vyzva || !vyzva?.vyzva_id)
+                throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            const prikaz = {
+                akce:"cteni-vydeje", metoda:"POST",
+                cesta:"/functions/v1/sklad-bezpecny", parametry:null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2,"0")).join("");
+            const podpis = await crypto.subtle.sign(
+                {name:"ECDSA",hash:"SHA-256"}, par.privateKey,
+                new TextEncoder().encode(`${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method:"POST", headers,
+                body:JSON.stringify({
+                    ...prikaz, verejny_klic:verejnyKlic,
+                    vyzva_id:vyzva.vyzva_id, podpis:kodujBase64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek?.overeno !== true ||
+                !Array.isArray(vysledek?.data?.stav) ||
+                !Array.isArray(vysledek?.data?.rezervace))
+                throw new Error(vysledek?.chyba || vysledek?.detail || "Načtení výdeje selhalo.");
+            return vysledek.data;
+        }
+
         async function nactiSklad() {
 
             const seznam =
                 document.getElementById("seznam");
 
-            const { data, error } =
-                await supabaseClient
-                    .from("web_stav_skladu")
-                    .select(
-                        "material, druh, rozmer, tavba, delka_mm, pocet"
-                    )
-                    .gt("pocet", 0)
-                    .order("material", { ascending: true })
-                    .order("druh", { ascending: true })
-                    .order("rozmer", { ascending: true })
-                    .order("tavba", { ascending: true });
-
-            // Samostatné objednávky – pouze aktivní záznamy.
-            const { data: objednavkyData, error: objednavkyError } =
-                await supabaseClient
-                    .from("obsazene_objednavky")
-                    .select("material, druh, rozmer, delka_mm, tavba, objednavka, obsazeno")
-                    .gt("obsazeno", 0);
-
-            if (objednavkyError) {
+            let data, objednavkyData;
+            try {
+                const vysledek = await nactiVydejBezpecne();
+                data = vysledek.stav;
+                objednavkyData = vysledek.rezervace;
+            } catch (error) {
                 seznam.innerHTML =
-                    "<p>Chyba při načítání obsazených objednávek:<br>" +
-                    escapeHtml(objednavkyError.message) + "</p>";
+                    "<p>Chyba při načítání skladu a rezervací:<br>" +
+                    escapeHtml(error?.message || String(error)) + "</p>";
                 return;
             }
-
             ulozeneObjednavky = objednavkyData || [];
-
-            if (error) {
-
-                seznam.innerHTML =
-                    "<p>Chyba při načítání skladu:<br>" +
-                    escapeHtml(error.message) +
-                    "</p>";
-
-                return;
-            }
 
             /*
                 Pracujeme už pouze s přesným počtem kusů.
