@@ -158,6 +158,53 @@
 
 
 
+        // Podepsane cteni podrobne historie; puvodni vykresleni a filtry zustavaji beze zmen.
+        async function nactiPodrobnouHistoriiBezpecne(session) {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vyzvaResponse = await fetch(base + "schvalovani-prohlizecu", {
+                method: "POST", headers,
+                body: JSON.stringify({ akce: "vyzva", verejny_klic: verejnyKlic })
+            });
+            const vyzva = await vyzvaResponse.json();
+            if (!vyzvaResponse.ok || !vyzva?.vyzva || !vyzva?.vyzva_id) {
+                throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            }
+            const prikaz = {
+                akce: "cteni-historie-podrobnejsi",
+                metoda: "POST",
+                cesta: "/functions/v1/sklad-bezpecny",
+                parametry: null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const zprava = `${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`;
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" }, par.privateKey,
+                new TextEncoder().encode(zprava)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method: "POST", headers,
+                body: JSON.stringify({
+                    ...prikaz, verejny_klic: verejnyKlic,
+                    vyzva_id: vyzva.vyzva_id, podpis: kodujBase64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek?.overeno !== true || !Array.isArray(vysledek.data)) {
+                throw new Error(vysledek?.chyba || vysledek?.detail || "Načtení podrobnější historie selhalo.");
+            }
+            return vysledek.data;
+        }
+
         const sloupce = [
             ["datum_operace", "DATUM OPERACE"],
             ["operace", "OPERACE"],
@@ -316,10 +363,7 @@
                     return;
                 }
                 seznam.textContent = "Načítám podrobnější historii...";
-                // RPC musí na serveru ověřovat auth.uid() a roli vedeni.
-                const { data, error } = await supabaseClient.rpc("nacti_historii_podrobnejsi");
-                if (error) { seznam.textContent = "Chyba při načítání podrobnější historie: " + error.message; return; }
-                historieData = data || [];
+                historieData = await nactiPodrobnouHistoriiBezpecne(prihlaseni.session);
                 zobrazHistorii();
             } catch (chyba) {
                 document.body.style.display = "block";
