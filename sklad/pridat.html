@@ -1878,11 +1878,15 @@ async function archivujFotkyDodaku(fotky, userId){
         try{
             const pripona = (foto.blob.type || "").split("/")[1]?.toLowerCase();
             const typ = pripona === "jpeg" ? "jpg" : pripona === "png" ? "png" : pripona === "webp" ? "webp" : pripona === "heic" ? "heic" : "img";
-            const cesta = `${userId}/${crypto.randomUUID()}.${typ}`;
-            const {error} = await supabaseClient.storage.from("dodaci-listy").upload(cesta, foto.blob, {
-                contentType: foto.blob.type || "application/octet-stream",
-                upsert: false
+            const nazev = `${crypto.randomUUID()}.${typ}`;
+            const podepsany = await ctiPrijemBezpecne("archiv-upload",{
+                nazev,typ:foto.blob.type || "application/octet-stream"
             });
+            const {error} = await supabaseClient.storage.from("dodaci-listy")
+                .uploadToSignedUrl(podepsany.cesta,podepsany.token,foto.blob,{
+                    contentType:foto.blob.type || "application/octet-stream",
+                    upsert:false
+                });
             if(error) throw error;
             archivovaneFotky.add(foto.blob);
         }catch(chyba){
