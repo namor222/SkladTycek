@@ -107,7 +107,7 @@ button{width:100%;min-height:52px;padding:13px 18px;margin-top:20px;border:0;bor
 
 <!-- skryté prvky kvůli stávající logice ověření; uživatel je nevidí -->
 <div class="rozpoznano skryte-pole" aria-hidden="true">
-<span id="nahledMaterial"></span><span id="nahledDruh"></span><span id="nahledRozmer"></span><span id="nahledJakost"></span><span id="nahledStav"></span><span id="nahledTolerance"></span><span id="nahledCsn"></span><span id="nahledEnWnr"></span><span id="nahledJistota" class="jistota"></span><span id="nahledShody"></span>
+<span id="nahledMaterial"></span><span id="nahledDruh"></span><span id="nahledRozmer"></span><span id="nahledJakost"></span><span id="nahledStav"></span><span id="nahledTolerance"></span><span id="nahledEnWnr"></span><span id="nahledJistota" class="jistota"></span><span id="nahledShody"></span>
 </div>
 
 <!-- =========================
@@ -461,7 +461,7 @@ let rozpoznanaJakost = "";
 let rozpoznanaTolerance = "";
 let rozpoznanyStav = "";
 
-let rozpoznaneCsn = "";
+
 let rozpoznaneEnWnr = "";
 
 let jistotaMaterialu = "";
@@ -724,7 +724,7 @@ function cisloZTextu(text){
 
 function resetujOvereniMaterialu(){
 
-    rozpoznaneCsn="";
+    
     rozpoznaneEnWnr="";
 
     jistotaMaterialu="";
@@ -786,7 +786,7 @@ function rozpoznejNazev(doplnkovyText=""){
     rozpoznanaJakost="";
     rozpoznanaTolerance="";
     rozpoznanyStav="";
-    rozpoznaneCsn="";
+    
     rozpoznaneEnWnr="";
 
     resetujOvereniMaterialu();
@@ -867,8 +867,7 @@ function rozpoznejNazev(doplnkovyText=""){
     const wnrMatch=text.match(/\b1[.,]\d{4}\b/);
     if(wnrMatch) rozpoznaneEnWnr=wnrMatch[0].replace(",",".");
 
-    const csnMatch=text.match(/\b\d{2}\s\d{4}\b/);
-    if(csnMatch) rozpoznaneCsn=csnMatch[0].replace(/\s+/g," ");
+    
 
     const jakostVzory = [
         /\b\d{1,2}\s*SMn(?:Pb)?\s*\d+\b/i,
@@ -953,13 +952,7 @@ function vytvorIndicie(){
         }
     }
 
-    const csn = text.match(/\b\d{2}\s?\d{4}\b/g);
-
-    if(csn){
-        for(const hodnota of csn){
-            indicie.push(hodnota);
-        }
-    }
+    
 
     /*
        Další kandidátní indicie z celého názvu.
@@ -1126,8 +1119,8 @@ async function overMaterialCiselnikem(extraIndicie=[], ocekavanaGenerace=null){
 
     rozpoznaneEnWnr = vysledek.en_wnr || "";
 
-    /* Nova funkce zatim nevraci CSN. Nechame prazdne. */
-    rozpoznaneCsn = "";
+    
+    
 
     /*
        Původní text jakosti z dodacího listu zachováme ve formuláři.
@@ -1375,10 +1368,7 @@ function aktualizujNahled(){
     rozpoznanyStav || "—";
 
 
-    document
-    .getElementById("nahledCsn")
-    .innerText =
-    rozpoznaneCsn || "—";
+    
 
 
     document
@@ -1839,7 +1829,7 @@ async function nactiAIPolozku(index){
     rozpoznanaJakost = String(p.jakost ?? "").trim();
     rozpoznanyStav = String(p.stav ?? "").trim();
     rozpoznanaTolerance = String(p.tolerance ?? "").trim();
-    rozpoznaneCsn = String(p.csn ?? "").trim();
+    
     rozpoznaneEnWnr = String(p.en_wnr ?? p.wnr ?? "").trim();
 
     const nazev=hodnotaPolozky(p,"nazev","nazev_materialu","popis") || "";
