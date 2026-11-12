@@ -127,7 +127,7 @@ body{
 }
 
 
-/* Samostatné obsazené objednávky */
+/* Samostatné obsazené průvodky */
 .obsazeno-seznam{grid-column:1;margin:0 0 12px;font-size:14px}
 .obsazeno-nadpis{color:#667991;font-weight:700;margin-bottom:5px}
 .obsazeno-radek{display:flex;gap:12px;justify-content:space-between;max-width:300px;padding:3px 0;color:#ff7600;font-weight:800}
@@ -692,8 +692,8 @@ body{
                                 tridaPoctu(tavba.pocet);
 
                              const obsazeneRadky = tavba.objednavky
-                                 .sort((a, b) => String(a.objednavka).localeCompare(String(b.objednavka), "cs"))
-                                 .map(obj => `<div class="obsazeno-radek"><span>${escapeHtml(obj.objednavka)}</span><strong>${Number(obj.obsazeno)} ks</strong></div>`)
+                                 .sort((a, b) => String(a.pruvodka).localeCompare(String(b.pruvodka), "cs"))
+                                 .map(obj => `<div class="obsazeno-radek"><span>${escapeHtml(obj.pruvodka)}</span><strong>${Number(obj.obsazeno)} ks</strong></div>`)
                                  .join("");
 
                             htmlAtesty += `
@@ -717,10 +717,25 @@ body{
                                         </span>
                                     </p>
 
-                                    ${obsazeneRadky ? `<div class="obsazeno-seznam"><div class="obsazeno-nadpis">Obsazeno podle objednávek:</div>${obsazeneRadky}</div>` : ""}
+                                    ${obsazeneRadky ? `<div class="obsazeno-seznam"><div class="obsazeno-nadpis">Obsazeno podle průvodek:</div>${obsazeneRadky}</div>` : ""}
 
                                     <br>
 
+                                    <label>
+                                        Průvodka
+                                    </label>
+
+                                    <br><br>
+
+                                    <input
+                                        type="text"
+                                        id="pruvodka${index}"
+                                        placeholder="např. 26-211"
+                                    >
+
+                                    <br><br>
+
+                                    <label>
                                     <label>
                                         Kolik kusů odebrat?
                                     </label>
@@ -739,21 +754,6 @@ body{
 
                                     <br><br>
 
-                                    <label>
-                                        Objednávka
-                                    </label>
-
-                                    <br><br>
-
-                                    <input
-                                        type="text"
-                                        id="objednavka${index}"
-                                        placeholder="např. 123/ABC"
-                                    >
-
-                                    <br><br>
-
-                                    <label>
                                         Kolik kusů zbývá do konce zakázky?
                                     </label>
 
@@ -846,6 +846,35 @@ body{
             ODEBRÁNÍ MATERIÁLU
         */
 
+        // Predvyplneni rezervace pruvodky po zadani pruvodky a poctu kusu.
+        document.addEventListener("input", (udalost) => {
+            const el = udalost.target;
+            if (!el?.id || !/^(pruvodka|odebrat)\d+$/.test(el.id)) return;
+            const index = Number(el.id.match(/\d+$/)[0]);
+            const tavba = zobrazeneTavby[index];
+            const pruvodkaInput = document.getElementById("pruvodka" + index);
+            const input = document.getElementById("odebrat" + index);
+            const zbyvaInput = document.getElementById("zbyvaZakazka" + index);
+            if (!tavba || !pruvodkaInput || !input || !zbyvaInput) return;
+            const pruvodka = pruvodkaInput.value.trim().toLocaleUpperCase("cs");
+            const existujici = ulozeneObjednavky.find(o =>
+                String(o.pruvodka || "").trim().toLocaleUpperCase("cs") === pruvodka &&
+                String(o.material || "").trim().toLocaleUpperCase("cs") === String(tavba.material || "").trim().toLocaleUpperCase("cs") &&
+                String(o.druh || "").trim().toLocaleUpperCase("cs") === String(tavba.druh || "").trim().toLocaleUpperCase("cs") &&
+                Number(o.rozmer) === Number(tavba.rozmer) &&
+                Number(o.delka_mm) === Number(tavba.delka_mm) &&
+                String(o.tavba || "").trim().toLocaleUpperCase("cs") === String(tavba.tavba || "").trim().toLocaleUpperCase("cs")
+            );
+            const pocet = Number(input.value);
+            if (pruvodka && existujici && Number.isSafeInteger(pocet) && pocet >= 0) {
+                zbyvaInput.value = String(Math.max(0, Number(existujici.obsazeno) - pocet));
+            } else if (!pruvodka) {
+                zbyvaInput.value = "0";
+            } else {
+                zbyvaInput.value = "";
+            }
+        });
+
         async function odebrat(index) {
 
             const tavba =
@@ -863,9 +892,9 @@ body{
                 );
 
 
-            const objednavkaInput =
+            const pruvodkaInput =
                 document.getElementById(
-                    "objednavka" + index
+                    "pruvodka" + index
                 );
 
 
@@ -897,8 +926,8 @@ body{
                 );
 
 
-            const objednavka =
-                objednavkaInput
+            const pruvodka =
+                pruvodkaInput
                     .value
                     .trim();
 
@@ -967,7 +996,7 @@ body{
             input.disabled =
                 true;
 
-            objednavkaInput.disabled =
+            pruvodkaInput.disabled =
                 true;
 
             zbyvaInput.disabled =
@@ -991,7 +1020,7 @@ body{
                 p_tavba: String(tavba.tavba),
                 p_delka_mm: Number(tavba.delka_mm),
                 p_pocet: pocetOdebrat,
-                p_objednavka: objednavka || null,
+                p_pruvodka: pruvodka || null,
                 p_obsazeno: zbyvaZakazka
             });
 
@@ -1007,7 +1036,7 @@ body{
                 input.disabled =
                     false;
 
-                objednavkaInput.disabled =
+                pruvodkaInput.disabled =
                     false;
 
                 zbyvaInput.disabled =
