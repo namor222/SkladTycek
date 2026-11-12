@@ -385,6 +385,55 @@ body{
             return vysledek.data;
         }
 
+        // Podepsany zapis FIFO. Chyby vracime v puvodnim tvaru {error},
+        // aby se zachovalo odblokovani tlacitka a stavajici hlaseni.
+        async function odeberMaterialBezpecne(parametry) {
+            try {
+                const {data:{session},error:sessionError} = await supabaseClient.auth.getSession();
+                if (sessionError || !session) throw new Error("Nejdřív se přihlas.");
+                const {par, verejnyKlic} = await nactiExistujiciKlic();
+                const headers = {
+                    Authorization: `Bearer ${session.access_token}`,
+                    apikey: SUPABASE_KEY,
+                    "Content-Type": "application/json"
+                };
+                const base = `${SUPABASE_URL}/functions/v1/`;
+                const vr = await fetch(base + "schvalovani-prohlizecu", {
+                    method:"POST", headers,
+                    body:JSON.stringify({akce:"vyzva",verejny_klic:verejnyKlic})
+                });
+                const vyzva = await vr.json();
+                if (!vr.ok || !vyzva?.vyzva || !vyzva?.vyzva_id)
+                    throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+                const prikaz = {
+                    akce:"fifo-vydej", metoda:"POST",
+                    cesta:"/functions/v1/sklad-bezpecny", parametry
+                };
+                const digest = await crypto.subtle.digest(
+                    "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+                );
+                const otisk = [...new Uint8Array(digest)]
+                    .map(b => b.toString(16).padStart(2,"0")).join("");
+                const podpis = await crypto.subtle.sign(
+                    {name:"ECDSA",hash:"SHA-256"}, par.privateKey,
+                    new TextEncoder().encode(`${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`)
+                );
+                const response = await fetch(base + "sklad-bezpecny", {
+                    method:"POST", headers,
+                    body:JSON.stringify({
+                        ...prikaz, verejny_klic:verejnyKlic,
+                        vyzva_id:vyzva.vyzva_id, podpis:kodujBase64url(podpis)
+                    })
+                });
+                const vysledek = await response.json();
+                if (!response.ok || vysledek?.overeno !== true)
+                    throw new Error(vysledek?.detail || vysledek?.chyba || "Odebrání se nepodařilo.");
+                return {error:null};
+            } catch (error) {
+                return {error};
+            }
+        }
+
         async function nactiSklad() {
 
             const seznam =
@@ -935,48 +984,16 @@ body{
                 FIFO FUNKCE V SUPABASE
             */
 
-            const { error } =
-                await supabaseClient
-                    .rpc(
-                        "odebrat_material_fifo",
-                        {
-
-                            p_material:
-                                String(
-                                    tavba.material
-                                ),
-
-                            p_druh:
-                                String(
-                                    tavba.druh
-                                ),
-
-                            p_rozmer:
-                                Number(
-                                    tavba.rozmer
-                                ),
-
-                            p_tavba:
-                                String(
-                                    tavba.tavba
-                                ),
-
-                            p_delka_mm:
-                                Number(
-                                    tavba.delka_mm
-                                ),
-
-                            p_pocet:
-                                pocetOdebrat,
-
-                            p_objednavka:
-                                objednavka || null,
-
-                            p_obsazeno:
-                                zbyvaZakazka
-
-                        }
-                    );
+            const { error } = await odeberMaterialBezpecne({
+                p_material: String(tavba.material),
+                p_druh: String(tavba.druh),
+                p_rozmer: Number(tavba.rozmer),
+                p_tavba: String(tavba.tavba),
+                p_delka_mm: Number(tavba.delka_mm),
+                p_pocet: pocetOdebrat,
+                p_objednavka: objednavka || null,
+                p_obsazeno: zbyvaZakazka
+            });
 
 
             if (error) {
