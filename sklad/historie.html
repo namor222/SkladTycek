@@ -121,7 +121,7 @@
 
         .tabulka-hlavicka {
             display:grid;
-            grid-template-columns:145px 115px 105px minmax(220px,1fr) 130px 95px 75px 145px;
+            grid-template-columns:145px 115px minmax(220px,1fr) 130px 95px 75px 145px 105px;
             align-items:center;
             column-gap:16px;
             padding:11px 18px 11px 23px;
@@ -136,7 +136,7 @@
 
         .zaznam {
             display:grid;
-            grid-template-columns: 145px 115px 105px minmax(220px,1fr) 130px 95px 75px 145px;
+            grid-template-columns: 145px 115px minmax(220px,1fr) 130px 95px 75px 145px 105px;
             align-items:center;
             min-height:52px;
             padding:0 18px;
@@ -231,12 +231,12 @@
 
             .datum { grid-column:1; grid-row:1; }
             .akce { grid-column:2; grid-row:1; text-align:right; }
-            .material-id { grid-column:1 / -1; grid-row:2; }
-            .material-cell { grid-column:1 / -1; grid-row:3; }
-            .tavba-cell { grid-column:1; grid-row:4; }
-            .pocet { grid-column:2; grid-row:4; text-align:right; }
-            .osobni { grid-column:1; grid-row:5; }
-            .pruvodka { grid-column:2; grid-row:5; text-align:right; }
+            .material-cell { grid-column:1 / -1; grid-row:2; }
+            .tavba-cell { grid-column:1; grid-row:3; }
+            .pocet { grid-column:2; grid-row:3; text-align:right; }
+            .osobni { grid-column:1; grid-row:4; }
+            .pruvodka { grid-column:2; grid-row:4; text-align:right; }
+            .material-id { grid-column:1 / -1; grid-row:5; }
         }
 
     </style>
@@ -282,12 +282,12 @@
         <div class="tabulka-hlavicka">
             <div>DATUM</div>
             <div>OPERACE</div>
-            <div>ID MATERIÁLU</div>
             <div>MATERIÁL</div>
             <div>TAVBA</div>
             <div>POČET</div>
             <div>OS. Č.</div>
             <div>PRŮVODKA</div>
+            <div>ID MATERIÁLU</div>
         </div>
 
         <div id="seznam">
@@ -662,9 +662,7 @@
                             ${escapeHtml(zaznam.akce)}
                         </div>
 
-                        <div class="material-id">ID: ${zaznam.id == null ? "—" : escapeHtml(zaznam.id)}</div>
-
-                        <div class="material-cell">
+                                                <div class="material-cell">
                             ${escapeHtml(zaznam.material)} |
                             ${escapeHtml(zaznam.druh)} |
                             ${escapeHtml(zaznam.rozmer)}
@@ -685,6 +683,8 @@
                         </div>
 
                         ${pruvodkaHTML || '<div class="pruvodka"></div>'}
+
+                        <div class="material-id">${zaznam.id == null ? "—" : escapeHtml(zaznam.id)}</div>
                     </div>
                 `;
             });
