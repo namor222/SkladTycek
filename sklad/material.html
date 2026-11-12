@@ -3599,7 +3599,7 @@
 
 
 
-                        href="stav.html" id="odkazStavSkladu"
+                        href="stavpodrobnější.html" id="odkazStavSkladu" style="display: none;"
 
 
 
@@ -4607,7 +4607,7 @@
                     if (!chybaRole && roleUzivatele?.role === "vedeni") {
                         document.getElementById("menuDodaciListy").style.display = "block";
                         // Vedeni vstupuje rovnou do podrobnych prehledu.
-                        document.getElementById("odkazStavSkladu").href = "stavpodrobnější.html";
+                        document.getElementById("odkazStavSkladu").style.display = "";
                         document.getElementById("odkazHistorieSkladu").href = "historiepodrobnější.html";
                     }
                 } catch (chyba) {
