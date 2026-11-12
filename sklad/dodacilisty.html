@@ -63,7 +63,29 @@ async function overSchvalenyProhlizec(){
     const vysledek=await zavolejSchvalovani({akce:"overit",verejny_klic:verejnyKlic,vyzva_id:vyzva.vyzva_id,podpis:kodujBase64url(podpis)});
     if(vysledek?.overeno!==true)throw new Error("Prohlížeč není schválený.");
 }
-const bucket=supabaseClient.storage.from("dodaci-listy");
+async function ctiArchivBezpecne(){
+    const {data:{session},error:chybaSession}=await supabaseClient.auth.getSession();
+    if(chybaSession||!session?.access_token)throw new Error("Přihlášení vypršelo.");
+    const {par,verejnyKlic}=await nactiExistujiciKlic();
+    const vyzva=await zavolejSchvalovani({akce:"vyzva",verejny_klic:verejnyKlic});
+    if(typeof vyzva?.vyzva!=="string"||!vyzva.vyzva_id)throw new Error("Chybí ověřovací výzva.");
+    const prikaz={akce:"archiv-seznam",metoda:"POST",cesta:"/functions/v1/sklad-bezpecny",parametry:null};
+    const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(prikaz)));
+    const otisk=[...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    const podpis=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},par.privateKey,
+        new TextEncoder().encode(`${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`));
+    const response=await fetch("https://gmawlmsizglrnjmjegmx.supabase.co/functions/v1/sklad-bezpecny",{
+        method:"POST",headers:{Authorization:`Bearer ${session.access_token}`,
+            apikey:"sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i","Content-Type":"application/json"},
+        body:JSON.stringify({...prikaz,verejny_klic:verejnyKlic,
+            vyzva_id:vyzva.vyzva_id,podpis:kodujBase64url(podpis)})
+    });
+    const vysledek=await response.json();
+    if(!response.ok||vysledek?.overeno!==true)
+        throw new Error(vysledek?.detail||vysledek?.chyba||"Archiv nelze načíst.");
+    return vysledek.data;
+}
+
 const vysledek=document.getElementById("vysledek");
 const nahled=document.getElementById("nahled");
 const filtrDatum=document.getElementById("filtrDatum");
@@ -79,22 +101,6 @@ function zavriNahled(){nahled.classList.remove("otevreno");document.getElementBy
 document.getElementById("zavrit").addEventListener("click",zavriNahled);
 nahled.addEventListener("click",e=>{if(e.target===nahled)zavriNahled()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")zavriNahled()});
-async function nactiSoubory(cesta){
-    const vse=[];let offset=0;
-    while(true){
-        const {data,error}=await bucket.list(cesta,{limit:100,offset,sortBy:{column:"name",order:"asc"}});
-        if(error)throw error;
-        const polozky=data||[];
-        for(const soubor of polozky){
-            const cestaSouboru=cesta?cesta+"/"+soubor.name:soubor.name;
-            if(soubor.id){if((soubor.metadata?.mimetype||"").startsWith("image/")||/\.(jpe?g|png|webp|heic|gif)$/i.test(soubor.name))vse.push({cesta:cestaSouboru,datum:soubor.created_at||soubor.updated_at||""})}
-            else{vse.push(...await nactiSoubory(cestaSouboru))}
-        }
-        if(polozky.length<100)break;
-        offset+=polozky.length;
-    }
-    return vse;
-}
 async function spustit(){
     try{
         const {data:prihlaseni,error:chybaPrihlaseni}=await supabaseClient.auth.getSession();
@@ -105,14 +111,14 @@ async function spustit(){
         if(chybaRole||uzivatel?.role!=="vedeni"){vysledek.textContent="Přístup zamítnut. Dodací listy jsou dostupné pouze vedení.";return}
         document.getElementById("filtrDatumObal").hidden=false;
         vysledek.textContent="Načítám fotografie…";
-        const soubory=await nactiSoubory("");
+        const soubory=await ctiArchivBezpecne();
         soubory.sort((a,b)=>String(b.datum).localeCompare(String(a.datum)));
         document.getElementById("pocet").textContent=soubory.length+" fotografií";
         if(!soubory.length){vysledek.textContent="Zatím nejsou uložené žádné fotografie.";return}
         const mrizka=document.createElement("div");mrizka.className="mrizka";
         for(const soubor of soubory){
-            const {data,error}=await bucket.createSignedUrl(soubor.cesta,3600);
-            if(error||!data?.signedUrl){console.error("Náhled dodacího listu:",error);continue}
+            const data={signedUrl:soubor.url};
+            if(!data.signedUrl)continue;
             const karta=document.createElement("button");karta.type="button";karta.className="karta";karta.dataset.datum=soubor.datum?new Date(soubor.datum).toLocaleDateString("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit"}):"";
             const img=document.createElement("img");img.src=data.signedUrl;img.alt="Dodací list";img.loading="lazy";
             const info=document.createElement("div");info.className="info";
