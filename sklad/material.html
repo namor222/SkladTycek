@@ -3599,7 +3599,7 @@
 
 
 
-                        href="stav.html"
+                        href="stav.html" id="odkazStavSkladu"
 
 
 
@@ -4203,7 +4203,7 @@
 
 
 
-                        href="historie.html"
+                        href="historie.html" id="odkazHistorieSkladu"
 
 
 
@@ -4606,6 +4606,9 @@
                         .maybeSingle();
                     if (!chybaRole && roleUzivatele?.role === "vedeni") {
                         document.getElementById("menuDodaciListy").style.display = "block";
+                        // Vedeni vstupuje rovnou do podrobnych prehledu.
+                        document.getElementById("odkazStavSkladu").href = "stavpodrobnější.html";
+                        document.getElementById("odkazHistorieSkladu").href = "historiepodrobnější.html";
                     }
                 } catch (chyba) {
                     console.error("Kontrola přístupu k dodacím listům:", chyba);
