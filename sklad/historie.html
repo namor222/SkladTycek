@@ -155,7 +155,7 @@
         .zaznam.pridano { border-left-color:var(--green); }
         .zaznam.odebrano { border-left-color:var(--red); }
 
-        .datum, .akce, .detail, .objednavka {
+        .datum, .akce, .detail, .pruvodka {
             margin:0;
             font-size:13px;
             line-height:1.25;
@@ -172,7 +172,7 @@
         .pocet.pridano { color:var(--green); }
         .pocet.odebrano { color:var(--red); }
         .osobni { color:#334760; font-weight:700; }
-        .objednavka { color:#334760; font-weight:700; }
+        .pruvodka { color:#334760; font-weight:700; }
         .cislo-objednavky { color:var(--orange); font-weight:900; }
 
         #seznam > p {
@@ -234,7 +234,7 @@
             .tavba-cell { grid-column:1; grid-row:3; }
             .pocet { grid-column:2; grid-row:3; text-align:right; }
             .osobni { grid-column:1; grid-row:4; }
-            .objednavka { grid-column:2; grid-row:4; text-align:right; }
+            .pruvodka { grid-column:2; grid-row:4; text-align:right; }
         }
 
     </style>
@@ -268,7 +268,7 @@
         <input
             type="text"
             id="hledatObjednavku"
-            placeholder="🔎 Hledat objednávku..."
+            placeholder="🔎 Hledat průvodku..."
             oninput="zobrazHistorii()"
         >
 
@@ -284,7 +284,7 @@
             <div>TAVBA</div>
             <div>POČET</div>
             <div>OS. Č.</div>
-            <div>OBJEDNÁVKA</div>
+            <div>PRŮVODKA</div>
         </div>
 
         <div id="seznam">
@@ -587,7 +587,7 @@
             if (hledanaObjednavka !== "") {
                 filtrovanaData =
                     filtrovanaData.filter(zaznam =>
-                        String(zaznam.objednavka || "")
+                        String(zaznam.pruvodka || "")
                             .toLowerCase()
                             .includes(hledanaObjednavka)
                     );
@@ -628,16 +628,16 @@
                     pocet +
                     " ks";
 
-                let objednavkaHTML = "";
+                let pruvodkaHTML = "";
 
                 if (
-                    zaznam.objednavka &&
-                    String(zaznam.objednavka).trim() !== ""
+                    zaznam.pruvodka &&
+                    String(zaznam.pruvodka).trim() !== ""
                 ) {
-                    objednavkaHTML = `
-                        <div class="objednavka">
+                    pruvodkaHTML = `
+                        <div class="pruvodka">
                             <span class="cislo-objednavky">
-                                ${escapeHtml(zaznam.objednavka)}
+                                ${escapeHtml(zaznam.pruvodka)}
                             </span>
                         </div>
                     `;
@@ -679,7 +679,7 @@
                             ${osobniCislo ? osobniCislo.replace(" | Os. č. ", "") : ""}
                         </div>
 
-                        ${objednavkaHTML || '<div class="objednavka"></div>'}
+                        ${pruvodkaHTML || '<div class="pruvodka"></div>'}
                     </div>
                 `;
             });
