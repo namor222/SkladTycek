@@ -256,7 +256,7 @@
                             ? objednavkyProRadek(zaznam) : [];
                         if (identita && objednavky.length) jizZobrazene.add(identita);
                         const obsah = objednavky.map(o =>
-                            `<div>${escapeHtml(o.objednavka)}: ${escapeHtml(o.obsazeno)} ks</div>`
+                            `<div>${escapeHtml(o.pruvodka)}: ${escapeHtml(o.obsazeno)} ks</div>`
                         ).join("");
                         return `<td class="obsazeno">${obsah || "—"}</td>`;
                     }
