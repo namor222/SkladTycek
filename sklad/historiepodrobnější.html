@@ -224,8 +224,7 @@
             ["dodavatel", "DODAVATEL"],
             ["cislo_dodaciho_listu", "ČÍSLO DODACÍHO LISTU"],
             ["stav", "STAV"],
-            ["cena_za_kg", "CENA ZA KG"],
-            ["cena_za_dopravu", "CENA ZA DOPRAVU"]
+            ["cena_celkem_kc", "CENA"]
         ];
         let historieData = [];
         let plovouciHlavicka = null;
@@ -237,6 +236,10 @@
                 .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
         }
         function formatHodnota(klic, hodnota) {
+            if (klic === "cena_celkem_kc" && hodnota !== null && hodnota !== undefined && hodnota !== "") {
+                const cislo = Number(hodnota);
+                return Number.isFinite(cislo) ? new Intl.NumberFormat("cs-CZ", {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(cislo) + " Kč" : "—";
+            }
             if (hodnota === null || hodnota === undefined || hodnota === "") return "—";
             if ((klic === "datum_operace" || klic === "datum_prijmu") && typeof hodnota === "string") {
                 const shoda = hodnota.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
