@@ -1056,10 +1056,12 @@ async function overMaterialCiselnikem(extraIndicie=[], ocekavanaGenerace=null){
     }
 
     async function zavolejSkener(text){
-        const {data,error} = await supabaseClient.rpc(
-            "skener_jakost",
-            { vstupni_text:text }
-        );
+        let data=null,error=null;
+        try{
+            data=await ctiPrijemBezpecne("skener-jakost",{vstupni_text:text});
+        }catch(chyba){
+            error=chyba;
+        }
 
         if(error){
             console.error("Chyba skener_jakost:", error);
