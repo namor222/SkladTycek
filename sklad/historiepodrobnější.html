@@ -366,6 +366,7 @@
                 }
                 seznam.textContent = "Načítám podrobnější historii...";
                 historieData = await nactiPodrobnouHistoriiBezpecne(prihlaseni.session);
+                historieData.sort((a, b) => (Date.parse(b.datum_operace) || 0) - (Date.parse(a.datum_operace) || 0));
                 zobrazHistorii();
             } catch (chyba) {
                 document.body.style.display = "block";
