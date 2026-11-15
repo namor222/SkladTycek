@@ -246,6 +246,13 @@
             const jizZobrazene = new Set();
             seznam.innerHTML = nazvy.map(material => {
                 const serazene = [...skupiny.get(material)].sort((a, b) => {
+                    const rozmerA = String(a.rozmer ?? "").trim();
+                    const rozmerB = String(b.rozmer ?? "").trim();
+                    const cisloA = Number(rozmerA.replace(",", "."));
+                    const cisloB = Number(rozmerB.replace(",", "."));
+                    const obaCiselne = rozmerA !== "" && rozmerB !== "" && Number.isFinite(cisloA) && Number.isFinite(cisloB);
+                    const rozdilRozmeru = obaCiselne ? cisloA - cisloB : rozmerA.localeCompare(rozmerB, "cs", { numeric: true });
+                    if (rozdilRozmeru !== 0) return rozdilRozmeru;
                     const druhA = normalizuj(a.druh);
                     const druhB = normalizuj(b.druh);
                     const priorita = druh => druh.includes("kulatina") ? 0 : druh.includes("sestihran") || druh.includes("šestihran") ? 1 : 2;
