@@ -246,16 +246,15 @@
             const jizZobrazene = new Set();
             seznam.innerHTML = nazvy.map(material => {
                 const serazene = [...skupiny.get(material)].sort((a, b) => {
-                    const rozmerA = String(a.rozmer ?? "").trim();
-                    const rozmerB = String(b.rozmer ?? "").trim();
-                    const cisloA = Number(rozmerA.replace(",", "."));
-                    const cisloB = Number(rozmerB.replace(",", "."));
-                    const obaCiselne = rozmerA !== "" && rozmerB !== "" && Number.isFinite(cisloA) && Number.isFinite(cisloB);
-                    const rozdilRozmeru = obaCiselne ? cisloA - cisloB : rozmerA.localeCompare(rozmerB, "cs", { numeric: true });
-                    if (rozdilRozmeru !== 0) return rozdilRozmeru;
+                    const druhA = normalizuj(a.druh);
+                    const druhB = normalizuj(b.druh);
+                    const priorita = druh => druh.includes("kulatina") ? 0 : druh.includes("sestihran") || druh.includes("šestihran") ? 1 : 2;
+                    const rozdilDruhu = priorita(druhA) - priorita(druhB);
+                    if (rozdilDruhu !== 0) return rozdilDruhu;
+                    if (druhA !== druhB) return druhA.localeCompare(druhB, "cs");
                     return Number(a.material_id) - Number(b.material_id);
                 });
-                const radky = serazene.map((zaznam, index, polozky) => {
+                                const radky = serazene.map((zaznam, index, polozky) => {
                     const novyRozmer = index > 0 && String(zaznam.rozmer ?? "").trim() !== String(polozky[index - 1].rozmer ?? "").trim();
                     return `<tr${novyRozmer ? ' class="novy-rozmer"' : ""}>` + sloupce.map(([klic]) => {
                     let trida = klic === "tavba" ? "tavba" : (klic === "obsazeno" && Number(zaznam[klic]) !== 0 && zaznam[klic] != null) ? "obsazeno" : "";
