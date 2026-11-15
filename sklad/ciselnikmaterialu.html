@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Číselník jakostí materiálů</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f6fb;color:#10284a;font:15px Arial,sans-serif;padding:26px}main{max-width:1250px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}h1{font-size:30px}a{color:#1768c5}.panel{background:white;border:1px solid #dbe5f1;border-radius:12px;padding:20px;margin-top:20px}form{display:flex;gap:12px;flex-wrap:wrap;align-items:end}label{display:flex;flex-direction:column;gap:6px;font-weight:bold}input,select,button{padding:11px;border:1px solid #cad7e7;border-radius:8px;font:inherit}button{background:#0d64c5;color:white;border:0;cursor:pointer;font-weight:bold}button.secondary{background:#e5edf8;color:#12385f}button.danger{background:#a52d35}table{border-collapse:collapse;width:100%;min-width:800px}th,td{border-bottom:1px solid #e4ebf4;text-align:left;padding:12px}th{background:#edf3fa}td button{margin:2px;padding:8px}#status{font-weight:bold;margin-top:12px}#list{overflow-x:auto}.muted{color:#62748b}.inactive{opacity:.55}
+</style></head><body><main><header><h1>Číselník jakostí materiálů</h1><a href="material.html">← Zpět do skladu</a></header>
+<p>Jakost a EN/WNR určují kategorii materiálu při skenování. Úpravy může provádět pouze vedení. Neověřené údaje nepřidávejte.</p>
+<div id="status">Ověřuji přístup…</div>
+<section class="panel" id="sprava" hidden>
+<form id="formular">
+<input id="id" type="hidden">
+<label>Jakost<input id="jakost" required maxlength="120" placeholder="X8CrNiS18-9"></label>
+<label>EN / WNR<input id="en" required maxlength="60" placeholder="1.4305"></label>
+<label>Materiál<select id="material"><option>NEREZ</option><option>OCEL</option><option>HLINIK</option><option>MOSAZ</option><option>MED</option></select></label>
+<label>Zdroj ověření<input id="zdroj" required maxlength="600" placeholder="https://..."></label>
+<button type="submit">Uložit záznam</button><button type="button" class="secondary" id="zrusit">Zrušit úpravy</button>
+</form></section>
+<section class="panel"><label>Hledat v číselníku<input id="hledat" placeholder="Jakost, EN/WNR, materiál"></label><div id="list"><table><thead><tr><th>Jakost</th><th>EN/WNR</th><th>Materiál</th><th>Zdroj</th><th>Stav</th><th>Akce</th></tr></thead><tbody id="radky"></tbody></table></div></section>
+</main><script>
+const db=window.supabase.createClient("https://gmawlmsizglrnjmjegmx.supabase.co","sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i");
+let zaznamy=[],vedeni=false;
+const $=id=>document.getElementById(id);
+function text(el,s){el.textContent=s??""}
+function zprava(s){text($("status"),s)}
+function reset(){ $("formular").reset();$("id").value=""; }
+function vykresli(){const q=$("hledat").value.toLocaleLowerCase("cs");const body=$("radky");body.replaceChildren();for(const r of zaznamy.filter(x=>[x.jakost,x.en_wnr,x.material].join(" ").toLocaleLowerCase("cs").includes(q))){const tr=document.createElement("tr");if(!r.aktivni)tr.className="inactive";for(const k of ["jakost","en_wnr","material"]){const td=document.createElement("td");text(td,r[k]);tr.append(td)}const td=document.createElement("td");const a=document.createElement("a");a.href=r.zdroj;a.target="_blank";a.rel="noopener noreferrer";text(a,"Ověřit zdroj");td.append(a);tr.append(td);const st=document.createElement("td");text(st,r.aktivni?"Aktivní":"Neaktivní");tr.append(st);const akce=document.createElement("td");if(vedeni){const edit=document.createElement("button");text(edit,"Upravit");edit.onclick=()=>{for(const [id,key] of [["id","id"],["jakost","jakost"],["en","en_wnr"],["material","material"],["zdroj","zdroj"]])$(id).value=r[key];window.scrollTo({top:0,behavior:"smooth"})};akce.append(edit);const toggle=document.createElement("button");toggle.className="secondary";text(toggle,r.aktivni?"Deaktivovat":"Aktivovat");toggle.onclick=async()=>{if(!confirm("Opravdu změnit stav záznamu?"))return;const {error}=await db.from("ciselnik_jakosti_materialu").update({aktivni:!r.aktivni}).eq("id",r.id);if(error)zprava(error.message);else await nacti()};akce.append(toggle)}tr.append(akce);body.append(tr)}}
+async function nacti(){const {data,error}=await db.from("ciselnik_jakosti_materialu").select("*").order("material").order("jakost");if(error){zprava("Načtení selhalo: "+error.message);return}zaznamy=data;vykresli();zprava("Načteno "+data.length+" položek. "+(vedeni?"Úpravy povoleny.":"Pouze čtení."))}
+$("hledat").oninput=vykresli;$("zrusit").onclick=reset;
+$("formular").onsubmit=async e=>{e.preventDefault();if(!vedeni)return;const data={jakost:$("jakost").value.trim(),en_wnr:$("en").value.trim(),material:$("material").value,zdroj:$("zdroj").value.trim()};if(!data.jakost||!data.en_wnr||!data.zdroj){zprava("Vyplňte všechny údaje.");return}const id=$("id").value;const result=id?await db.from("ciselnik_jakosti_materialu").update(data).eq("id",id):await db.from("ciselnik_jakosti_materialu").insert(data);if(result.error){zprava("Uložení selhalo: "+result.error.message);return}reset();await nacti()};
+(async()=>{const {data:{user},error}=await db.auth.getUser();if(error||!user){location.href="../login.html";return}const role=await db.from("uzivatele").select("role").eq("user_id",user.id).maybeSingle();vedeni=role.data?.role==="vedeni";$("sprava").hidden=!vedeni;await nacti()})().catch(e=>zprava("Chyba: "+e.message));
+</script></body></html>
