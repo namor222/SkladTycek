@@ -258,25 +258,6 @@
     </div>
 
 
-    <div class="filtry">
-
-        <input
-            type="text"
-            id="hledatTavbu"
-            placeholder="🔎 Hledat tavbu..."
-            oninput="zobrazHistorii()"
-        >
-
-        <input
-            type="text"
-            id="hledatObjednavku"
-            placeholder="🔎 Hledat průvodku..."
-            oninput="zobrazHistorii()"
-        >
-
-    </div>
-
-
     <div class="obsah">
 
         <div class="tabulka-hlavicka">
@@ -562,39 +543,7 @@
             const seznam =
                 document.getElementById("seznam");
 
-            const hledanaTavba =
-                document
-                    .getElementById("hledatTavbu")
-                    .value
-                    .trim()
-                    .toLowerCase();
-
-            const hledanaObjednavka =
-                document
-                    .getElementById("hledatObjednavku")
-                    .value
-                    .trim()
-                    .toLowerCase();
-
             let filtrovanaData = historieData;
-
-            if (hledanaTavba !== "") {
-                filtrovanaData =
-                    filtrovanaData.filter(zaznam =>
-                        String(zaznam.tavba || "")
-                            .toLowerCase()
-                            .includes(hledanaTavba)
-                    );
-            }
-
-            if (hledanaObjednavka !== "") {
-                filtrovanaData =
-                    filtrovanaData.filter(zaznam =>
-                        String(zaznam.pruvodka || "")
-                            .toLowerCase()
-                            .includes(hledanaObjednavka)
-                    );
-            }
 
             /*
                 Nová historie pracuje pouze s přesným počtem kusů.
