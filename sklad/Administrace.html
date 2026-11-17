@@ -149,7 +149,7 @@
             const obsah = document.getElementById("obsah");
             try {
                 seznamHlaseni = await rpc("admin_prehled_hlaseni", {});
-                obsah.innerHTML = '<section class="panel"><h2>Hlášení chyb od pracovníků</h2><p class="muted">Vyber hlášení. Opravy se ukládají přímo do příjmů materiálu a historie v Supabase.</p><div id="seznam" class="reports"></div></section><div id="detail"></div>';
+                obsah.innerHTML = '<section class="panel"><h2>Hlášení chyb od pracovníků</h2><p class="muted">Vyber hlášení.</p><div id="seznam" class="reports"></div></section><div id="detail"></div>';
                 vykresliSeznam();
                 if (vybratId) await otevriHlaseni(vybratId);
             } catch (e) {
