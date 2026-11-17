@@ -1862,13 +1862,15 @@ async function nactiAIPolozku(index){
 ========================================================= */
 const archivovaneFotky = new WeakSet();
 
-async function archivujFotkyDodaku(fotky, userId){
+async function archivujFotkyDodaku(fotky, cisloDodaku){
+    const bezpecneCislo=String(cisloDodaku||"").trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9_-]/g,"_").replace(/_+/g,"_").slice(0,90);
+    if(!bezpecneCislo) throw new Error("Chybí číslo dodacího listu.");
     for(const foto of fotky){
         if(archivovaneFotky.has(foto.blob)) continue;
         try{
             const pripona = (foto.blob.type || "").split("/")[1]?.toLowerCase();
             const typ = pripona === "jpeg" ? "jpg" : pripona === "png" ? "png" : pripona === "webp" ? "webp" : pripona === "heic" ? "heic" : "img";
-            const nazev = `${crypto.randomUUID()}.${typ}`;
+            const nazev = `DL_${bezpecneCislo}_${crypto.randomUUID()}.${typ}`;
             const podepsany = await ctiPrijemBezpecne("archiv-upload",{
                 nazev,typ:foto.blob.type || "application/octet-stream"
             });
@@ -1882,6 +1884,7 @@ async function archivujFotkyDodaku(fotky, userId){
         }catch(chyba){
             // Archivace nesmí nikdy zastavit AI čtení ani příjem do skladu.
             console.error("Archivace fotografie dodacího listu se nezdařila:", chyba);
+            throw chyba;
         }
     }
 }
@@ -1908,11 +1911,6 @@ async function precistDodakAI(){
         if(sessionError || !sessionData.session?.access_token){
             throw new Error("Přihlášení vypršelo. Přihlas se znovu.");
         }
-
-        // Samostatná archivace originálních fotek; neblokuje původní AI postup.
-        // Snapshot chrání před změnou seznamu fotografií během čtení.
-        void archivujFotkyDodaku([...fotkyDokumentu], sessionData.session.user.id)
-            .catch(chyba => console.error("Archiv dodacích listů:", chyba));
 
         const response=await fetch(`${SUPABASE_URL}/functions/v1/cteni-dodaku`,{
             method:"POST",
@@ -2315,6 +2313,12 @@ async function ulozitPrijem(){
         }
 
         console.log("Příjem úspěšně uložen:",{skenId,prijemId,material,druh,rozmer,tavba,pocet});
+        if(fotkyDokumentu.length){
+            const cisloDokladu=String(document.getElementById("cisloDodaku")?.value || detailPolozky.cislo_dodaciho_listu || aiCisloDodaku || "").trim();
+            try{await archivujFotkyDodaku([...fotkyDokumentu],cisloDokladu);}
+            catch(chyba){console.error("Archivace dodacího listu:",chyba);document.getElementById("fotoStav").textContent="⚠️ Fotografie se nepodařilo archivovat: "+chyba.message;}
+        }
+
 
         const aktualniPolozka=aiNalezenePolozky[aiVybranaPolozkaIndex];
         if(aktualniPolozka){
