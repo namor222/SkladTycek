@@ -445,7 +445,7 @@ document.querySelectorAll(".foto-formular").forEach(form=>form.addEventListener(
    const pripona=file.type==="image/jpeg"?"jpg":file.type==="image/png"?"png":"webp";
    stav.textContent="Nahrávám fotografii "+(hotovo+1)+" z "+soubory.length+"…";
    const {cesta,token}=await dokumentovaAkce(session,"dokument-nahrat",{material_id:id,typ,pripona});
-   const {error}=await supabaseClient.storage.from("dodaci-listy").uploadToSignedUrl(cesta,token,file,{contentType:file.type});
+   const {error}=await supabaseClient.storage.from(typ==="faktura"?"faktury":typ==="atest"?"atesty":"dodaci-listy").uploadToSignedUrl(cesta,token,file,{contentType:file.type});
    if(error)throw Error("Nahrání fotografie selhalo: "+error.message);
    await dokumentovaAkce(session,"dokument-potvrdit",{material_id:id,typ,cesta});
    hotovo++;
