@@ -1,31 +1,26 @@
 <!DOCTYPE html>
-<html lang="cs">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operace materiálu | Sklad</title>
-<link rel="icon" href="./favicon.ico?v=3">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operace materiálu</title>
+<link rel="icon" href="./favicon.ico?v=3"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{display:none;margin:0;background:#f2f6fb;color:#20344e;font-family:Arial,Helvetica,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px clamp(16px,4vw,55px);background:#fff;border-bottom:1px solid #dce4ef}
-h1{margin:0;font-size:clamp(22px,3vw,30px)}a.back{padding:12px 18px;border:1px solid #d6e0eb;border-radius:10px;color:#24364b;text-decoration:none;font-weight:800}
-main{max-width:1260px;margin:0 auto;padding:25px 18px 65px}
-.panel{background:white;border:1px solid #dfe7f1;border-radius:16px;padding:23px;margin-bottom:22px;box-shadow:0 7px 24px rgba(30,55,85,.045)}
-h2{margin:0 0 16px}h3{margin:0 0 15px;font-size:19px}.hint{color:#62748a;line-height:1.5}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px}
-.field{border:1px solid #e1e8f1;border-radius:11px;padding:13px;background:#f9fbfe}
-.field label{display:block;font-size:13px;font-weight:800;margin-bottom:8px;color:#344b66;overflow-wrap:anywhere}
-.field input{width:100%;padding:11px;border:1px solid #bccadb;border-radius:8px;font:inherit;background:white}
-.field button{margin-top:9px;background:#1763ac;color:white;border:0;border-radius:8px;padding:10px 13px;font-weight:800;cursor:pointer}
-.field button:disabled{opacity:.5;cursor:wait}
-.history{border-top:1px solid #dfe7f1;padding:22px 0}.history:first-child{border-top:0}
-.status{font-weight:700;margin:12px 0;white-space:pre-wrap}.warning{border-left:4px solid #d6a13e;background:#fff9e9;padding:12px;margin:14px 0}
-</style>
-</head>
-<body>
-<header><h1 id="nadpis">Operace materiálu</h1><a class="back" href="stavpodrobnější.html">← ZPĚT</a></header>
-<main><section class="panel"><h2>Úpravy příjmu a historie</h2><p class="hint">Úpravy se zapisují přímo do Supabase. Každou hodnotu ukládej zvlášť. Změny se evidují a nelze měnit ID záznamů.</p><div id="zprava" class="status"></div></section><div id="obsah"></div></main>
-<script>
+*{box-sizing:border-box}body{display:none;margin:0;background:#f4f7fb;color:#071a38;font-family:Arial,Helvetica,sans-serif;padding:24px}
+main{max-width:1450px;margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px;border-bottom:1px solid #dfe7f0;padding-bottom:16px}h1{margin:0;font-size:28px}
+.back{border:1px solid #d6e0eb;border-radius:10px;background:#fff;padding:12px 18px;text-decoration:none;color:#071a38;font-weight:800}
+.panel{background:#fff;border:1px solid #dfe7f0;border-radius:12px;margin-bottom:22px;overflow:hidden}
+.panel h2{margin:0;background:#edf2f7;border-bottom:1px solid #dfe7f0;padding:14px 18px;font-size:19px}
+.content{padding:18px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:1060px;font-size:12px}
+th{background:#edf2f7;text-align:left;color:#52667f;font-size:10px;padding:12px 8px}td{padding:12px 8px;border-bottom:1px solid #e9eef4;vertical-align:top;overflow-wrap:anywhere}
+.tavba{color:#0877e8;font-weight:800}.obsazeno{color:#ff7600;font-weight:900}.pocet-malo{color:#ef3737;font-weight:900}.pocet-stred{color:#f28a00;font-weight:900}.pocet-ok{color:#08aa43;font-weight:900}
+form{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:12px 0;padding:12px;border:1px solid #e0e7f0;border-radius:10px}
+label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:800}input{min-width:160px;padding:11px;border:1px solid #becbda;border-radius:8px;font:inherit}
+button{background:#1469b8;color:white;border:0;border-radius:8px;padding:12px 16px;font-weight:800;cursor:pointer}button:disabled{opacity:.55}
+.muted{color:#62748a}.status{padding:10px 0;font-weight:700}.history-table{min-width:1100px}
+@media(max-width:700px){body{padding:12px}h1{font-size:21px}form{align-items:stretch}label,input,button{width:100%}}
+</style></head><body><main><header><h1 id="titulek">Operace materiálu</h1><a class="back" href="stavpodrobnější.html">← ZPĚT</a></header>
+<div id="zprava" class="status"></div>
+<section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
+<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><h3>Přidat novou obsazenou průvodku</h3><form id="nova"><label>PRŮVODKA<input name="pruvodka" required maxlength="150"></label><label>OBSAZENO<input name="obsazeno" type="number" min="0" step="1" required></label><button type="submit">PŘIDAT PRŮVODKU</button></form></div></section>
+<section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
+</main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
         const SUPABASE_KEY = "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -111,81 +106,133 @@ h2{margin:0 0 16px}h3{margin:0 0 15px;font-size:19px}.hint{color:#62748a;line-he
 
 
 
+        const sloupce = [
+            ["smkh", "SMKH"],
+            ["en_wnr", "EN / WNR"],
+            ["material", "MATERIÁL"],
+            ["druh", "DRUH"],
+            ["rozmer", "ROZMĚR"],
+            ["tavba", "TAVBA"],
+            ["jakost", "JAKOST"],
+            ["tolerance", "TOLERANCE"],
+            ["pocet_zbyva", "POČET(3m)"],
+            ["kg_zbyva", "VÁHA"],
+            ["hodnota_skladu_kc", "CENA"],
+            ["obsazeno", "OBSAZENO"],
+            ["material_id", "ID MATERIÁLU"]
+        ];
 
+        // Podepsane cteni podrobneho stavu, rezervaci a delek pres sklad-bezpecny.
+        async function nactiPodrobnyStavBezpecne(session) {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vyzvaResponse = await fetch(base + "schvalovani-prohlizecu", {
+                method: "POST", headers,
+                body: JSON.stringify({ akce: "vyzva", verejny_klic: verejnyKlic })
+            });
+            const vyzva = await vyzvaResponse.json();
+            if (!vyzvaResponse.ok || !vyzva?.vyzva || !vyzva?.vyzva_id) {
+                throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            }
+            const prikaz = {
+                akce: "cteni-stavu-podrobnejsi",
+                metoda: "POST",
+                cesta: "/functions/v1/sklad-bezpecny",
+                parametry: null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const zprava = `${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`;
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" }, par.privateKey,
+                new TextEncoder().encode(zprava)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method: "POST", headers,
+                body: JSON.stringify({
+                    ...prikaz, verejny_klic: verejnyKlic,
+                    vyzva_id: vyzva.vyzva_id, podpis: kodujBase64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek?.overeno !== true ||
+                !Array.isArray(vysledek.data?.stav) ||
+                !Array.isArray(vysledek.data?.rezervace) ||
+                !Array.isArray(vysledek.data?.sklad)) {
+                throw new Error(vysledek?.chyba || vysledek?.detail || "Načtení podrobnějšího stavu selhalo.");
+            }
+            return vysledek.data;
+        }
 
-        const escapeHtml = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-        const prijemPole = ["nazev_z_dodaku","material","druh","rozmer","jakost","tolerance","tavba","delka_mm","hmotnost_kg","pocet_prijato","pocet_zbyva","osobni_cislo","datum_prijmu","cislo_dodaciho_listu","csn","en_wnr","dodavatel","stav","atest","davka","delka_dokument","cena_za_kg","cena_za_dopravu","obsazeno"];
-        const historiePole = ["datum","osobni_cislo","material","druh","rozmer","pocet","pruvodka","nazev_z_dodaku","jakost","tolerance","cislo_dodaciho_listu","hmotnost_kg","tavba","dodavatel","stav","cena_za_kg","cena_za_dopravu"];
-        const numericka = new Set(["rozmer","delka_mm","hmotnost_kg","pocet_prijato","pocet_zbyva","obsazeno","pocet","cena_za_kg","cena_za_dopravu"]);
-        const cela = new Set(["pocet_prijato","pocet_zbyva","obsazeno","pocet","osobni_cislo"]);
-        const datumova = new Set(["datum","datum_prijmu"]);
-        const povinna = new Set(["nazev_z_dodaku","pocet_prijato","pocet_zbyva","osobni_cislo","datum_prijmu","datum"]);
-        const labels = {nazev_z_dodaku:"NÁZEV Z DODÁKU",material:"MATERIÁL",druh:"DRUH",rozmer:"ROZMĚR",jakost:"JAKOST",tolerance:"TOLERANCE",tavba:"TAVBA",delka_mm:"DÉLKA (MM)",hmotnost_kg:"HMOTNOST (KG)",pocet_prijato:"POČET PŘIJATO",pocet_zbyva:"POČET ZBÝVÁ",osobni_cislo:"OSOBNÍ ČÍSLO",datum_prijmu:"DATUM PŘÍJMU",cislo_dodaciho_listu:"ČÍSLO DODACÍHO LISTU",csn:"ČSN",en_wnr:"EN/W.NR.",dodavatel:"DODAVATEL",stav:"STAV",atest:"ATEST",davka:"DÁVKA",delka_dokument:"DÉLKA DOKUMENT",cena_za_kg:"CENA ZA KG",cena_za_dopravu:"CENA ZA DOPRAVU",obsazeno:"OBSAZENO",datum:"DATUM",pocet:"POČET",pruvodka:"PRŮVODKA"};
-        const params = new URLSearchParams(location.search);
-        const id = Number(params.get("id"));
-        let data = null;
-        async function rpc(nazev,parametry){const {data,error}=await supabaseClient.rpc(nazev,parametry);if(error)throw error;return data;}
-        function poleHtml(tabulka,zaznam,sloupce){
-            return '<div class="grid">'+sloupce.map(k=>{
-                const hodnota=zaznam[k];
-                const typ=datumova.has(k)?"datetime-local":numericka.has(k) || (k==="osobni_cislo" && tabulka==="historie")?"number":"text";
-                const val=datumova.has(k)&&hodnota?new Date(hodnota).toISOString().slice(0,16):hodnota??"";
-                const step=typ==="number"?(cela.has(k)?"1":"any"):"";
-                return '<form class="field" data-tabulka="'+tabulka+'" data-zaznam="'+zaznam.id+'" data-sloupec="'+k+'"><label>'+escapeHtml(labels[k]||k)+'</label><input type="'+typ+'" '+(step?'step="'+step+'" ':'')+'value="'+escapeHtml(val)+'"><button type="submit">ULOŽIT</button></form>';
-            }).join('')+'</div>';
-        }
-        function zobraz(){
-            document.getElementById("nadpis").textContent="Operace materiálu · ID "+id;
-            const p=data.prijem;
-            document.getElementById("obsah").innerHTML='<section class="panel"><h2>Příjem materiálu · ID '+p.id+'</h2>'+poleHtml("prijmy_materialu",p,prijemPole)+'</section>'+
-                '<section class="panel"><h2>Historie materiálu ('+data.historie.length+')</h2>'+
-                (data.historie.length?data.historie.map(h=>'<article class="history"><h3>Záznam #'+h.id+' · '+escapeHtml(h.akce)+' · '+escapeHtml(h.datum?new Date(h.datum).toLocaleString("cs-CZ"):"")+'</h3>'+poleHtml("historie",h,historiePole)+'</article>').join(''):'<p>Žádná historie k tomuto ID.</p>')+'</section>';
-            document.querySelectorAll("form.field").forEach(f=>f.addEventListener("submit",uloz));
-        }
-        async function nacti(){
-            data=await rpc("operace_detail_materialu",{p_material_id:id});
-            zobraz();
-        }
-        async function uloz(event){
-            event.preventDefault();
-            const f=event.currentTarget, tab=f.dataset.tabulka, zId=Number(f.dataset.zaznam), k=f.dataset.sloupec;
-            const input=f.querySelector("input"), button=f.querySelector("button"), raw=input.value.trim();
-            const puvodni=tab==="historie"?data.historie.find(x=>x.id===zId)?.[k]:data.prijem[k];
-            const zprava=document.getElementById("zprava");
-            try {
-                if(!raw && povinna.has(k))throw Error("Toto pole nesmí být prázdné.");
-                let hodnota=raw===""?null:raw;
-                if(hodnota!==null && (numericka.has(k) || (k==="osobni_cislo"&&tab==="historie"))){
-                    hodnota=Number(raw.replace(",","."));
-                    if(!Number.isFinite(hodnota) || (cela.has(k)&&!Number.isSafeInteger(hodnota)))throw Error("Neplatné číslo.");
-                }
-                if(hodnota!==null && datumova.has(k)){
-                    const d=new Date(raw);
-                    if(Number.isNaN(d.getTime()))throw Error("Neplatné datum.");
-                    hodnota=d.toISOString();
-                }
-                if(String(hodnota??"")===String(puvodni??""))throw Error("Hodnota se nezměnila.");
-                if(!confirm("Opravdu změnit "+(labels[k]||k)+" u "+tab+" (záznam #"+zId+")?"))return;
-                button.disabled=true;zprava.textContent="Ukládám změnu...";
-                await rpc("operace_upravit_pole",{p_material_id:id,p_tabulka:tab,p_zaznam_id:zId,p_sloupec:k,p_hodnota:hodnota});
-                await nacti();
-                zprava.textContent="Změna "+(labels[k]||k)+" byla uložena.";
-            }catch(e){zprava.textContent="Oprava se nezdařila: "+e.message;}finally{button.disabled=false;}
-        }
-        async function spustit(){
-            try{
-                if(!Number.isSafeInteger(id)||id<1){document.body.style.display="block";document.getElementById("zprava").textContent="Neplatné ID materiálu.";return;}
-                const {data:prihlaseni,error:chybaPrihlaseni}=await supabaseClient.auth.getSession();
-                if(chybaPrihlaseni||!prihlaseni.session){location.replace("../login.html");return;}
-                const {data:overeny,error:chybaOvereni}=await supabaseClient.auth.getUser();
-                if(chybaOvereni||!overeny?.user||overeny.user.id!==prihlaseni.session.user.id){location.replace("../login.html");return;}
-                await overSchvalenyProhlizec();
-                const {data:uzivatel,error:chybaRole}=await supabaseClient.from("uzivatele").select("role").eq("user_id",prihlaseni.session.user.id).maybeSingle();
-                if(chybaRole||uzivatel?.role!=="vedeni"){location.replace("material.html");return;}
-                document.body.style.display="block";
-                await nacti();
-            }catch(e){document.body.style.display="block";document.getElementById("zprava").textContent="Načtení selhalo: "+e.message;}
-        }
-        spustit();
-</script>
-</body></html>
+const id=Number(new URLSearchParams(location.search).get("id"));
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let sklad=[],rezervace=[],detail=null;
+const stavEl=document.getElementById("stav"),pruvEl=document.getElementById("pruvodky"),histEl=document.getElementById("historie"),zprava=document.getElementById("zprava");
+async function rpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
+function identita(r){return [r.material,r.druh,r.rozmer,r.delka_mm,r.tavba].map(x=>String(x??"").trim().toLocaleUpperCase("cs")).join("|");}
+function format(k,v){if(v===null||v===undefined||v==="")return "—";if(k==="hodnota_skladu_kc")return Number(v).toLocaleString("cs-CZ",{minimumFractionDigits:2,maximumFractionDigits:2})+" Kč";if(k==="kg_zbyva")return Number(v).toLocaleString("cs-CZ",{maximumFractionDigits:2})+" kg";return String(v);}
+function zobrazStav(){
+ const radky=sklad.filter(r=>Number(r.material_id)===id);
+ if(!radky.length){stavEl.innerHTML='<p class="content muted">Pro toto ID není ve stavu skladu žádný řádek.</p>';return;}
+ stavEl.innerHTML='<table><thead><tr>'+sloupce.map(x=>'<th>'+esc(x[1])+'</th>').join('')+'</tr></thead><tbody>'+radky.map(r=>'<tr>'+sloupce.map(([k])=>{
+ let cls=k==="tavba"?"tavba":k==="obsazeno"?"obsazeno":"";
+ if(k==="pocet_zbyva"){const n=Number(r[k]);cls=n<=10?"pocet-malo":n<=20?"pocet-stred":"pocet-ok";}
+ if(k==="obsazeno"){const matches=rezervace.filter(o=>identita(o)===identita({...r,delka_mm:r.delka_mm??detail.prijem.delka_mm})&&Number(o.obsazeno)>0);return '<td class="obsazeno">'+(matches.length?matches.map(o=>'<div>'+esc(o.pruvodka)+': '+esc(o.obsazeno)+' ks</div>').join(''):'—')+'</td>';}
+ return '<td class="'+cls+'">'+esc(format(k,r[k]))+'</td>';
+ }).join('')+'</tr>').join('')+'</tbody></table>';
+}
+function polePruvodky(o){
+ return '<form class="uprava" data-id="'+o.id+'"><label>PRŮVODKA<input name="pruvodka" required maxlength="150" value="'+esc(o.pruvodka)+'"></label><label>OBSAZENO<input name="obsazeno" type="number" min="0" step="1" required value="'+esc(o.obsazeno)+'"></label><button type="submit">ULOŽIT ZMĚNU</button></form>';
+}
+function zobrazPruvodky(){
+ const p=detail.prijem;
+ const matches=rezervace.filter(o=>identita(o)===identita(p));
+ pruvEl.innerHTML=matches.length?matches.map(polePruvodky).join(''):'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
+ pruvEl.querySelectorAll('form.uprava').forEach(f=>f.addEventListener('submit',uloz));
+}
+function zobrazHistorii(){
+ const hs=detail.historie;
+ const keys=['id','datum','akce','osobni_cislo','material','druh','rozmer','tavba','pocet','pruvodka','jakost','tolerance','nazev_z_dodaku','cislo_dodaciho_listu','hmotnost_kg','dodavatel','stav','cena_za_kg','cena_za_dopravu'];
+ histEl.innerHTML=hs.length?'<table class="history-table"><thead><tr>'+keys.map(k=>'<th>'+esc(k.toUpperCase().replaceAll('_',' '))+'</th>').join('')+'</tr></thead><tbody>'+hs.map(h=>'<tr>'+keys.map(k=>'<td>'+esc(k==="datum"&&h[k]?new Date(h[k]).toLocaleString("cs-CZ"):format(k,h[k]))+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<p class="content muted">Žádná historie tohoto ID.</p>';
+}
+async function obnov(){
+ const d=await rpc("operace_detail_materialu",{p_material_id:id});
+ detail=d;
+ const r=await rpc("operace_seznam_obsazeni",{p_material_id:id});
+ rezervace=r;
+ zobrazStav();zobrazPruvodky();zobrazHistorii();
+}
+async function uloz(e){
+ e.preventDefault();const f=e.currentTarget,btn=f.querySelector('button');
+ const pr=f.elements.pruvodka.value.trim(),obs=Number(f.elements.obsazeno.value);
+ if(!pr||pr.length>150||!Number.isSafeInteger(obs)||obs<0){zprava.textContent="Vyplň platnou průvodku a nezáporné celé množství.";return;}
+ if(!confirm("Uložit průvodku "+pr+" s obsazením "+obs+" ks?"))return;
+ btn.disabled=true;zprava.textContent="Ukládám...";
+ try{await rpc("operace_ulozit_obsazeni",{p_material_id:id,p_pruvodka_id:f.classList.contains("uprava")?Number(f.dataset.id):null,p_pruvodka:pr,p_obsazeno:obs});await obnov();if(f.id==="nova")f.reset();zprava.textContent="Průvodka byla uložena.";}
+ catch(err){zprava.textContent="Uložení selhalo: "+err.message;}finally{btn.disabled=false;}
+}
+async function spustit(){
+ try{
+ if(!Number.isSafeInteger(id)||id<1)throw Error("Neplatné ID materiálu.");
+ const {data:s,error:e}=await supabaseClient.auth.getSession();if(e||!s.session){location.replace("../login.html");return;}
+ const {data:u,error:ue}=await supabaseClient.auth.getUser();if(ue||u.user?.id!==s.session.user.id){location.replace("../login.html");return;}
+ await overSchvalenyProhlizec();
+ const {data:role,error:re}=await supabaseClient.from("uzivatele").select("role").eq("user_id",u.user.id).maybeSingle();
+ if(re||role?.role!=="vedeni"){location.replace("material.html");return;}
+ document.body.style.display="block";document.getElementById("titulek").textContent="Materiál ID "+id;
+ zprava.textContent="Načítám...";
+ const [stavData,detailData,obsData]=await Promise.all([nactiPodrobnyStavBezpecne(s.session),rpc("operace_detail_materialu",{p_material_id:id}),rpc("operace_seznam_obsazeni",{p_material_id:id})]);
+ sklad=stavData.stav;detail=detailData;rezervace=obsData;zobrazStav();zobrazPruvodky();zobrazHistorii();zprava.textContent="";
+ }catch(err){document.body.style.display="block";zprava.textContent="Načtení selhalo: "+err.message;}
+}
+document.getElementById("nova").addEventListener("submit",uloz);
+spustit();
+</script></body></html>
