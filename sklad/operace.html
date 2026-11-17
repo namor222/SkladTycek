@@ -67,6 +67,12 @@
         form button:disabled { opacity:.55; cursor:wait; }
         @media(max-width:900px) { .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; } .table-wrap table { min-width:1050px; } .table-wrap th,.table-wrap td { white-space:nowrap; } }
         @media(max-width:600px) { form label,form input,form button { width:100%; } form { align-items:stretch; } }
+        .upravit-pruvodku {padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--blue);font-weight:800;cursor:pointer;}
+        .upravit-pruvodku:hover {background:#edf6ff;}
+        #formularUpravyPruvodky[hidden] {display:none;}
+        #formularUpravyPruvodky {display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:16px 0;padding:15px;background:#f4f7fb;border:1px solid var(--line);border-radius:9px;}
+        #formularUpravyPruvodky label {display:flex;flex-direction:column;gap:6px;font-weight:700;}
+        #formularUpravyPruvodky .sekundarni-pruvodka {background:#edf2f8;color:var(--text);border:1px solid var(--line);}
         .tlacitko-pruvodka {margin-top:16px;min-height:44px;padding:0 17px;border:0;border-radius:9px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer;}
         #formularPruvodky[hidden] {display:none;}
         #formularPruvodky {margin-top:15px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;}
@@ -85,7 +91,7 @@
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
-<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></section>
+<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><form id="formularUpravyPruvodky" hidden><input type="hidden" id="upravovanaPruvodkaId"><label for="upravitCisloPruvodky">Průvodka:<input id="upravitCisloPruvodky" maxlength="150" required></label><label for="upravitKusyPruvodky">Kusů:<input id="upravitKusyPruvodky" type="number" min="0" max="1000000" step="1" required></label><button type="submit" id="ulozitUpravuPruvodky">ULOŽIT ZMĚNY</button><button type="button" id="zrusitUpravuPruvodky" class="sekundarni-pruvodka">ZRUŠIT</button></form><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></section>
 <section class="panel"><h2>Fotografie dodacích listů</h2><div class="content" id="fotkyDodaku">Načítám fotografie…</div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
@@ -259,7 +265,7 @@ function zobrazStav(){
 }
 function zobrazPruvodky(){
  const matches=rezervace.filter(o=>identita(o)===identita(detail.prijem));
- pruvEl.innerHTML=matches.length?'<div class="table-wrap"><table><thead><tr><th>PRŮVODKA</th><th>OBSAZENO</th></tr></thead><tbody>'+matches.map(o=>'<tr><td>'+esc(o.pruvodka)+'</td><td class="obsazeno">'+esc(o.obsazeno)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
+ pruvEl.innerHTML=matches.length?'<div class="table-wrap"><table><thead><tr><th>PRŮVODKA</th><th>OBSAZENO</th><th>AKCE</th></tr></thead><tbody>'+matches.map(o=>'<tr><td>'+esc(o.pruvodka)+'</td><td class="obsazeno">'+esc(o.obsazeno)+'</td><td><button type="button" class="upravit-pruvodku" data-pruvodka-id="'+esc(o.id)+'">UPRAVIT</button></td></tr>').join('')+'</tbody></table></div>':'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
 }
 async function nactiPodrobnouHistoriiBezpecne(session) {
             const { par, verejnyKlic } = await nactiExistujiciKlic();
@@ -403,14 +409,14 @@ function zobrazHistorii(){
  const radky=hs.map(z=>'<tr>'+sloupceHistorie.map(([k])=>{const val=formatHodnota(k,z[k]);let cls=k==='tavba'?'tavba':'';if(k==='operace'){const t=String(z[k]??'').toLocaleUpperCase('cs');cls='operace '+(/PŘID|PŘÍJ/.test(t)?'prijem':/ODEB|VÝDEJ/.test(t)?'vydej':'');}return '<td class="'+cls+'">'+esc(val)+'</td>';}).join('')+'</tr>').join('');
  histEl.innerHTML='<table class="history-table"><thead><tr>'+hlavicka+'</tr></thead><tbody>'+radky+'</tbody></table>';
 }
-async function pridejPruvodkuBezpecne(session,parametry){
+async function pridejPruvodkuBezpecne(session,parametry,akce="operace-pridat-pruvodku"){
  const {par,verejnyKlic}=await nactiExistujiciKlic();
  const headers={Authorization:"Bearer "+session.access_token,apikey:SUPABASE_KEY,"Content-Type":"application/json"};
  const base=SUPABASE_URL+"/functions/v1/";
  const vr=await fetch(base+"schvalovani-prohlizecu",{method:"POST",headers,body:JSON.stringify({akce:"vyzva",verejny_klic:verejnyKlic})});
  const vyzva=await vr.json();
  if(!vr.ok||!vyzva?.vyzva||!vyzva?.vyzva_id)throw Error(vyzva?.chyba||"Nepodařilo se ověřit prohlížeč.");
- const prikaz={akce:"operace-pridat-pruvodku",metoda:"POST",cesta:"/functions/v1/sklad-bezpecny",parametry};
+ const prikaz={akce,metoda:"POST",cesta:"/functions/v1/sklad-bezpecny",parametry};
  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(prikaz)));
  const otisk=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
  const podpis=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},par.privateKey,new TextEncoder().encode(vyzva.vyzva+":sklad-bezpecny:v2:"+otisk));
@@ -439,6 +445,39 @@ formularPruvodky.addEventListener("submit",async e=>{
   formularPruvodky.reset();skryjFormularPruvodky();
   stavPruvodky.textContent="Průvodka byla úspěšně přidána.";
  }catch(chyba){stavPruvodky.textContent="Průvodku se nepodařilo přidat: "+chyba.message;}
+ finally{tlacitko.disabled=false;}
+});
+const formularUpravyPruvodky=document.getElementById("formularUpravyPruvodky");
+function skryjUpravuPruvodky(){formularUpravyPruvodky.hidden=true;}
+pruvEl.addEventListener("click",e=>{
+ const btn=e.target.closest("button[data-pruvodka-id]");
+ if(!btn||!pruvEl.contains(btn))return;
+ const radek=rezervace.find(o=>Number(o.id)===Number(btn.dataset.pruvodkaId)&&identita(o)===identita(detail.prijem));
+ if(!radek)return;
+ document.getElementById("upravovanaPruvodkaId").value=radek.id;
+ document.getElementById("upravitCisloPruvodky").value=radek.pruvodka;
+ document.getElementById("upravitKusyPruvodky").value=radek.obsazeno;
+ formularUpravyPruvodky.hidden=false;
+ document.getElementById("upravitCisloPruvodky").focus();
+ stavPruvodky.textContent="";
+});
+document.getElementById("zrusitUpravuPruvodky").addEventListener("click",skryjUpravuPruvodky);
+formularUpravyPruvodky.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const pruvodka=document.getElementById("upravitCisloPruvodky").value.trim();
+ const kusu=Number(document.getElementById("upravitKusyPruvodky").value);
+ const pruvodkaId=Number(document.getElementById("upravovanaPruvodkaId").value);
+ if(!pruvodka||pruvodka.length>150||!Number.isSafeInteger(kusu)||kusu<0||kusu>1000000||!Number.isSafeInteger(pruvodkaId)||pruvodkaId<1){stavPruvodky.textContent="Zkontrolujte číslo průvodky a počet kusů.";return;}
+ const tlacitko=document.getElementById("ulozitUpravuPruvodky");
+ tlacitko.disabled=true;stavPruvodky.textContent="Ukládám změny…";
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session)throw Error("Přihlášení vypršelo.");
+  await pridejPruvodkuBezpecne(session,{p_material_id:id,p_pruvodka_id:pruvodkaId,p_pruvodka:pruvodka,p_kusu:kusu},"operace-upravit-pruvodku");
+  await obnov();
+  skryjUpravuPruvodky();
+  stavPruvodky.textContent="Průvodka byla úspěšně upravena.";
+ }catch(chyba){stavPruvodky.textContent="Úprava průvodky selhala: "+chyba.message;}
  finally{tlacitko.disabled=false;}
 });
 async function obnov(){
