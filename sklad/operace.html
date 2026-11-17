@@ -79,6 +79,7 @@
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
 <section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div></div></section>
+<section class="panel"><h2>Fotografie dodacích listů</h2><div class="content" id="fotkyDodaku">Načítám fotografie…</div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -300,6 +301,53 @@ async function nactiPodrobnouHistoriiBezpecne(session) {
         }
 
 
+async function nactiArchivBezpecne(session) {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const headers = {
+                Authorization: `Bearer ${session.access_token}`,
+                apikey: SUPABASE_KEY,
+                "Content-Type": "application/json"
+            };
+            const base = `${SUPABASE_URL}/functions/v1/`;
+            const vyzvaResponse = await fetch(base + "schvalovani-prohlizecu", {
+                method: "POST", headers,
+                body: JSON.stringify({ akce: "vyzva", verejny_klic: verejnyKlic })
+            });
+            const vyzva = await vyzvaResponse.json();
+            if (!vyzvaResponse.ok || !vyzva?.vyzva || !vyzva?.vyzva_id) {
+                throw new Error(vyzva?.chyba || "Nepodařilo se získat bezpečnostní výzvu.");
+            }
+            const prikaz = {
+                akce: "archiv-seznam",
+                metoda: "POST",
+                cesta: "/functions/v1/sklad-bezpecny",
+                parametry: null
+            };
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(JSON.stringify(prikaz))
+            );
+            const otisk = [...new Uint8Array(digest)]
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const zprava = `${vyzva.vyzva}:sklad-bezpecny:v2:${otisk}`;
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" }, par.privateKey,
+                new TextEncoder().encode(zprava)
+            );
+            const response = await fetch(base + "sklad-bezpecny", {
+                method: "POST", headers,
+                body: JSON.stringify({
+                    ...prikaz, verejny_klic: verejnyKlic,
+                    vyzva_id: vyzva.vyzva_id, podpis: kodujBase64url(podpis)
+                })
+            });
+            const vysledek = await response.json();
+            if (!response.ok || vysledek?.overeno !== true || !Array.isArray(vysledek.data)) {
+                throw new Error(vysledek?.chyba || vysledek?.detail || "Načtení archivu selhalo.");
+            }
+            return vysledek.data;
+        }
+
+
 const sloupceHistorie = [
             ["datum_operace", "DATUM OPERACE"],
             ["operace", "OPERACE"],
@@ -334,6 +382,13 @@ function formatHodnota(klic, hodnota) {
             return String(hodnota);
         }
 
+function zobrazFotkyDodaku(soubory){
+ const el=document.getElementById("fotkyDodaku");
+ const cisla=new Set([detail?.prijem?.cislo_dodaciho_listu,...(detail?.historie||[]).map(x=>x.cislo_dodaciho_listu)].filter(Boolean).map(x=>String(x).trim().normalize("NFKD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^A-Za-z0-9_-]/g,"_").replace(/_+/g,"_").slice(0,90)));
+ const fotky=soubory.filter(f=>[...cisla].some(c=>f.cesta.split("/").pop().startsWith("DL_"+c+"_")));
+ if(!fotky.length){el.textContent="K tomuto materiálu nejsou přiřazené žádné fotografie dodacího listu.";return;}
+ el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px">'+fotky.map((f,i)=>'<a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer" title="Otevřít fotografii"><img src="'+esc(f.url)+'" alt="Dodací list – fotografie '+(i+1)+'" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border:1px solid #d7e2ed;border-radius:8px"></a>').join('')+'</div>';
+}
 function zobrazHistorii(){
  const hs=historiePodrobna.filter(z=>Number(z.material_id)===id).sort((a,b)=>(Date.parse(b.datum_operace)||0)-(Date.parse(a.datum_operace)||0));
  if(!hs.length){histEl.innerHTML='<p class="content muted">Žádná historie tohoto ID.</p>';return;}
@@ -360,8 +415,8 @@ async function spustit(){
  if(re||role?.role!=="vedeni"){location.replace("material.html");return;}
  document.body.style.display="block";document.getElementById("titulek").textContent="Materiál ID "+id;
  zprava.textContent="Načítám...";
- const [stavData,detailData,obsData,histData]=await Promise.all([nactiPodrobnyStavBezpecne(s.session),rpc("operace_detail_materialu",{p_material_id:id}),rpc("operace_seznam_obsazeni",{p_material_id:id}),nactiPodrobnouHistoriiBezpecne(s.session)]);
- sklad=stavData.stav;detail=detailData;rezervace=obsData;historiePodrobna=histData;zobrazStav();zobrazPruvodky();zobrazHistorii();zprava.textContent="";
+ const [stavData,detailData,obsData,histData,archivData]=await Promise.all([nactiPodrobnyStavBezpecne(s.session),rpc("operace_detail_materialu",{p_material_id:id}),rpc("operace_seznam_obsazeni",{p_material_id:id}),nactiPodrobnouHistoriiBezpecne(s.session),nactiArchivBezpecne(s.session)]);
+ sklad=stavData.stav;detail=detailData;rezervace=obsData;historiePodrobna=histData;zobrazStav();zobrazPruvodky();zobrazHistorii();zobrazFotkyDodaku(archivData);zprava.textContent="";
  }catch(err){document.body.style.display="block";zprava.textContent="Načtení selhalo: "+err.message;}
 }
 spustit();
