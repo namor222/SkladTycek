@@ -143,6 +143,7 @@
         let vybraneHlaseni = null;
         let seznamHlaseni = [];
         let detailHlaseni = null;
+        let obsazenePruvodky = [];
         const datum = value => value ? new Date(value).toLocaleString("cs-CZ") : "—";
         async function rpc(nazev, parametry) {
             const { data, error } = await supabaseClient.rpc(nazev, parametry);
@@ -180,6 +181,7 @@
             try {
                 detailHlaseni = await rpc("admin_prehled_hlaseni", {p_id:id});
                 if (!detailHlaseni?.prijem) throw Error("Příjem nebyl nalezen.");
+                obsazenePruvodky = await rpc('admin_obsazene_pruvodky', {p_hlaseni_id:id});
                 vykresliDetail();
             } catch(e) { el.textContent = "Chyba načítání: " + e.message; }
         }
@@ -205,9 +207,18 @@
                 '<form id="prijemForm" class="' + (hotovo ? 'closed-form' : '') + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('pt','TAVBA',p.tavba) + input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
                 input('pz','POČET ZBÝVÁ',p.pocet_zbyva,'number') +
-                input('po','OBSAZENO',p.obsazeno,'number') +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU PŘÍJMU</button>' +
                 '<div class="feedback" id="prijemZprava" role="status"></div></fieldset></form></section>' +
+                '<section class="panel"><h2>Oprava obsazené průvodky</h2>' +
+                (obsazenePruvodky.length ? obsazenePruvodky.map(o =>
+                    '<form class="obsazenaForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + o.id + '">' +
+                    '<fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0">' +
+                    '<div class="history-meta">Průvodka ' + esc(o.pruvodka) + ' · Záznam #' + o.id + '</div>' +
+                    '<div class="fields">' + input('op'+o.id,'OBSAZENO',o.obsazeno,'number') + '</div>' +
+                    '<button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU OBSAZENÉ PRŮVODKY</button>' +
+                    '<div class="feedback" id="oz'+o.id+'" role="status"></div></fieldset></form>'
+                ).join('') : '<p class="muted">K tomuto materiálu nejsou nalezené žádné obsazené průvodky.</p>') +
+                '</section>' +
                 '<section class="panel"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2>' +
                 '' +
                 hist.map(z => '<div class="history-card"><div class="history-meta">Záznam #' + z.id + ' · ' + zobraz(z.akce) + ' · ' + esc(datum(z.datum)) + '</div>' +
@@ -222,6 +233,7 @@
                 '<p class="muted">Počet zaznamenaných oprav: ' + (h.opravy?.length || 0) + '</p></section>';
             document.getElementById("prijemForm").addEventListener("submit", ulozPrijem);
             el.querySelectorAll(".historieForm").forEach(f => f.addEventListener("submit", ulozHistorii));
+            el.querySelectorAll(".obsazenaForm").forEach(f => f.addEventListener("submit", ulozObsazenouPruvodku));
             document.getElementById("uzavrit").addEventListener("click", uzavriHlaseni);
         }
         function zmenaText(id, puvodni) {
@@ -244,14 +256,29 @@
             const btn = event.currentTarget.querySelector("button");
             const msg = document.getElementById("prijemZprava");
             try {
-                const t=zmenaText("pt",p.tavba), poc=zmenaPocet("pp",p.pocet_prijato), zbyva=zmenaZbyva("pz",p.pocet_zbyva), obsazeno=zmenaZbyva("po",p.obsazeno);
-                if ([t,poc,zbyva,obsazeno].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
+                const t=zmenaText("pt",p.tavba), poc=zmenaPocet("pp",p.pocet_prijato), zbyva=zmenaZbyva("pz",p.pocet_zbyva);
+                if ([t,poc,zbyva].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
                 if (t!==null && !t) throw Error("Nová hodnota nesmí být prázdná.");
                 if (!confirm("Opravdu uložit změny příjmu materiálu ID " + p.id + "?")) return;
                 btn.disabled=true;msg.textContent="Ukládám...";
-                await rpc("admin_opravit_prijem_v3",{p_hlaseni_id:h.id,p_tavba:t,p_pocet:poc,p_zbyva:zbyva,p_obsazeno:obsazeno});
+                await rpc("admin_opravit_prijem_v2",{p_hlaseni_id:h.id,p_tavba:t,p_pocet:poc,p_zbyva:zbyva});
                 await nactiHlaseni(h.id);
             } catch(e) { msg.textContent="Oprava selhala: "+e.message; } finally { btn.disabled=false; }
+        }
+        async function ulozObsazenouPruvodku(event) {
+            event.preventDefault();
+            const form=event.currentTarget, id=Number(form.dataset.id);
+            const puvodni=obsazenePruvodky.find(o=>o.id===id);
+            const msg=document.getElementById("oz"+id), btn=form.querySelector("button");
+            try {
+                if (!puvodni) throw Error("Průvodka nebyla nalezena.");
+                const nova=zmenaZbyva("op"+id,puvodni.obsazeno);
+                if (nova===null) throw Error("Hodnota se nezměnila.");
+                if (!confirm("Opravit obsazeno u průvodky "+puvodni.pruvodka+" z "+puvodni.obsazeno+" na "+nova+"?")) return;
+                btn.disabled=true;msg.textContent="Ukládám...";
+                await rpc("admin_opravit_obsazenou_pruvodku",{p_hlaseni_id:detailHlaseni.hlaseni.id,p_pruvodka_id:id,p_obsazeno:nova});
+                await nactiHlaseni(detailHlaseni.hlaseni.id);
+            } catch(e) {msg.textContent="Oprava selhala: "+e.message;} finally {btn.disabled=false;}
         }
         async function ulozHistorii(event) {
             event.preventDefault();
