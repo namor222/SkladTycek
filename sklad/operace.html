@@ -208,6 +208,8 @@ async function obnov(){
  detail=d;
  const r=await rpc("operace_seznam_obsazeni",{p_material_id:id});
  rezervace=r;
+ const {data:sessionData}=await supabaseClient.auth.getSession();
+ if(sessionData.session){const stavData=await nactiPodrobnyStavBezpecne(sessionData.session);sklad=stavData.stav;}
  zobrazStav();zobrazPruvodky();zobrazHistorii();
 }
 async function uloz(e){
