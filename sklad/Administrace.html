@@ -39,6 +39,10 @@
         .history-meta{margin-bottom:12px;font-weight:800}
         .feedback{margin:12px 0;white-space:pre-wrap;font-weight:750}
         .note{border-left:4px solid #d49a40;background:#fff9eb;padding:12px;margin:14px 0}
+        .closed-form{opacity:.48;filter:grayscale(1);cursor:not-allowed}
+        .closed-form input,.closed-form button{cursor:not-allowed!important}
+        .closed-form input{background:#e8ebef!important;color:#78828e!important}
+        .closed-form button{background:#a3aab4!important;color:#fff!important;opacity:1!important}
         @media(max-width:650px){.fields{grid-template-columns:1fr}header{padding:16px}.panel{padding:16px}}
     </style>
 </head>
@@ -198,22 +202,22 @@
                 (hotovo ? '<p class="note">Hlášení je uzavřené. Úpravy jsou zablokované.</p>' : '') +
                 '<h3>Oprava příjmu materiálu</h3>' +
                 '<p class="muted">Průvodka u příjmu znamená číslo dodacího listu. Změna počtu příjmu upraví i zbývající množství a příjmový záznam historie.</p>' +
-                '<form id="prijemForm"><div class="fields">' +
+                '<form id="prijemForm" class="' + (hotovo ? 'closed-form' : '') + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('pt','TAVBA',p.tavba) + input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
                 input('pr','PRŮVODKA / ČÍSLO DODACÍHO LISTU',p.cislo_dodaciho_listu) +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU PŘÍJMU</button>' +
-                '<div class="feedback" id="prijemZprava" role="status"></div></form></section>' +
+                '<div class="feedback" id="prijemZprava" role="status"></div></fieldset></form></section>' +
                 '<section class="panel"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2>' +
                 '<p class="muted">Každý záznam má vlastní ID. Počet výdeje lze opravit; počet příjmu se opravuje výše. Změna výdeje přepočítá skladový zůstatek.</p>' +
                 hist.map(z => '<div class="history-card"><div class="history-meta">Záznam #' + z.id + ' · ' + zobraz(z.akce) + ' · ' + esc(datum(z.datum)) + '</div>' +
-                '<form class="historieForm" data-id="' + z.id + '"><div class="fields">' +
+                '<form class="historieForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + z.id + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('ht'+z.id,'TAVBA',z.tavba) +
                 input('hp'+z.id,'POČET',z.pocet,'number',z.akce !== 'ODEBRÁNO') +
                 input('hr'+z.id,'PRŮVODKA',z.pruvodka) +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU ZÁZNAMU #' + z.id + '</button>' +
-                '<div class="feedback" id="hz'+z.id+'" role="status"></div></form></div>').join('') +
+                '<div class="feedback" id="hz'+z.id+'" role="status"></div></fieldset></form></div>').join('') +
                 '</section><section class="panel"><h2>Dokončení hlášení</h2><p class="muted">Po dokončení všech oprav označ hlášení jako vyřešené.</p>' +
-                '<button class="secondary" id="uzavrit" ' + (hotovo ? 'disabled' : '') + '>OZNAČIT JAKO VYŘEŠENÉ</button>' +
+                '<button class="secondary ' + (hotovo ? 'closed-form' : '') + '" id="uzavrit" ' + (hotovo ? 'disabled' : '') + '>OZNAČIT JAKO VYŘEŠENÉ</button>' +
                 '<p class="muted">Počet zaznamenaných oprav: ' + (h.opravy?.length || 0) + '</p></section>';
             document.getElementById("prijemForm").addEventListener("submit", ulozPrijem);
             el.querySelectorAll(".historieForm").forEach(f => f.addEventListener("submit", ulozHistorii));
