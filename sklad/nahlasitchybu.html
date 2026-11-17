@@ -24,6 +24,16 @@
         .soon { margin:13px 0 17px; font-size:clamp(39px,8vw,72px); line-height:1.08; font-weight:900; letter-spacing:-1.5px; color:#172b45; }
         .description { margin:0 auto; max-width:420px; color:#62738a; font-size:17px; line-height:1.6; }
         @media(max-width:480px) { header {padding:16px;} .brand-icon {width:40px;height:40px;} .back {padding:10px 12px;} }
+
+        .report { width:min(100%,650px); background:#fff; border:1px solid #e0e8f1; border-radius:22px; box-shadow:0 20px 55px rgba(30,54,83,.08); padding:clamp(24px,5vw,42px); }
+        .report h2 { margin:0 0 10px; font-size:27px; }
+        .report p { color:#62738a; line-height:1.55; margin:0 0 24px; }
+        .report label { display:block; margin:18px 0 7px; font-weight:800; }
+        .report input,.report textarea { box-sizing:border-box; width:100%; padding:14px; border:1px solid #b9c8d8; border-radius:11px; font:inherit; }
+        .report textarea { min-height:150px; resize:vertical; }
+        .report button { margin-top:22px; padding:15px 24px; border:0; border-radius:11px; background:#d65c37; color:#fff; font-weight:800; font-size:16px; cursor:pointer; }
+        .report button:disabled { opacity:.6; cursor:wait; }
+        .feedback { margin-top:17px; font-weight:700; white-space:pre-wrap; }
     </style>
 </head>
 <body>
@@ -121,6 +131,31 @@
 
 
 
+        async function odeslatHlaseni(event) {
+            event.preventDefault();
+            const tlacitko = document.getElementById("odeslat");
+            const zprava = document.getElementById("zprava");
+            const materialId = Number(document.getElementById("materialId").value);
+            const poznamka = document.getElementById("poznamka").value.trim();
+            if (!Number.isSafeInteger(materialId) || materialId < 1 || poznamka.length < 5 || poznamka.length > 2000) {
+                zprava.textContent = "Zkontroluj ID materiálu a popis chyby (5 až 2000 znaků).";
+                return;
+            }
+            tlacitko.disabled = true;
+            zprava.textContent = "Odesílám hlášení...";
+            try {
+                const { data, error } = await supabaseClient.from("hlaseni_chyb_skladu")
+                    .insert({ material_id: materialId, poznamka }).select("id").single();
+                if (error) throw error;
+                zprava.textContent = "Hlášení č. " + data.id + " bylo úspěšně odesláno vedení.";
+                document.getElementById("formularHlaseni").reset();
+            } catch (error) {
+                zprava.textContent = error.code === "23503" ? "Materiál s tímto ID neexistuje." : "Odeslání se nepodařilo: " + error.message;
+            } finally {
+                tlacitko.disabled = false;
+            }
+        }
+
         async function spustit() {
             try {
                 const { data: prihlaseni, error: chybaPrihlaseni } = await supabaseClient.auth.getSession();
@@ -141,7 +176,20 @@
                     window.location.replace("material.html");
                     return;
                 }
-                document.getElementById("obsah").innerHTML = `<section class="placeholder"><div class="symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="eyebrow">Hlášení skladových chyb</div><div class="soon">COMING SOON</div><p class="description">Brzy zde bude možné nahlásit chybný příjem, výdej materiálu nebo jinou nesrovnalost.</p></section>`;
+                document.getElementById("obsah").innerHTML = `
+                    <section class="report">
+                        <h2>Nahlásit chybu ve skladu</h2>
+                        <p>Zadej ID materiálu a popiš, co je špatně. Hlášení se odešle vedení, které může opravit příjem nebo historii.</p>
+                        <form id="formularHlaseni">
+                            <label for="materialId">ID materiálu</label>
+                            <input id="materialId" type="number" min="1" step="1" required placeholder="Např. 235">
+                            <label for="poznamka">Popis chyby</label>
+                            <textarea id="poznamka" minlength="5" maxlength="2000" required placeholder="Co je špatně a jaká hodnota má být správně?"></textarea>
+                            <button id="odeslat" type="submit">ODESLAT HLÁŠENÍ</button>
+                            <div id="zprava" class="feedback" role="status" aria-live="polite"></div>
+                        </form>
+                    </section>`;
+                document.getElementById("formularHlaseni").addEventListener("submit", odeslatHlaseni);
                 document.body.style.display = "block";
             } catch (chyba) {
                 console.warn("Přístup k hlášení chyb zamítnut:", chyba);
