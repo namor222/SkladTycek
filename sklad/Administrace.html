@@ -214,7 +214,7 @@
                     '<form class="obsazenaForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + o.id + '">' +
                     '<fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0">' +
                     '<div class="history-meta">Průvodka ' + esc(o.pruvodka) + ' · Záznam #' + o.id + '</div>' +
-                    '<div class="fields">' + input('op'+o.id,'OBSAZENO',o.obsazeno,'number') + '</div>' +
+                    '<div class="fields">' + input('oc'+o.id,'PRŮVODKA',o.pruvodka) + input('op'+o.id,'OBSAZENO',o.obsazeno,'number') + '</div>' +
                     '<button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU OBSAZENÉ PRŮVODKY</button>' +
                     '<div class="feedback" id="oz'+o.id+'" role="status"></div></fieldset></form>'
                 ).join('') : '<p class="muted">K tomuto materiálu nejsou nalezené žádné obsazené průvodky.</p>') +
@@ -273,10 +273,12 @@
             try {
                 if (!puvodni) throw Error("Průvodka nebyla nalezena.");
                 const nova=zmenaZbyva("op"+id,puvodni.obsazeno);
-                if (nova===null) throw Error("Hodnota se nezměnila.");
-                if (!confirm("Opravit obsazeno u průvodky "+puvodni.pruvodka+" z "+puvodni.obsazeno+" na "+nova+"?")) return;
+                const pruvodka=zmenaText("oc"+id,puvodni.pruvodka);
+                if (nova===null && pruvodka===null) throw Error("Žádná hodnota se nezměnila.");
+                if (pruvodka!==null && (!pruvodka || pruvodka.length>150)) throw Error("Průvodka musí mít 1 až 150 znaků.");
+                if (!confirm("Uložit opravu průvodky "+puvodni.pruvodka+"?")) return;
                 btn.disabled=true;msg.textContent="Ukládám...";
-                await rpc("admin_opravit_obsazenou_pruvodku",{p_hlaseni_id:detailHlaseni.hlaseni.id,p_pruvodka_id:id,p_obsazeno:nova});
+                await rpc("admin_opravit_obsazenou_pruvodku_v2",{p_hlaseni_id:detailHlaseni.hlaseni.id,p_pruvodka_id:id,p_obsazeno:nova,p_pruvodka:pruvodka});
                 await nactiHlaseni(detailHlaseni.hlaseni.id);
             } catch(e) {msg.textContent="Oprava selhala: "+e.message;} finally {btn.disabled=false;}
         }
