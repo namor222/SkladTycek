@@ -67,6 +67,9 @@
         form button:disabled { opacity:.55; cursor:wait; }
         @media(max-width:900px) { .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; } .table-wrap table { min-width:1050px; } .table-wrap th,.table-wrap td { white-space:nowrap; } }
         @media(max-width:600px) { form label,form input,form button { width:100%; } form { align-items:stretch; } }
+        .zamek-ovladani {display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 14px;border:1px solid #cdd9e7;border-radius:9px;background:#f4f7fb;color:#071a38;font-weight:800;cursor:pointer;margin:12px 0;}
+        .zamek-ovladani[aria-expanded="true"] {background:#eaf5ff;border-color:#1688f5;color:#0865b5;}
+        .sprava-fotek[hidden],.sprava-pruvodek[hidden] {display:none!important;}
         .upravit-pruvodku {padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--blue);font-weight:800;cursor:pointer;}
         .upravit-pruvodku:hover {background:#edf6ff;}
         #formularUpravyPruvodky[hidden] {display:none;}
@@ -98,10 +101,10 @@
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
-<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><form id="formularUpravyPruvodky" hidden><input type="hidden" id="upravovanaPruvodkaId"><label for="upravitCisloPruvodky">Průvodka:<input id="upravitCisloPruvodky" maxlength="150" required></label><label for="upravitKusyPruvodky">Kusů:<input id="upravitKusyPruvodky" type="number" min="0" max="1000000" step="1" required></label><button type="submit" id="ulozitUpravuPruvodky">ULOŽIT ZMĚNY</button><button type="button" id="zrusitUpravuPruvodky" class="sekundarni-pruvodka">ZRUŠIT</button></form><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></section>
-<section class="panel"><h2>Fotografie dodacích listů</h2><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></section>
-<section class="panel"><h2>Fotografie faktur</h2><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></section>
-<section class="panel"><h2>Fotografie atestů</h2><div class="content"><div id="fotkyAtesty">Načítám fotografie…</div><form class="foto-formular" data-typ="atest"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie atestů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavAtest"></div></div></section>
+<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><button type="button" class="zamek-ovladani" data-zamek="pruvodky" aria-expanded="false">🔒 ODEMKNOUT ÚPRAVY PRŮVODEK</button><div class="sprava-pruvodek" id="spravaPruvodek" hidden><form id="formularUpravyPruvodky" hidden><input type="hidden" id="upravovanaPruvodkaId"><label for="upravitCisloPruvodky">Průvodka:<input id="upravitCisloPruvodky" maxlength="150" required></label><label for="upravitKusyPruvodky">Kusů:<input id="upravitKusyPruvodky" type="number" min="0" max="1000000" step="1" required></label><button type="submit" id="ulozitUpravuPruvodky">ULOŽIT ZMĚNY</button><button type="button" id="zrusitUpravuPruvodky" class="sekundarni-pruvodka">ZRUŠIT</button></form><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></div></section>
+<section class="panel"><h2>Fotografie dodacích listů</h2><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><button type="button" class="zamek-ovladani" data-zamek="dodaci_list" aria-expanded="false">🔒 ODEMKNOUT SPRÁVU FOTOGRAFIÍ</button><div class="sprava-fotek" data-sprava="dodaci_list" hidden><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></div></section>
+<section class="panel"><h2>Fotografie faktur</h2><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><button type="button" class="zamek-ovladani" data-zamek="faktura" aria-expanded="false">🔒 ODEMKNOUT SPRÁVU FOTOGRAFIÍ</button><div class="sprava-fotek" data-sprava="faktura" hidden><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></div></section>
+<section class="panel"><h2>Fotografie atestů</h2><div class="content"><div id="fotkyAtesty">Načítám fotografie…</div><button type="button" class="zamek-ovladani" data-zamek="atest" aria-expanded="false">🔒 ODEMKNOUT SPRÁVU FOTOGRAFIÍ</button><div class="sprava-fotek" data-sprava="atest" hidden><form class="foto-formular" data-typ="atest"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie atestů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavAtest"></div></div></div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -274,7 +277,7 @@ function zobrazStav(){
 }
 function zobrazPruvodky(){
  const matches=rezervace.filter(o=>identita(o)===identita(detail.prijem));
- pruvEl.innerHTML=matches.length?'<div class="table-wrap"><table><thead><tr><th>PRŮVODKA</th><th>OBSAZENO</th><th>AKCE</th></tr></thead><tbody>'+matches.map(o=>'<tr><td>'+esc(o.pruvodka)+'</td><td class="obsazeno">'+esc(o.obsazeno)+'</td><td><button type="button" class="upravit-pruvodku" data-pruvodka-id="'+esc(o.id)+'">UPRAVIT</button></td></tr>').join('')+'</tbody></table></div>':'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
+ pruvEl.innerHTML=matches.length?'<div class="table-wrap"><table><thead><tr><th>PRŮVODKA</th><th>OBSAZENO</th><th>AKCE</th></tr></thead><tbody>'+matches.map(o=>'<tr><td>'+esc(o.pruvodka)+'</td><td class="obsazeno">'+esc(o.obsazeno)+'</td><td>'+(document.getElementById('spravaPruvodek').hidden?'':'<button type="button" class="upravit-pruvodku" data-pruvodka-id="'+esc(o.id)+'">UPRAVIT</button>')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
 }
 async function nactiPodrobnouHistoriiBezpecne(session) {
             const { par, verejnyKlic } = await nactiExistujiciKlic();
@@ -417,7 +420,7 @@ function zobrazFotky(){
   const stare=typ==="dodaci_list"?starsiFotkyDodaku().map(f=>({...f,stary:true})):[];
   const fotky=[...nove,...stare];
   if(!fotky.length){el.textContent="K tomuto materiálu nejsou přiřazené žádné fotografie "+konf.nazev+".";continue;}
-  el.innerHTML='<div class="foto-grid">'+fotky.map((f,i)=>'<div class="foto-polozka"><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(f.url)+'" alt="Fotografie '+esc(konf.nazev)+' '+(i+1)+'" loading="lazy"></a><button type="button" class="foto-smazat" data-cesta="'+esc(f.cesta)+'" data-typ="'+esc(typ)+'" data-stara="'+(f.stary?"1":"0")+'">ODEBRAT FOTOGRAFII</button></div>').join("")+'</div>';
+  el.innerHTML='<div class="foto-grid">'+fotky.map((f,i)=>'<div class="foto-polozka"><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(f.url)+'" alt="Fotografie '+esc(konf.nazev)+' '+(i+1)+'" loading="lazy"></a>'+(document.querySelector('[data-sprava="'+typ+'"]').hidden?'':'<button type="button" class="foto-smazat" data-cesta="'+esc(f.cesta)+'" data-typ="'+esc(typ)+'" data-stara="'+(f.stary?"1":"0")+'">ODEBRAT FOTOGRAFII</button>')+'</div>').join("")+'</div>';
  }
 }
 async function dokumentovaAkce(session,akce,parametry){
@@ -429,8 +432,19 @@ async function nactiDokumentyMaterialu(session){
  dokumentyMaterialu=data;
  zobrazFotky();
 }
+document.querySelectorAll(".zamek-ovladani").forEach(tlacitko=>tlacitko.addEventListener("click",()=>{
+ const typ=tlacitko.dataset.zamek;
+ const obsah=typ==="pruvodky"?document.getElementById("spravaPruvodek"):document.querySelector('[data-sprava="'+typ+'"]');
+ const odemknout=obsah.hidden;
+ obsah.hidden=!odemknout;
+ tlacitko.setAttribute("aria-expanded",String(odemknout));
+ tlacitko.textContent=odemknout?"🔓 ZAMKNOUT ÚPRAVY":"🔒 "+(typ==="pruvodky"?"ODEMKNOUT ÚPRAVY PRŮVODEK":"ODEMKNOUT SPRÁVU FOTOGRAFIÍ");
+ if(typ==="pruvodky"){if(!odemknout){skryjFormularPruvodky();skryjUpravuPruvodky();}zobrazPruvodky();}
+ else zobrazFotky();
+}));
 document.querySelectorAll(".foto-formular").forEach(form=>form.addEventListener("submit",async e=>{
  e.preventDefault();
+ if(form.closest(".sprava-fotek")?.hidden)return;
  const typ=form.dataset.typ,konf=fotoTypy[typ],input=form.querySelector('input[type="file"]'),btn=form.querySelector('button[type="submit"]');
  const soubory=[...input.files];
  if(!soubory.length)return;
@@ -458,7 +472,7 @@ document.querySelectorAll(".foto-formular").forEach(form=>form.addEventListener(
 }));
 document.querySelectorAll("#fotkyDodaku,#fotkyFaktury,#fotkyAtesty").forEach(el=>el.addEventListener("click",async e=>{
  const btn=e.target.closest("button.foto-smazat");
- if(!btn||!el.contains(btn))return;
+ if(!btn||!el.contains(btn)||document.querySelector('[data-sprava="'+btn.dataset.typ+'"]').hidden)return;
  const typ=btn.dataset.typ,konf=fotoTypy[typ],cesta=btn.dataset.cesta;
  const upozorneni=btn.dataset.stara==="1"?"Tato starší fotografie dodacího listu může být společná pro více materiálů se stejným dodacím listem. Smazat ji ze Supabase pro všechny?":"Opravdu trvale odebrat tuto fotografii ze Supabase?";
  if(!confirm(upozorneni))return;
@@ -504,6 +518,7 @@ otevritPruvodku.addEventListener("click",()=>{formularPruvodky.hidden=!formularP
 document.getElementById("zrusitPruvodku").addEventListener("click",skryjFormularPruvodky);
 formularPruvodky.addEventListener("submit",async e=>{
  e.preventDefault();
+ if(document.getElementById("spravaPruvodek").hidden)return;
  const pruvodka=document.getElementById("novaPruvodka").value.trim();
  const kusu=Number(document.getElementById("noveKusy").value);
  if(!pruvodka||pruvodka.length>150||!Number.isSafeInteger(kusu)||kusu<1||kusu>1000000){stavPruvodky.textContent="Vyplňte průvodku a platný kladný počet kusů.";return;}
@@ -522,7 +537,7 @@ const formularUpravyPruvodky=document.getElementById("formularUpravyPruvodky");
 function skryjUpravuPruvodky(){formularUpravyPruvodky.hidden=true;}
 pruvEl.addEventListener("click",e=>{
  const btn=e.target.closest("button[data-pruvodka-id]");
- if(!btn||!pruvEl.contains(btn))return;
+ if(!btn||!pruvEl.contains(btn)||document.getElementById("spravaPruvodek").hidden)return;
  const radek=rezervace.find(o=>Number(o.id)===Number(btn.dataset.pruvodkaId)&&identita(o)===identita(detail.prijem));
  if(!radek)return;
  document.getElementById("upravovanaPruvodkaId").value=radek.id;
@@ -535,6 +550,7 @@ pruvEl.addEventListener("click",e=>{
 document.getElementById("zrusitUpravuPruvodky").addEventListener("click",skryjUpravuPruvodky);
 formularUpravyPruvodky.addEventListener("submit",async e=>{
  e.preventDefault();
+ if(document.getElementById("spravaPruvodek").hidden)return;
  const pruvodka=document.getElementById("upravitCisloPruvodky").value.trim();
  const kusu=Number(document.getElementById("upravitKusyPruvodky").value);
  const pruvodkaId=Number(document.getElementById("upravovanaPruvodkaId").value);
