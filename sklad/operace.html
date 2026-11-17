@@ -67,6 +67,13 @@
         form button:disabled { opacity:.55; cursor:wait; }
         @media(max-width:900px) { .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; } .table-wrap table { min-width:1050px; } .table-wrap th,.table-wrap td { white-space:nowrap; } }
         @media(max-width:600px) { form label,form input,form button { width:100%; } form { align-items:stretch; } }
+        .tlacitko-pruvodka {margin-top:16px;min-height:44px;padding:0 17px;border:0;border-radius:9px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer;}
+        #formularPruvodky[hidden] {display:none;}
+        #formularPruvodky {margin-top:15px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;}
+        #formularPruvodky label {display:flex;flex-direction:column;gap:6px;font-weight:700;}
+        #formularPruvodky input {min-height:44px;}
+        #formularPruvodky .sekundarni-pruvodka {background:#edf2f8;color:var(--text);border:1px solid var(--line);}
+        #stavPruvodky {margin-top:10px;}
         /* Historie jako v historiepodrobnější.html: široké sloupce a vodorovný posuvník nahoře. */
         #historie.table-wrap { overflow-x:auto; overflow-y:hidden; transform:rotateX(180deg); background:#fff; scrollbar-gutter:stable; }
         #historie.table-wrap table { transform:rotateX(180deg); width:max-content; min-width:2700px; table-layout:auto; font-size:13px; }
@@ -78,7 +85,7 @@
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
-<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div></div></section>
+<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></section>
 <section class="panel"><h2>Fotografie dodacích listů</h2><div class="content" id="fotkyDodaku">Načítám fotografie…</div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
@@ -396,6 +403,44 @@ function zobrazHistorii(){
  const radky=hs.map(z=>'<tr>'+sloupceHistorie.map(([k])=>{const val=formatHodnota(k,z[k]);let cls=k==='tavba'?'tavba':'';if(k==='operace'){const t=String(z[k]??'').toLocaleUpperCase('cs');cls='operace '+(/PŘID|PŘÍJ/.test(t)?'prijem':/ODEB|VÝDEJ/.test(t)?'vydej':'');}return '<td class="'+cls+'">'+esc(val)+'</td>';}).join('')+'</tr>').join('');
  histEl.innerHTML='<table class="history-table"><thead><tr>'+hlavicka+'</tr></thead><tbody>'+radky+'</tbody></table>';
 }
+async function pridejPruvodkuBezpecne(session,parametry){
+ const {par,verejnyKlic}=await nactiExistujiciKlic();
+ const headers={Authorization:"Bearer "+session.access_token,apikey:SUPABASE_KEY,"Content-Type":"application/json"};
+ const base=SUPABASE_URL+"/functions/v1/";
+ const vr=await fetch(base+"schvalovani-prohlizecu",{method:"POST",headers,body:JSON.stringify({akce:"vyzva",verejny_klic:verejnyKlic})});
+ const vyzva=await vr.json();
+ if(!vr.ok||!vyzva?.vyzva||!vyzva?.vyzva_id)throw Error(vyzva?.chyba||"Nepodařilo se ověřit prohlížeč.");
+ const prikaz={akce:"operace-pridat-pruvodku",metoda:"POST",cesta:"/functions/v1/sklad-bezpecny",parametry};
+ const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(prikaz)));
+ const otisk=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+ const podpis=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},par.privateKey,new TextEncoder().encode(vyzva.vyzva+":sklad-bezpecny:v2:"+otisk));
+ const response=await fetch(base+"sklad-bezpecny",{method:"POST",headers,body:JSON.stringify({...prikaz,verejny_klic:verejnyKlic,vyzva_id:vyzva.vyzva_id,podpis:kodujBase64url(podpis)})});
+ const vysledek=await response.json();
+ if(!response.ok||vysledek?.overeno!==true)throw Error(vysledek?.detail||vysledek?.chyba||"Uložení průvodky selhalo.");
+ return vysledek.data;
+}
+const formularPruvodky=document.getElementById("formularPruvodky");
+const otevritPruvodku=document.getElementById("otevritPruvodku");
+const stavPruvodky=document.getElementById("stavPruvodky");
+function skryjFormularPruvodky(){formularPruvodky.hidden=true;otevritPruvodku.setAttribute("aria-expanded","false");}
+otevritPruvodku.addEventListener("click",()=>{formularPruvodky.hidden=!formularPruvodky.hidden;otevritPruvodku.setAttribute("aria-expanded",String(!formularPruvodky.hidden));if(!formularPruvodky.hidden)document.getElementById("novaPruvodka").focus();});
+document.getElementById("zrusitPruvodku").addEventListener("click",skryjFormularPruvodky);
+formularPruvodky.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const pruvodka=document.getElementById("novaPruvodka").value.trim();
+ const kusu=Number(document.getElementById("noveKusy").value);
+ if(!pruvodka||pruvodka.length>150||!Number.isSafeInteger(kusu)||kusu<1||kusu>1000000){stavPruvodky.textContent="Vyplňte průvodku a platný kladný počet kusů.";return;}
+ const tlacitko=document.getElementById("ulozitPruvodku");tlacitko.disabled=true;stavPruvodky.textContent="Ukládám průvodku…";
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session)throw Error("Přihlášení vypršelo.");
+  await pridejPruvodkuBezpecne(session,{p_material_id:id,p_pruvodka:pruvodka,p_kusu:kusu});
+  await obnov();
+  formularPruvodky.reset();skryjFormularPruvodky();
+  stavPruvodky.textContent="Průvodka byla úspěšně přidána.";
+ }catch(chyba){stavPruvodky.textContent="Průvodku se nepodařilo přidat: "+chyba.message;}
+ finally{tlacitko.disabled=false;}
+});
 async function obnov(){
  const d=await rpc("operace_detail_materialu",{p_material_id:id});
  detail=d;
