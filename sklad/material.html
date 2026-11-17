@@ -4424,13 +4424,14 @@
 
 
                 
-                    <!-- INFORMACE – ZOBRAZIT V MENU POUZE PRACOVNÍKŮM -->
-                    <a href="nahlasitchybu.html" class="menu-link" id="menuInformace" style="display:none">
-                        <div class="menu-card" style="--accent:#1688ef">
+                    <!-- NAHLÁSIT CHYBU – ZOBRAZIT V MENU POUZE PRACOVNÍKŮM -->
+                    <a href="nahlasitchybu.html" class="menu-link" id="menuNahlasitChybu" style="display:none">
+                        <div class="menu-card" style="--accent:#e66a3d">
                             <div class="icon" aria-hidden="true">
-                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="24" cy="24" r="19"/>
-                                    <path d="M24 21v13M24 14v1"/>
+                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M24 5 44 40H4L24 5Z"/>
+                                    <path d="M24 18v11"/>
+                                    <circle cx="24" cy="35" r="1.5" fill="currentColor" stroke="none"/>
                                 </svg>
                             </div>
                             <div class="card-text">
@@ -4632,7 +4633,7 @@
                         .eq("user_id", data.session.user.id)
                         .maybeSingle();
                     if (!chybaRole && roleUzivatele?.role && roleUzivatele.role !== "vedeni") {
-                        document.getElementById("menuInformace").style.display = "block";
+                        document.getElementById("menuNahlasitChybu").style.display = "block";
                     }
                     if (!chybaRole && roleUzivatele?.role === "vedeni") {
                         document.getElementById("menuDodaciListy").style.display = "block";
