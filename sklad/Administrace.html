@@ -204,7 +204,7 @@
                 '' +
                 '<form id="prijemForm" class="' + (hotovo ? 'closed-form' : '') + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('pt','TAVBA',p.tavba) + input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
-                input('pr','PRŮVODKA / ČÍSLO DODACÍHO LISTU',p.cislo_dodaciho_listu) +
+                input('pz','POČET ZBÝVÁ',p.pocet_zbyva,'number') +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU PŘÍJMU</button>' +
                 '<div class="feedback" id="prijemZprava" role="status"></div></fieldset></form></section>' +
                 '<section class="panel"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2>' +
@@ -232,18 +232,23 @@
             if (!Number.isSafeInteger(nova) || nova < 1) throw Error("Počet musí být kladné celé číslo.");
             return nova !== Number(puvodni) ? nova : null;
         }
+        function zmenaZbyva(id, puvodni) {
+            const nova = Number(document.getElementById(id).value);
+            if (!Number.isSafeInteger(nova) || nova < 0) throw Error("Počet zbývá musí být nezáporné celé číslo.");
+            return nova !== Number(puvodni) ? nova : null;
+        }
         async function ulozPrijem(event) {
             event.preventDefault();
             const p = detailHlaseni.prijem, h = detailHlaseni.hlaseni;
             const btn = event.currentTarget.querySelector("button");
             const msg = document.getElementById("prijemZprava");
             try {
-                const t=zmenaText("pt",p.tavba), poc=zmenaPocet("pp",p.pocet_prijato), pr=zmenaText("pr",p.cislo_dodaciho_listu);
-                if ([t,poc,pr].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
-                if ((t!==null && !t) || (pr!==null && !pr)) throw Error("Nová hodnota nesmí být prázdná.");
+                const t=zmenaText("pt",p.tavba), poc=zmenaPocet("pp",p.pocet_prijato), zbyva=zmenaZbyva("pz",p.pocet_zbyva);
+                if ([t,poc,zbyva].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
+                if (t!==null && !t) throw Error("Nová hodnota nesmí být prázdná.");
                 if (!confirm("Opravdu uložit změny příjmu materiálu ID " + p.id + "?")) return;
                 btn.disabled=true;msg.textContent="Ukládám...";
-                await rpc("admin_opravit_prijem",{p_hlaseni_id:h.id,p_tavba:t,p_pocet:poc,p_pruvodka:pr});
+                await rpc("admin_opravit_prijem_v2",{p_hlaseni_id:h.id,p_tavba:t,p_pocet:poc,p_zbyva:zbyva});
                 await nactiHlaseni(h.id);
             } catch(e) { msg.textContent="Oprava selhala: "+e.message; } finally { btn.disabled=false; }
         }
