@@ -31,6 +31,8 @@
         tbody td { padding:12px; border-bottom:1px solid #e9eef4; white-space:nowrap; vertical-align:top; }
         tbody tr:last-child td { border-bottom:0; }
         tbody tr:hover { background:#f7fbff; }
+        .odkaz-materialu { color:#0877e8; font-weight:800; text-decoration:underline; text-underline-offset:2px; }
+        .odkaz-materialu:hover { color:#064c94; }
         .operace { font-weight:900; }
         .prijem { color:#08aa43; }
         .vydej { color:#ef3737; }
@@ -339,6 +341,10 @@
                 if (klic === "operace") {
                     const text = String(zaznam[klic] ?? "").toLocaleUpperCase("cs");
                     trida = "operace " + (/PŘID|PŘÍJ/.test(text) ? "prijem" : /ODEB|VÝDEJ/.test(text) ? "vydej" : "");
+                }
+                if (klic === "material_id" && Number.isSafeInteger(Number(zaznam[klic])) && Number(zaznam[klic]) > 0) {
+                    const id = Number(zaznam[klic]);
+                    return `<td><a class="odkaz-materialu" href="operace.html?id=${id}" title="Otevřít detail materiálu ${id}">${escapeHtml(hodnota)}</a></td>`;
                 }
                 return `<td class="${trida}">${escapeHtml(hodnota)}</td>`;
             }).join("") + "</tr>").join("");
