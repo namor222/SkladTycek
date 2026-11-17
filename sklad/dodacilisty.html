@@ -5,7 +5,7 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dodací listy</title>
+<title>Dokumentace dodací listy</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}body{display:none;margin:0;padding:24px 28px 45px;background:#f3f6fa;color:#071b3a;font-family:Arial,Helvetica,sans-serif}
@@ -15,9 +15,9 @@
 </style>
 </head>
 <body>
-<header class="hlavicka"><h1>Dodací listy</h1><a class="zpet" href="material.html"><span class="back-arrow">←</span> ZPĚT</a></header>
+<header class="hlavicka"><h1>Dokumentace dodací listy</h1><a class="zpet" href="material.html"><span class="back-arrow">←</span> ZPĚT</a></header>
 <main class="obsah"><div class="filtr-datum" id="filtrDatumObal" hidden><label for="filtrDatum">Vyhledat podle data nahrání:</label><input type="date" id="filtrDatum"><button type="button" id="vymazatDatum">Zrušit filtr</button></div><div id="pocet" class="pocet"></div><div id="vysledek" class="stav">Ověřuji přístup…</div></main>
-<div id="nahled" class="nahled" role="dialog" aria-modal="true" aria-label="Náhled dodacího listu"><button id="zavrit" class="zavrit" type="button" aria-label="Zavřít">×</button><img id="velkaFotka" alt="Fotografie dodacího listu"></div>
+<div id="nahled" class="nahled" role="dialog" aria-modal="true" aria-label="Náhled dokumentace dodací listy"><button id="zavrit" class="zavrit" type="button" aria-label="Zavřít">×</button><img id="velkaFotka" alt="Fotografie dokumentace dodací listy"></div>
 <script>
 const supabaseClient=window.supabase.createClient("https://gmawlmsizglrnjmjegmx.supabase.co","sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i");
 
@@ -108,7 +108,7 @@ async function spustit(){
         try{await overSchvalenyProhlizec()}catch(chyba){console.warn("Ověření prohlížeče selhalo:",chyba);location.replace("../login.html");return}
         document.body.style.display="block";
         const {data:uzivatel,error:chybaRole}=await supabaseClient.from("uzivatele").select("role").eq("user_id",prihlaseni.session.user.id).maybeSingle();
-        if(chybaRole||uzivatel?.role!=="vedeni"){vysledek.textContent="Přístup zamítnut. Dodací listy jsou dostupné pouze vedení.";return}
+        if(chybaRole||uzivatel?.role!=="vedeni"){vysledek.textContent="Přístup zamítnut. Dokumentace dodací listy jsou dostupné pouze vedení.";return}
         document.getElementById("filtrDatumObal").hidden=false;
         vysledek.textContent="Načítám fotografie…";
         const soubory=await ctiArchivBezpecne();
@@ -120,7 +120,7 @@ async function spustit(){
             const data={signedUrl:soubor.url};
             if(!data.signedUrl)continue;
             const karta=document.createElement("button");karta.type="button";karta.className="karta";karta.dataset.datum=soubor.datum?new Date(soubor.datum).toLocaleDateString("sv-SE",{year:"numeric",month:"2-digit",day:"2-digit"}):"";
-            const img=document.createElement("img");img.src=data.signedUrl;img.alt="Dodací list";img.loading="lazy";
+            const img=document.createElement("img");img.src=data.signedUrl;img.alt="Dokumentace dodací listy";img.loading="lazy";
             const info=document.createElement("div");info.className="info";
             const datum=document.createElement("div");datum.className="datum";datum.textContent=soubor.datum?new Date(soubor.datum).toLocaleString("cs-CZ"):"Bez data";
             const nazev=document.createElement("div");nazev.className="soubor";nazev.textContent=soubor.cesta.split("/").pop();
