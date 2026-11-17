@@ -201,14 +201,14 @@
                 '<div class="detail"><small>Stav hlášení</small>' + esc(h.stav) + '</div></div>' +
                 (hotovo ? '<p class="note">Hlášení je uzavřené. Úpravy jsou zablokované.</p>' : '') +
                 '<h3>Oprava příjmu materiálu</h3>' +
-                '<p class="muted">Průvodka u příjmu znamená číslo dodacího listu. Změna počtu příjmu upraví i zbývající množství a příjmový záznam historie.</p>' +
+                '' +
                 '<form id="prijemForm" class="' + (hotovo ? 'closed-form' : '') + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('pt','TAVBA',p.tavba) + input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
                 input('pr','PRŮVODKA / ČÍSLO DODACÍHO LISTU',p.cislo_dodaciho_listu) +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU PŘÍJMU</button>' +
                 '<div class="feedback" id="prijemZprava" role="status"></div></fieldset></form></section>' +
                 '<section class="panel"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2>' +
-                '<p class="muted">Každý záznam má vlastní ID. Počet výdeje lze opravit; počet příjmu se opravuje výše. Změna výdeje přepočítá skladový zůstatek.</p>' +
+                '' +
                 hist.map(z => '<div class="history-card"><div class="history-meta">Záznam #' + z.id + ' · ' + zobraz(z.akce) + ' · ' + esc(datum(z.datum)) + '</div>' +
                 '<form class="historieForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + z.id + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('ht'+z.id,'TAVBA',z.tavba) +
