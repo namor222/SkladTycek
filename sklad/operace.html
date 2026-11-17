@@ -73,6 +73,13 @@
         #formularUpravyPruvodky {display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:16px 0;padding:15px;background:#f4f7fb;border:1px solid var(--line);border-radius:9px;}
         #formularUpravyPruvodky label {display:flex;flex-direction:column;gap:6px;font-weight:700;}
         #formularUpravyPruvodky .sekundarni-pruvodka {background:#edf2f8;color:var(--text);border:1px solid var(--line);}
+        .foto-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin:12px 0;}
+        .foto-polozka {border:1px solid var(--line);border-radius:9px;padding:9px;background:#fff;}
+        .foto-polozka img {width:100%;height:180px;object-fit:contain;border-radius:7px;}
+        .foto-smazat {margin-top:8px;width:100%;padding:9px;border:1px solid #e6b4b4;border-radius:7px;background:#fff3f3;color:#ae2222;font-weight:800;cursor:pointer;}
+        .foto-formular {display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;}
+        .foto-formular input {max-width:100%;}
+        .foto-stav {margin-top:9px;color:var(--muted);}
         .tlacitko-pruvodka {margin-top:16px;min-height:44px;padding:0 17px;border:0;border-radius:9px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer;}
         #formularPruvodky[hidden] {display:none;}
         #formularPruvodky {margin-top:15px;display:flex;gap:12px;align-items:end;flex-wrap:wrap;}
@@ -92,7 +99,9 @@
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
 <section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><form id="formularUpravyPruvodky" hidden><input type="hidden" id="upravovanaPruvodkaId"><label for="upravitCisloPruvodky">Průvodka:<input id="upravitCisloPruvodky" maxlength="150" required></label><label for="upravitKusyPruvodky">Kusů:<input id="upravitKusyPruvodky" type="number" min="0" max="1000000" step="1" required></label><button type="submit" id="ulozitUpravuPruvodky">ULOŽIT ZMĚNY</button><button type="button" id="zrusitUpravuPruvodky" class="sekundarni-pruvodka">ZRUŠIT</button></form><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></section>
-<section class="panel"><h2>Fotografie dodacích listů</h2><div class="content" id="fotkyDodaku">Načítám fotografie…</div></section>
+<section class="panel"><h2>Fotografie dodacích listů</h2><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></section>
+<section class="panel"><h2>Fotografie faktur</h2><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></section>
+<section class="panel"><h2>Fotografie atestů</h2><div class="content"><div id="fotkyAtesty">Načítám fotografie…</div><form class="foto-formular" data-typ="atest"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie atestů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavAtest"></div></div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -395,13 +404,75 @@ function formatHodnota(klic, hodnota) {
             return String(hodnota);
         }
 
-function zobrazFotkyDodaku(soubory){
- const el=document.getElementById("fotkyDodaku");
+let archivFotografii=[],dokumentyMaterialu=[];
+const fotoTypy={dodaci_list:{el:"fotkyDodaku",stav:"fotoStavDodaci",nazev:"dodacího listu"},faktura:{el:"fotkyFaktury",stav:"fotoStavFaktura",nazev:"faktury"},atest:{el:"fotkyAtesty",stav:"fotoStavAtest",nazev:"atestu"}};
+function starsiFotkyDodaku(){
  const cisla=new Set([detail?.prijem?.cislo_dodaciho_listu,...(detail?.historie||[]).map(x=>x.cislo_dodaciho_listu)].filter(Boolean).map(x=>String(x).trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9_-]/g,"_").replace(/_+/g,"_").slice(0,90)));
- const fotky=soubory.filter(f=>[...cisla].some(c=>f.cesta.split("/").pop().startsWith("DL_"+c+"_")));
- if(!fotky.length){el.textContent="K tomuto materiálu nejsou přiřazené žádné fotografie dodacího listu.";return;}
- el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px">'+fotky.map((f,i)=>'<a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer" title="Otevřít fotografii"><img src="'+esc(f.url)+'" alt="Dodací list – fotografie '+(i+1)+'" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border:1px solid #d7e2ed;border-radius:8px"></a>').join('')+'</div>';
+ return archivFotografii.filter(f=>[...cisla].some(c=>f.cesta.split("/").pop().startsWith("DL_"+c+"_")));
 }
+function zobrazFotky(){
+ for(const [typ,konf] of Object.entries(fotoTypy)){
+  const el=document.getElementById(konf.el);
+  const nove=dokumentyMaterialu.filter(d=>d.typ===typ);
+  const stare=typ==="dodaci_list"?starsiFotkyDodaku().map(f=>({...f,stary:true})):[];
+  const fotky=[...nove,...stare];
+  if(!fotky.length){el.textContent="K tomuto materiálu nejsou přiřazené žádné fotografie "+konf.nazev+".";continue;}
+  el.innerHTML='<div class="foto-grid">'+fotky.map((f,i)=>'<div class="foto-polozka"><a href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(f.url)+'" alt="Fotografie '+esc(konf.nazev)+' '+(i+1)+'" loading="lazy"></a><button type="button" class="foto-smazat" data-cesta="'+esc(f.cesta)+'" data-typ="'+esc(typ)+'" data-stara="'+(f.stary?"1":"0")+'">ODEBRAT FOTOGRAFII</button></div>').join("")+'</div>';
+ }
+}
+async function dokumentovaAkce(session,akce,parametry){
+ return await pridejPruvodkuBezpecne(session,parametry,akce);
+}
+async function nactiDokumentyMaterialu(session){
+ const data=await dokumentovaAkce(session,"dokument-seznam",{material_id:id});
+ if(!Array.isArray(data))throw Error("Server nevrátil seznam fotografií.");
+ dokumentyMaterialu=data;
+ zobrazFotky();
+}
+document.querySelectorAll(".foto-formular").forEach(form=>form.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const typ=form.dataset.typ,konf=fotoTypy[typ],input=form.querySelector('input[type="file"]'),btn=form.querySelector('button[type="submit"]');
+ const soubory=[...input.files];
+ if(!soubory.length)return;
+ btn.disabled=true;
+ const stav=document.getElementById(konf.stav);
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session)throw Error("Přihlášení vypršelo.");
+  let hotovo=0;
+  for(const file of soubory){
+   if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size<1||file.size>15*1024*1024)throw Error("Povoleny jsou fotografie JPG, PNG nebo WEBP do 15 MB.");
+   const pripona=file.type==="image/jpeg"?"jpg":file.type==="image/png"?"png":"webp";
+   stav.textContent="Nahrávám fotografii "+(hotovo+1)+" z "+soubory.length+"…";
+   const {cesta,token}=await dokumentovaAkce(session,"dokument-nahrat",{material_id:id,typ,pripona});
+   const {error}=await supabaseClient.storage.from("dodaci-listy").uploadToSignedUrl(cesta,token,file,{contentType:file.type});
+   if(error)throw Error("Nahrání fotografie selhalo: "+error.message);
+   await dokumentovaAkce(session,"dokument-potvrdit",{material_id:id,typ,cesta});
+   hotovo++;
+  }
+  input.value="";
+  await nactiDokumentyMaterialu(session);
+  stav.textContent="Uloženo "+hotovo+" fotografií do Supabase k materiálu ID "+id+".";
+ }catch(chyba){stav.textContent="Chyba: "+chyba.message;}
+ finally{btn.disabled=false;}
+}));
+document.querySelectorAll("#fotkyDodaku,#fotkyFaktury,#fotkyAtesty").forEach(el=>el.addEventListener("click",async e=>{
+ const btn=e.target.closest("button.foto-smazat");
+ if(!btn||!el.contains(btn))return;
+ const typ=btn.dataset.typ,konf=fotoTypy[typ],cesta=btn.dataset.cesta;
+ const upozorneni=btn.dataset.stara==="1"?"Tato starší fotografie dodacího listu může být společná pro více materiálů se stejným dodacím listem. Smazat ji ze Supabase pro všechny?":"Opravdu trvale odebrat tuto fotografii ze Supabase?";
+ if(!confirm(upozorneni))return;
+ const stav=document.getElementById(konf.stav);
+ btn.disabled=true;
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session)throw Error("Přihlášení vypršelo.");
+  await dokumentovaAkce(session,"dokument-smazat",{material_id:id,cesta});
+  if(btn.dataset.stara==="1")archivFotografii=archivFotografii.filter(f=>f.cesta!==cesta);
+  await nactiDokumentyMaterialu(session);
+  stav.textContent="Fotografie byla odstraněna ze Supabase.";
+ }catch(chyba){stav.textContent="Smazání selhalo: "+chyba.message;btn.disabled=false;}
+}));
 function zobrazHistorii(){
  const hs=historiePodrobna.filter(z=>Number(z.material_id)===id).sort((a,b)=>(Date.parse(b.datum_operace)||0)-(Date.parse(a.datum_operace)||0));
  if(!hs.length){histEl.innerHTML='<p class="content muted">Žádná historie tohoto ID.</p>';return;}
@@ -500,7 +571,7 @@ async function spustit(){
  document.body.style.display="block";document.getElementById("titulek").textContent="Materiál ID "+id;
  zprava.textContent="Načítám...";
  const [stavData,detailData,obsData,histData,archivData]=await Promise.all([nactiPodrobnyStavBezpecne(s.session),rpc("operace_detail_materialu",{p_material_id:id}),rpc("operace_seznam_obsazeni",{p_material_id:id}),nactiPodrobnouHistoriiBezpecne(s.session),nactiArchivBezpecne(s.session)]);
- sklad=stavData.stav;detail=detailData;rezervace=obsData;historiePodrobna=histData;zobrazStav();zobrazPruvodky();zobrazHistorii();zobrazFotkyDodaku(archivData);zprava.textContent="";
+ sklad=stavData.stav;detail=detailData;rezervace=obsData;historiePodrobna=histData;zobrazStav();zobrazPruvodky();zobrazHistorii();archivFotografii=archivData;await nactiDokumentyMaterialu(s.session);zprava.textContent="";
  }catch(err){document.body.style.display="block";zprava.textContent="Načtení selhalo: "+err.message;}
 }
 spustit();
