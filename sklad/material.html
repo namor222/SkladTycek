@@ -4424,6 +4424,22 @@
 
 
                 
+                    <!-- INFORMACE – ZOBRAZIT V MENU POUZE PRACOVNÍKŮM -->
+                    <a href="informace.html" class="menu-link" id="menuInformace" style="display:none">
+                        <div class="menu-card" style="--accent:#1688ef">
+                            <div class="icon" aria-hidden="true">
+                                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="24" cy="24" r="19"/>
+                                    <path d="M24 21v13M24 14v1"/>
+                                </svg>
+                            </div>
+                            <div class="card-text">
+                                <span class="card-title">Informace</span>
+                                <span class="card-description">Informace pro pracovníky</span>
+                            </div>
+                            <span class="arrow">›</span>
+                        </div>
+                    </a>
                     <!-- ADMINISTRACE – POUZE VEDENÍ -->
                     <a href="Administrace.html" class="menu-link" id="menuAdministrace" style="display:none">
                         <div class="menu-card" style="--accent:#dc2626">
@@ -4615,6 +4631,9 @@
                         .select("role")
                         .eq("user_id", data.session.user.id)
                         .maybeSingle();
+                    if (!chybaRole && roleUzivatele?.role && roleUzivatele.role !== "vedeni") {
+                        document.getElementById("menuInformace").style.display = "block";
+                    }
                     if (!chybaRole && roleUzivatele?.role === "vedeni") {
                         document.getElementById("menuDodaciListy").style.display = "block";
                         document.getElementById("menuAdministrace").style.display = "block";
