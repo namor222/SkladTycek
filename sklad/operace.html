@@ -476,7 +476,7 @@ formularUpravyPruvodky.addEventListener("submit",async e=>{
   await pridejPruvodkuBezpecne(session,{p_material_id:id,p_pruvodka_id:pruvodkaId,p_pruvodka:pruvodka,p_kusu:kusu},"operace-upravit-pruvodku");
   await obnov();
   skryjUpravuPruvodky();
-  stavPruvodky.textContent="Průvodka byla úspěšně upravena.";
+  stavPruvodky.textContent=kusu===0?"Průvodka s nulovým počtem kusů byla odstraněna.":"Průvodka byla úspěšně upravena.";
  }catch(chyba){stavPruvodky.textContent="Úprava průvodky selhala: "+chyba.message;}
  finally{tlacitko.disabled=false;}
 });
