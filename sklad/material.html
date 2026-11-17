@@ -4452,7 +4452,7 @@
                             <span class="arrow">›</span>
                         </div>
                     </a>
-                    <!-- DODACÍ LISTY – POUZE VEDENÍ -->
+                    <!-- DOKUMENTACE – POUZE VEDENÍ -->
                     <a href="dodacilisty.html" class="menu-link" id="menuDodaciListy" style="display:none">
                         <div class="menu-card" style="--accent:#805ad5">
                             <div class="icon">
@@ -4462,8 +4462,40 @@
                                 </svg>
                             </div>
                             <div class="card-text">
-                                <span class="card-title">Dodací listy</span>
+                                <span class="card-title">Dokumentace dodací listy</span>
                                 <span class="card-description">Archiv fotografií dodacích listů</span>
+                            </div>
+                            <span class="arrow">›</span>
+                        </div>
+                    </a>
+                    <!-- DOKUMENTACE – POUZE VEDENÍ -->
+                    <a href="dokumentacefaktury.html" class="menu-link" id="menuDokumentaceFaktury" style="display:none">
+                        <div class="menu-card" style="--accent:#1688f5">
+                            <div class="icon">
+                                <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                                    <rect x="10" y="5" width="28" height="38" rx="4" stroke="currentColor" stroke-width="3"/>
+                                    <path d="M17 17h14M17 24h14M17 31h10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="card-text">
+                                <span class="card-title">Dokumentace faktury</span>
+                                <span class="card-description">Archiv fotografií faktur</span>
+                            </div>
+                            <span class="arrow">›</span>
+                        </div>
+                    </a>
+                    <!-- DOKUMENTACE – POUZE VEDENÍ -->
+                    <a href="dokumentaceatesty.html" class="menu-link" id="menuDokumentaceAtesty" style="display:none">
+                        <div class="menu-card" style="--accent:#16a085">
+                            <div class="icon">
+                                <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                                    <rect x="10" y="5" width="28" height="38" rx="4" stroke="currentColor" stroke-width="3"/>
+                                    <path d="M17 17h14M17 24h14M17 31h10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="card-text">
+                                <span class="card-title">Dokumentace atesty</span>
+                                <span class="card-description">Archiv fotografií atestů</span>
                             </div>
                             <span class="arrow">›</span>
                         </div>
@@ -4637,6 +4669,8 @@
                     }
                     if (!chybaRole && roleUzivatele?.role === "vedeni") {
                         document.getElementById("menuDodaciListy").style.display = "block";
+                        document.getElementById("menuDokumentaceFaktury").style.display = "block";
+                        document.getElementById("menuDokumentaceAtesty").style.display = "block";
                         document.getElementById("menuAdministrace").style.display = "block";
                         // Vedeni vstupuje rovnou do podrobnych prehledu.
                         document.getElementById("odkazStavSkladu").style.display = "";
