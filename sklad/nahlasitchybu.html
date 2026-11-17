@@ -7,17 +7,33 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { display:none; margin:0; min-height:100vh; background:#f5f8fc; color:#24364b; font-family:Arial,Helvetica,sans-serif; }
-        header { display:flex; justify-content:space-between; align-items:center; padding:22px 28px; border-bottom:1px solid #dce4ef; gap:16px; }
-        h1 { margin:0; font-size:26px; }
-        a { display:inline-block; padding:12px 18px; border:1px solid #d6e0eb; border-radius:10px; background:white; color:#24364b; font-weight:800; text-decoration:none; }
-        main { min-height:65vh; display:flex; justify-content:center; align-items:center; padding:24px; text-align:center; }
-        .soon { color:#dc2626; font-size:clamp(48px,9vw,110px); font-weight:900; letter-spacing:2px; }
-        .error { color:#b91c1c; font-size:20px; font-weight:700; }
+        * { box-sizing:border-box; }
+        body { display:none; margin:0; min-height:100vh; background:linear-gradient(145deg,#edf3fa 0%,#f8fafc 55%,#e9f1fa 100%); color:#172b45; font-family:Arial,Helvetica,sans-serif; }
+        header { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:22px clamp(18px,5vw,72px); background:#fff; border-bottom:1px solid #dce5ef; }
+        .brand { display:flex; align-items:center; gap:14px; }
+        .brand-icon { width:48px; height:48px; border-radius:14px; background:#fff0eb; color:#dc5635; display:grid; place-items:center; }
+        .brand-icon svg { width:29px; height:29px; }
+        h1 { margin:0; font-size:clamp(21px,3vw,29px); font-weight:850; }
+        .back { display:inline-flex; align-items:center; padding:12px 18px; border:1px solid #d7e0eb; border-radius:11px; background:white; color:#24364b; font-weight:800; text-decoration:none; white-space:nowrap; }
+        .back:hover { background:#f2f6fb; }
+        main { min-height:calc(100vh - 96px); display:flex; justify-content:center; align-items:center; padding:32px 18px 75px; }
+        .placeholder { width:min(100%,660px); padding:clamp(30px,6vw,60px); border:1px solid #e0e8f1; border-radius:24px; background:#fff; box-shadow:0 20px 55px rgba(30,54,83,.08); text-align:center; }
+        .symbol { width:90px; height:90px; display:grid; place-items:center; margin:0 auto 24px; border-radius:24px; background:#fff0eb; color:#db5535; }
+        .symbol svg { width:48px; height:48px; }
+        .eyebrow { color:#b14c33; font-size:13px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
+        .soon { margin:13px 0 17px; font-size:clamp(39px,8vw,72px); line-height:1.08; font-weight:900; letter-spacing:-1.5px; color:#172b45; }
+        .description { margin:0 auto; max-width:420px; color:#62738a; font-size:17px; line-height:1.6; }
+        @media(max-width:480px) { header {padding:16px;} .brand-icon {width:40px;height:40px;} .back {padding:10px 12px;} }
     </style>
 </head>
 <body>
-    <header><h1>Nahlásit chybu</h1><a href="material.html">← ZPĚT</a></header>
+    <header>
+        <div class="brand">
+            <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+            <h1>Nahlásit chybu</h1>
+        </div>
+        <a class="back" href="material.html">← ZPĚT</a>
+    </header>
     <main id="obsah"></main>
     <script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -125,10 +141,10 @@
                     window.location.replace("material.html");
                     return;
                 }
-                document.getElementById("obsah").innerHTML = '<div class="soon">COMING SOON</div>';
+                document.getElementById("obsah").innerHTML = `<section class="placeholder"><div class="symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div><div class="eyebrow">Hlášení skladových chyb</div><div class="soon">COMING SOON</div><p class="description">Brzy zde bude možné nahlásit chybný příjem, výdej materiálu nebo jinou nesrovnalost.</p></section>`;
                 document.body.style.display = "block";
             } catch (chyba) {
-                console.warn("Přístup k informacím zamítnut:", chyba);
+                console.warn("Přístup k hlášení chyb zamítnut:", chyba);
                 window.location.replace("../login.html");
             }
         }
