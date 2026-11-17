@@ -78,7 +78,7 @@
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
-<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div><h3>Přidat novou obsazenou průvodku</h3><form id="nova"><label>PRŮVODKA<input name="pruvodka" required maxlength="150"></label><label>OBSAZENO<input name="obsazeno" type="number" min="0" step="1" required></label><button type="submit">PŘIDAT PRŮVODKU</button></form></div></section>
+<section class="panel"><h2>Obsazené průvodky</h2><div class="content"><div id="pruvodky"></div></div></section>
 <section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -249,14 +249,9 @@ function zobrazStav(){
  return '<td class="'+cls+'">'+esc(format(k,r[k]))+'</td>';
  }).join('')+'</tr>').join('')+'</tbody></table>';
 }
-function polePruvodky(o){
- return '<form class="uprava" data-id="'+o.id+'"><label>PRŮVODKA<input name="pruvodka" required maxlength="150" value="'+esc(o.pruvodka)+'"></label><label>OBSAZENO<input name="obsazeno" type="number" min="0" step="1" required value="'+esc(o.obsazeno)+'"></label><button type="submit">ULOŽIT ZMĚNU</button></form>';
-}
 function zobrazPruvodky(){
- const p=detail.prijem;
- const matches=rezervace.filter(o=>identita(o)===identita(p));
- pruvEl.innerHTML=matches.length?matches.map(polePruvodky).join(''):'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
- pruvEl.querySelectorAll('form.uprava').forEach(f=>f.addEventListener('submit',uloz));
+ const matches=rezervace.filter(o=>identita(o)===identita(detail.prijem));
+ pruvEl.innerHTML=matches.length?'<div class="table-wrap"><table><thead><tr><th>PRŮVODKA</th><th>OBSAZENO</th></tr></thead><tbody>'+matches.map(o=>'<tr><td>'+esc(o.pruvodka)+'</td><td class="obsazeno">'+esc(o.obsazeno)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted">Zatím není evidovaná žádná obsazená průvodka.</p>';
 }
 async function nactiPodrobnouHistoriiBezpecne(session) {
             const { par, verejnyKlic } = await nactiExistujiciKlic();
@@ -355,15 +350,6 @@ async function obnov(){
  if(sessionData.session){const [stavData,histData]=await Promise.all([nactiPodrobnyStavBezpecne(sessionData.session),nactiPodrobnouHistoriiBezpecne(sessionData.session)]);sklad=stavData.stav;historiePodrobna=histData;}
  zobrazStav();zobrazPruvodky();zobrazHistorii();
 }
-async function uloz(e){
- e.preventDefault();const f=e.currentTarget,btn=f.querySelector('button');
- const pr=f.elements.pruvodka.value.trim(),obs=Number(f.elements.obsazeno.value);
- if(!pr||pr.length>150||!Number.isSafeInteger(obs)||obs<0){zprava.textContent="Vyplň platnou průvodku a nezáporné celé množství.";return;}
- if(!confirm("Uložit průvodku "+pr+" s obsazením "+obs+" ks?"))return;
- btn.disabled=true;zprava.textContent="Ukládám...";
- try{await rpc("operace_ulozit_obsazeni",{p_material_id:id,p_pruvodka_id:f.classList.contains("uprava")?Number(f.dataset.id):null,p_pruvodka:pr,p_obsazeno:obs});await obnov();if(f.id==="nova")f.reset();zprava.textContent="Průvodka byla uložena.";}
- catch(err){zprava.textContent="Uložení selhalo: "+err.message;}finally{btn.disabled=false;}
-}
 async function spustit(){
  try{
  if(!Number.isSafeInteger(id)||id<1)throw Error("Neplatné ID materiálu.");
@@ -378,6 +364,5 @@ async function spustit(){
  sklad=stavData.stav;detail=detailData;rezervace=obsData;historiePodrobna=histData;zobrazStav();zobrazPruvodky();zobrazHistorii();zprava.textContent="";
  }catch(err){document.body.style.display="block";zprava.textContent="Načtení selhalo: "+err.message;}
 }
-document.getElementById("nova").addEventListener("submit",uloz);
 spustit();
 </script></body></html>
