@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operace materiálu | Sklad</title>
+<link rel="icon" href="./favicon.ico?v=3">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{display:none;margin:0;background:#f2f6fb;color:#20344e;font-family:Arial,Helvetica,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px clamp(16px,4vw,55px);background:#fff;border-bottom:1px solid #dce4ef}
+h1{margin:0;font-size:clamp(22px,3vw,30px)}a.back{padding:12px 18px;border:1px solid #d6e0eb;border-radius:10px;color:#24364b;text-decoration:none;font-weight:800}
+main{max-width:1260px;margin:0 auto;padding:25px 18px 65px}
+.panel{background:white;border:1px solid #dfe7f1;border-radius:16px;padding:23px;margin-bottom:22px;box-shadow:0 7px 24px rgba(30,55,85,.045)}
+h2{margin:0 0 16px}h3{margin:0 0 15px;font-size:19px}.hint{color:#62748a;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px}
+.field{border:1px solid #e1e8f1;border-radius:11px;padding:13px;background:#f9fbfe}
+.field label{display:block;font-size:13px;font-weight:800;margin-bottom:8px;color:#344b66;overflow-wrap:anywhere}
+.field input{width:100%;padding:11px;border:1px solid #bccadb;border-radius:8px;font:inherit;background:white}
+.field button{margin-top:9px;background:#1763ac;color:white;border:0;border-radius:8px;padding:10px 13px;font-weight:800;cursor:pointer}
+.field button:disabled{opacity:.5;cursor:wait}
+.history{border-top:1px solid #dfe7f1;padding:22px 0}.history:first-child{border-top:0}
+.status{font-weight:700;margin:12px 0;white-space:pre-wrap}.warning{border-left:4px solid #d6a13e;background:#fff9e9;padding:12px;margin:14px 0}
+</style>
+</head>
+<body>
+<header><h1 id="nadpis">Operace materiálu</h1><a class="back" href="stavpodrobnější.html">← ZPĚT</a></header>
+<main><section class="panel"><h2>Úpravy příjmu a historie</h2><p class="hint">Úpravy se zapisují přímo do Supabase. Každou hodnotu ukládej zvlášť. Změny se evidují a nelze měnit ID záznamů.</p><div id="zprava" class="status"></div></section><div id="obsah"></div></main>
+<script>
+        const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        function otevriDatabaziProhlizece() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("kovohladil-prohlizec", 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains("klice")) {
+                        db.createObjectStore("klice");
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function nactiExistujiciKlic() {
+            if (!window.isSecureContext || !crypto.subtle || !window.indexedDB) {
+                throw new Error("Prohlížeč nepodporuje bezpečné ověření.");
+            }
+            const db = await otevriDatabaziProhlizece();
+            try {
+                const par = await new Promise((resolve, reject) => {
+                    const tx = db.transaction("klice", "readonly");
+                    const request = tx.objectStore("klice").get("identita");
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+                if (!par?.privateKey || !par?.publicKey) {
+                    throw new Error("V tomto prohlížeči není uložen schválený klíč.");
+                }
+                const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
+                return {
+                    par,
+                    verejnyKlic: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y }
+                };
+            } finally {
+                db.close();
+            }
+        }
+
+        function kodujBase64url(buffer) {
+            let text = "";
+            for (const byte of new Uint8Array(buffer)) text += String.fromCharCode(byte);
+            return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        async function zavolejSchvalovani(body) {
+            const { data, error } = await supabaseClient.functions.invoke(
+                "schvalovani-prohlizecu", { body }
+            );
+            if (error) throw error;
+            if (data?.chyba) throw new Error(data.chyba);
+            return data;
+        }
+
+        async function overSchvalenyProhlizec() {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const vyzva = await zavolejSchvalovani({
+                akce: "vyzva",
+                verejny_klic: verejnyKlic
+            });
+            if (typeof vyzva?.vyzva !== "string" || !vyzva?.vyzva_id) {
+                throw new Error("Server nevrátil platnou výzvu.");
+            }
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                par.privateKey,
+                new TextEncoder().encode(vyzva.vyzva)
+            );
+            const vysledek = await zavolejSchvalovani({
+                akce: "overit",
+                verejny_klic: verejnyKlic,
+                vyzva_id: vyzva.vyzva_id,
+                podpis: kodujBase64url(podpis)
+            });
+            if (vysledek?.overeno !== true) {
+                throw new Error("Prohlížeč není schválený.");
+            }
+        }
+
+
+
+
+
+
+        const escapeHtml = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+        const prijemPole = ["nazev_z_dodaku","material","druh","rozmer","jakost","tolerance","tavba","delka_mm","hmotnost_kg","pocet_prijato","pocet_zbyva","osobni_cislo","datum_prijmu","cislo_dodaciho_listu","csn","en_wnr","dodavatel","stav","atest","davka","delka_dokument","cena_za_kg","cena_za_dopravu","obsazeno"];
+        const historiePole = ["datum","osobni_cislo","material","druh","rozmer","pocet","pruvodka","nazev_z_dodaku","jakost","tolerance","cislo_dodaciho_listu","hmotnost_kg","tavba","dodavatel","stav","cena_za_kg","cena_za_dopravu"];
+        const numericka = new Set(["rozmer","delka_mm","hmotnost_kg","pocet_prijato","pocet_zbyva","obsazeno","pocet","cena_za_kg","cena_za_dopravu"]);
+        const cela = new Set(["pocet_prijato","pocet_zbyva","obsazeno","pocet","osobni_cislo"]);
+        const datumova = new Set(["datum","datum_prijmu"]);
+        const povinna = new Set(["nazev_z_dodaku","pocet_prijato","pocet_zbyva","osobni_cislo","datum_prijmu","datum"]);
+        const labels = {nazev_z_dodaku:"NÁZEV Z DODÁKU",material:"MATERIÁL",druh:"DRUH",rozmer:"ROZMĚR",jakost:"JAKOST",tolerance:"TOLERANCE",tavba:"TAVBA",delka_mm:"DÉLKA (MM)",hmotnost_kg:"HMOTNOST (KG)",pocet_prijato:"POČET PŘIJATO",pocet_zbyva:"POČET ZBÝVÁ",osobni_cislo:"OSOBNÍ ČÍSLO",datum_prijmu:"DATUM PŘÍJMU",cislo_dodaciho_listu:"ČÍSLO DODACÍHO LISTU",csn:"ČSN",en_wnr:"EN/W.NR.",dodavatel:"DODAVATEL",stav:"STAV",atest:"ATEST",davka:"DÁVKA",delka_dokument:"DÉLKA DOKUMENT",cena_za_kg:"CENA ZA KG",cena_za_dopravu:"CENA ZA DOPRAVU",obsazeno:"OBSAZENO",datum:"DATUM",pocet:"POČET",pruvodka:"PRŮVODKA"};
+        const params = new URLSearchParams(location.search);
+        const id = Number(params.get("id"));
+        let data = null;
+        async function rpc(nazev,parametry){const {data,error}=await supabaseClient.rpc(nazev,parametry);if(error)throw error;return data;}
+        function poleHtml(tabulka,zaznam,sloupce){
+            return '<div class="grid">'+sloupce.map(k=>{
+                const hodnota=zaznam[k];
+                const typ=datumova.has(k)?"datetime-local":numericka.has(k) || (k==="osobni_cislo" && tabulka==="historie")?"number":"text";
+                const val=datumova.has(k)&&hodnota?new Date(hodnota).toISOString().slice(0,16):hodnota??"";
+                const step=typ==="number"?(cela.has(k)?"1":"any"):"";
+                return '<form class="field" data-tabulka="'+tabulka+'" data-zaznam="'+zaznam.id+'" data-sloupec="'+k+'"><label>'+escapeHtml(labels[k]||k)+'</label><input type="'+typ+'" '+(step?'step="'+step+'" ':'')+'value="'+escapeHtml(val)+'"><button type="submit">ULOŽIT</button></form>';
+            }).join('')+'</div>';
+        }
+        function zobraz(){
+            document.getElementById("nadpis").textContent="Operace materiálu · ID "+id;
+            const p=data.prijem;
+            document.getElementById("obsah").innerHTML='<section class="panel"><h2>Příjem materiálu · ID '+p.id+'</h2>'+poleHtml("prijmy_materialu",p,prijemPole)+'</section>'+
+                '<section class="panel"><h2>Historie materiálu ('+data.historie.length+')</h2>'+
+                (data.historie.length?data.historie.map(h=>'<article class="history"><h3>Záznam #'+h.id+' · '+escapeHtml(h.akce)+' · '+escapeHtml(h.datum?new Date(h.datum).toLocaleString("cs-CZ"):"")+'</h3>'+poleHtml("historie",h,historiePole)+'</article>').join(''):'<p>Žádná historie k tomuto ID.</p>')+'</section>';
+            document.querySelectorAll("form.field").forEach(f=>f.addEventListener("submit",uloz));
+        }
+        async function nacti(){
+            data=await rpc("operace_detail_materialu",{p_material_id:id});
+            zobraz();
+        }
+        async function uloz(event){
+            event.preventDefault();
+            const f=event.currentTarget, tab=f.dataset.tabulka, zId=Number(f.dataset.zaznam), k=f.dataset.sloupec;
+            const input=f.querySelector("input"), button=f.querySelector("button"), raw=input.value.trim();
+            const puvodni=tab==="historie"?data.historie.find(x=>x.id===zId)?.[k]:data.prijem[k];
+            const zprava=document.getElementById("zprava");
+            try {
+                if(!raw && povinna.has(k))throw Error("Toto pole nesmí být prázdné.");
+                let hodnota=raw===""?null:raw;
+                if(hodnota!==null && (numericka.has(k) || (k==="osobni_cislo"&&tab==="historie"))){
+                    hodnota=Number(raw.replace(",","."));
+                    if(!Number.isFinite(hodnota) || (cela.has(k)&&!Number.isSafeInteger(hodnota)))throw Error("Neplatné číslo.");
+                }
+                if(hodnota!==null && datumova.has(k)){
+                    const d=new Date(raw);
+                    if(Number.isNaN(d.getTime()))throw Error("Neplatné datum.");
+                    hodnota=d.toISOString();
+                }
+                if(String(hodnota??"")===String(puvodni??""))throw Error("Hodnota se nezměnila.");
+                if(!confirm("Opravdu změnit "+(labels[k]||k)+" u "+tab+" (záznam #"+zId+")?"))return;
+                button.disabled=true;zprava.textContent="Ukládám změnu...";
+                await rpc("operace_upravit_pole",{p_material_id:id,p_tabulka:tab,p_zaznam_id:zId,p_sloupec:k,p_hodnota:hodnota});
+                await nacti();
+                zprava.textContent="Změna "+(labels[k]||k)+" byla uložena.";
+            }catch(e){zprava.textContent="Oprava se nezdařila: "+e.message;}finally{button.disabled=false;}
+        }
+        async function spustit(){
+            try{
+                if(!Number.isSafeInteger(id)||id<1){document.body.style.display="block";document.getElementById("zprava").textContent="Neplatné ID materiálu.";return;}
+                const {data:prihlaseni,error:chybaPrihlaseni}=await supabaseClient.auth.getSession();
+                if(chybaPrihlaseni||!prihlaseni.session){location.replace("../login.html");return;}
+                const {data:overeny,error:chybaOvereni}=await supabaseClient.auth.getUser();
+                if(chybaOvereni||!overeny?.user||overeny.user.id!==prihlaseni.session.user.id){location.replace("../login.html");return;}
+                await overSchvalenyProhlizec();
+                const {data:uzivatel,error:chybaRole}=await supabaseClient.from("uzivatele").select("role").eq("user_id",prihlaseni.session.user.id).maybeSingle();
+                if(chybaRole||uzivatel?.role!=="vedeni"){location.replace("material.html");return;}
+                document.body.style.display="block";
+                await nacti();
+            }catch(e){document.body.style.display="block";document.getElementById("zprava").textContent="Načtení selhalo: "+e.message;}
+        }
+        spustit();
+</script>
+</body></html>
