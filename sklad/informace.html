@@ -112,10 +112,16 @@
                     window.location.replace("../login.html");
                     return;
                 }
+                // Ověřit platnost tokenu přímo u Supabase Auth, nestačí lokální session.
+                const { data: overeny, error: chybaOvereni } = await supabaseClient.auth.getUser();
+                if (chybaOvereni || !overeny?.user || overeny.user.id !== prihlaseni.session.user.id) {
+                    window.location.replace("../login.html");
+                    return;
+                }
                 await overSchvalenyProhlizec();
                 const { data: uzivatel, error: chybaRole } = await supabaseClient.from("uzivatele")
                     .select("role").eq("user_id", prihlaseni.session.user.id).maybeSingle();
-                if (chybaRole || !uzivatel?.role) {
+                if (chybaRole || !["pracovnik", "vedeni"].includes(uzivatel?.role)) {
                     window.location.replace("material.html");
                     return;
                 }
