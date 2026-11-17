@@ -205,7 +205,7 @@
                 '<h3>Oprava příjmu materiálu</h3>' +
                 '' +
                 '<form id="prijemForm" class="' + (hotovo ? 'closed-form' : '') + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
-                input('pt','TAVBA',p.tavba) + input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
+                input('pp','POČET PŘIJATO',p.pocet_prijato,'number') +
                 input('pz','POČET ZBÝVÁ',p.pocet_zbyva,'number') +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU PŘÍJMU</button>' +
                 '<div class="feedback" id="prijemZprava" role="status"></div></fieldset></form></section>' +
@@ -223,7 +223,6 @@
                 '' +
                 hist.map(z => '<div class="history-card"><div class="history-meta">Záznam #' + z.id + ' · ' + zobraz(z.akce) + ' · ' + esc(datum(z.datum)) + '</div>' +
                 '<form class="historieForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + z.id + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
-                input('ht'+z.id,'TAVBA',z.tavba) +
                 input('hp'+z.id,'POČET',z.pocet,'number',z.akce !== 'ODEBRÁNO') +
                 input('hr'+z.id,'PRŮVODKA',z.pruvodka) +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU ZÁZNAMU #' + z.id + '</button>' +
@@ -256,12 +255,11 @@
             const btn = event.currentTarget.querySelector("button");
             const msg = document.getElementById("prijemZprava");
             try {
-                const t=zmenaText("pt",p.tavba), poc=zmenaPocet("pp",p.pocet_prijato), zbyva=zmenaZbyva("pz",p.pocet_zbyva);
-                if ([t,poc,zbyva].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
-                if (t!==null && !t) throw Error("Nová hodnota nesmí být prázdná.");
-                if (!confirm("Opravdu uložit změny příjmu materiálu ID " + p.id + "?")) return;
+                const poc=zmenaPocet("pp",p.pocet_prijato), zbyva=zmenaZbyva("pz",p.pocet_zbyva);
+                if ([poc,zbyva].every(v => v===null)) throw Error("Žádná hodnota nebyla změněna.");
+                                if (!confirm("Opravdu uložit změny příjmu materiálu ID " + p.id + "?")) return;
                 btn.disabled=true;msg.textContent="Ukládám...";
-                await rpc("admin_opravit_prijem_v2",{p_hlaseni_id:h.id,p_tavba:t,p_pocet:poc,p_zbyva:zbyva});
+                await rpc("admin_opravit_prijem_v2",{p_hlaseni_id:h.id,p_tavba:null,p_pocet:poc,p_zbyva:zbyva});
                 await nactiHlaseni(h.id);
             } catch(e) { msg.textContent="Oprava selhala: "+e.message; } finally { btn.disabled=false; }
         }
@@ -287,12 +285,12 @@
             const form=event.currentTarget, id=Number(form.dataset.id), z=detailHlaseni.historie.find(x=>x.id===id), h=detailHlaseni.hlaseni;
             const btn=form.querySelector("button"), msg=document.getElementById("hz"+id);
             try {
-                const t=zmenaText("ht"+id,z.tavba),poc=z.akce==='ODEBRÁNO'?zmenaPocet("hp"+id,z.pocet):null,pr=zmenaText("hr"+id,z.pruvodka);
-                if ([t,poc,pr].every(v=>v===null)) throw Error("Žádná hodnota nebyla změněna.");
-                if ((t!==null&&!t)||(pr!==null&&!pr)) throw Error("Nová hodnota nesmí být prázdná.");
+                const poc=z.akce==='ODEBRÁNO'?zmenaPocet("hp"+id,z.pocet):null,pr=zmenaText("hr"+id,z.pruvodka);
+                if ([poc,pr].every(v=>v===null)) throw Error("Žádná hodnota nebyla změněna.");
+                if (pr!==null&&!pr) throw Error("Nová hodnota nesmí být prázdná.");
                 if (!confirm("Opravdu změnit záznam historie #"+id+"?")) return;
                 btn.disabled=true;msg.textContent="Ukládám...";
-                await rpc("admin_opravit_historii",{p_hlaseni_id:h.id,p_historie_id:id,p_tavba:t,p_pocet:poc,p_pruvodka:pr});
+                await rpc("admin_opravit_historii",{p_hlaseni_id:h.id,p_historie_id:id,p_tavba:null,p_pocet:poc,p_pruvodka:pr});
                 await nactiHlaseni(h.id);
             } catch(e) { msg.textContent="Oprava selhala: "+e.message; } finally {btn.disabled=false;}
         }
