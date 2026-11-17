@@ -67,6 +67,14 @@
         form button:disabled { opacity:.55; cursor:wait; }
         @media(max-width:900px) { .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; } .table-wrap table { min-width:1050px; } .table-wrap th,.table-wrap td { white-space:nowrap; } }
         @media(max-width:600px) { form label,form input,form button { width:100%; } form { align-items:stretch; } }
+        /* Historie jako v historiepodrobnější.html: široké sloupce a vodorovný posuvník nahoře. */
+        #historie.table-wrap { overflow-x:auto; overflow-y:hidden; transform:rotateX(180deg); background:#fff; scrollbar-gutter:stable; }
+        #historie.table-wrap table { transform:rotateX(180deg); width:max-content; min-width:2700px; table-layout:auto; font-size:13px; }
+        #historie thead th { position:static; padding:13px 12px; font-size:11px; white-space:nowrap; overflow-wrap:normal; }
+        #historie tbody td { padding:12px; white-space:nowrap; overflow-wrap:normal; vertical-align:top; }
+        #historie tbody td.operace { font-weight:900; }
+        #historie tbody td.prijem { color:#08aa43; }
+        #historie tbody td.vydej { color:#ef3737; }
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
 <section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
@@ -253,7 +261,7 @@ function zobrazPruvodky(){
 function zobrazHistorii(){
  const hs=detail.historie;
  const keys=['id','datum','akce','osobni_cislo','material','druh','rozmer','tavba','pocet','pruvodka','jakost','tolerance','nazev_z_dodaku','cislo_dodaciho_listu','hmotnost_kg','dodavatel','stav','cena_za_kg','cena_za_dopravu'];
- histEl.innerHTML=hs.length?'<table class="history-table"><thead><tr>'+keys.map(k=>'<th>'+esc(k.toUpperCase().replaceAll('_',' '))+'</th>').join('')+'</tr></thead><tbody>'+hs.map(h=>'<tr>'+keys.map(k=>'<td>'+esc(k==="datum"&&h[k]?new Date(h[k]).toLocaleString("cs-CZ"):format(k,h[k]))+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<p class="content muted">Žádná historie tohoto ID.</p>';
+ histEl.innerHTML=hs.length?'<table class="history-table"><thead><tr>'+keys.map(k=>'<th>'+esc(k.toUpperCase().replaceAll('_',' '))+'</th>').join('')+'</tr></thead><tbody>'+hs.map(h=>'<tr>'+keys.map(k=>{const cls=k==="tavba"?"tavba":k==="akce"?"operace "+(/PŘID|PŘÍJ/.test(String(h[k]??"").toLocaleUpperCase("cs"))?"prijem":/ODEB|VÝDEJ/.test(String(h[k]??"").toLocaleUpperCase("cs"))?"vydej":""):"";return '<td class="'+cls+'">'+esc(k==="datum"&&h[k]?new Date(h[k]).toLocaleString("cs-CZ"):format(k,h[k]))+'</td>';}).join('')+'</tr>').join('')+'</tbody></table>':'<p class="content muted">Žádná historie tohoto ID.</p>';
 }
 async function obnov(){
  const d=await rpc("operace_detail_materialu",{p_material_id:id});
