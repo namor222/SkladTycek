@@ -35,6 +35,10 @@
         .primary:disabled{opacity:.5;cursor:not-allowed}
         .secondary{background:#fff;color:#1763ac;border:1px solid #1763ac;border-radius:9px;padding:12px 18px;font-weight:800}
         .history-card{border-top:1px solid #e0e7ef;padding:18px 0}
+        .history-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+        .zamek-historie{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:34px;border:1px solid #cdd9e7;border-radius:7px;background:#f4f7fb;cursor:pointer}
+        .smazat-historii{background:#fff1f1;color:#b91c1c;border:1px solid #f1bcbc;border-radius:8px;padding:10px 15px;font-weight:800;margin-top:12px;cursor:pointer}
+        .smazat-historii:disabled{opacity:.5}
         .history-card:first-child{border-top:0}
         .history-meta{margin-bottom:12px;font-weight:800}
         .feedback{margin:12px 0;white-space:pre-wrap;font-weight:750}
@@ -212,6 +216,7 @@
                 '" type="' + type + '" ' + (type === 'number' ? 'min="1" step="1" ' : 'maxlength="150" ') +
                 'value="' + esc(value ?? "") + '" ' + (disabled ? 'disabled ' : '') + '></div>';
         }
+        let historieOdemcena=false;
         function vykresliDetail() {
             const {hlaseni:h,prijem:p,historie:hist} = detailHlaseni;
             const hotovo = h.stav === "vyreseno";
@@ -241,17 +246,19 @@
                     '<div class="feedback" id="oz'+o.id+'" role="status"></div></fieldset></form>'
                 ).join('') : '<p class="muted">K tomuto materiálu nejsou nalezené žádné obsazené průvodky.</p>') +
                 '</section>' +
-                '<section class="panel"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2>' +
+                '<section class="panel"><div class="history-heading"><h2>Historie tohoto materiálu (' + hist.length + ' záznamů)</h2><button type="button" class="zamek-historie" id="zamekHistorieAdmin" aria-expanded="' + String(historieOdemcena) + '" aria-label="Odemknout mazání historie" title="Odemknout mazání historie">' + (historieOdemcena ? "🔓" : "🔒") + '</button></div>' +
                 '' +
                 hist.map(z => '<div class="history-card"><div class="history-meta">Záznam #' + z.id + ' · ' + zobraz(z.akce) + ' · ' + esc(datum(z.datum)) + '</div>' +
                 '<form class="historieForm ' + (hotovo ? 'closed-form' : '') + '" data-id="' + z.id + '"><fieldset ' + (hotovo ? 'disabled' : '') + ' style="border:0;padding:0;margin:0;min-width:0"><div class="fields">' +
                 input('hp'+z.id,'POČET',z.pocet,'number',z.akce !== 'ODEBRÁNO') +
                 input('hr'+z.id,'PRŮVODKA',z.pruvodka) +
                 '</div><button class="primary" type="submit" ' + (hotovo ? 'disabled' : '') + '>ULOŽIT OPRAVU ZÁZNAMU #' + z.id + '</button>' +
-                '<div class="feedback" id="hz'+z.id+'" role="status"></div></fieldset></form></div>').join('') +
+                '<div class="feedback" id="hz'+z.id+'" role="status"></div></fieldset></form>' + (historieOdemcena && !hotovo ? '<button type="button" class="smazat-historii" data-id="' + z.id + '">SMAZAT ZÁZNAM #' + z.id + '</button>' : '') + '</div>').join('') +
                 '</section><section class="panel"><h2>Dokončení hlášení</h2><p class="muted">Po dokončení všech oprav označ hlášení jako vyřešené.</p>' +
                 '<button class="secondary ' + (hotovo ? 'closed-form' : '') + '" id="uzavrit" ' + (hotovo ? 'disabled' : '') + '>OZNAČIT JAKO VYŘEŠENÉ</button>' +
                 '<p class="muted">Počet zaznamenaných oprav: ' + (h.opravy?.length || 0) + '</p></section>';
+            document.getElementById("zamekHistorieAdmin").addEventListener("click",()=>{historieOdemcena=!historieOdemcena;vykresliDetail();});
+            el.querySelectorAll(".smazat-historii").forEach(b=>b.addEventListener("click",smazHistorii));
             document.getElementById("prijemForm").addEventListener("submit", ulozPrijem);
             el.querySelectorAll(".historieForm").forEach(f => f.addEventListener("submit", ulozHistorii));
             el.querySelectorAll(".obsazenaForm").forEach(f => f.addEventListener("submit", ulozObsazenouPruvodku));
@@ -315,6 +322,15 @@
                 await rpc("admin_opravit_historii",{p_hlaseni_id:h.id,p_historie_id:id,p_tavba:null,p_pocet:poc,p_pruvodka:pr});
                 await nactiHlaseni(h.id);
             } catch(e) { msg.textContent="Oprava selhala: "+e.message; } finally {btn.disabled=false;}
+        }
+        async function smazHistorii(event) {
+            const btn=event.currentTarget,id=Number(btn.dataset.id);
+            const h=detailHlaseni.hlaseni,z=detailHlaseni.historie.find(x=>x.id===id);
+            if(!historieOdemcena||h.stav==="vyreseno"||!z)return;
+            if(!confirm("Opravdu SMAZAT záznam #"+id+" ("+z.akce+", "+z.pocet+" ks)?\\n\\nSkladové zásoby a cena se nezmění. Záznam bude uchován v auditním archivu."))return;
+            btn.disabled=true;
+            try {await rpc("admin_smazat_historii",{p_hlaseni_id:h.id,p_historie_id:id});await nactiHlaseni(h.id);}
+            catch(e){alert("Smazání záznamu selhalo: "+e.message);btn.disabled=false;}
         }
         async function uzavriHlaseni() {
             if (!confirm("Označit hlášení jako vyřešené? Další úpravy v něm už nepůjdou.")) return;
