@@ -590,7 +590,7 @@ formularUpravyCeny.addEventListener("submit",async e=>{
  e.preventDefault();const raw=document.getElementById("novaCenaMaterialu").value;const cena=Number(raw);const stav=document.getElementById("stavCeny");
  if(!raw||!Number.isFinite(cena)||cena<0||cena>1000000000||!/^\d+(?:\.\d{1,2})?$/.test(raw)){stav.textContent="Zadejte platnou cenu s nejvýše dvěma desetinnými místy.";return;}
  const btn=document.getElementById("ulozitCenuMaterialu");btn.disabled=true;stav.textContent="Ukládám…";
- try{const {data:{session}}=await supabaseClient.auth.getSession();if(!session)throw Error("Přihlášení vypršelo.");await pridejPruvodkuBezpecne(session,{p_material_id:id,p_cena_kc:cena},"operace-upravit-cenu");formularUpravyCeny.hidden=true;await obnov();stav.textContent="Cena byla uložena do Supabase.";}
+ try{const {data:{session}}=await supabaseClient.auth.getSession();if(!session)throw Error("Přihlášení vypršelo.");await pridejPruvodkuBezpecne(session,{p_material_id:id,p_cena_kc:cena},"operace-upravit-cenu");formularUpravyCeny.hidden=true;await obnov();stav.textContent="";}
  catch(chyba){stav.textContent="Uložení ceny selhalo: "+chyba.message;}finally{btn.disabled=false;}
 });
 async function obnov(){
