@@ -67,6 +67,11 @@
         form button:disabled { opacity:.55; cursor:wait; }
         @media(max-width:900px) { .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; } .table-wrap table { min-width:1050px; } .table-wrap th,.table-wrap td { white-space:nowrap; } }
         @media(max-width:600px) { form label,form input,form button { width:100%; } form { align-items:stretch; } }
+        .cena-bunka {white-space:nowrap;}
+        .cena-bunka .zamek-ovladani {margin-left:8px;vertical-align:middle;}
+        #formularUpravyCeny[hidden] {display:none!important;}
+        #formularUpravyCeny {display:flex;align-items:end;gap:12px;flex-wrap:wrap;padding:14px;background:#f4f7fb;border:1px solid var(--line);border-radius:9px;margin:12px 0;}
+        #formularUpravyCeny label {display:flex;flex-direction:column;gap:6px;font-weight:700;}
         .zamek-ovladani {display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:30px;padding:5px 9px;border:1px solid #cdd9e7;border-radius:7px;background:#f4f7fb;color:#071a38;font-size:12px;font-weight:700;cursor:pointer;margin:0;white-space:nowrap;}
         .panel-hlavicka-zamek {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
         .panel-hlavicka-zamek h2 {margin:0;}
@@ -103,7 +108,7 @@
         #historie tbody td.vydej { color:#ef3737; }
 </style></head><body><main><div class="hlavicka"><h1 id="titulek">Operace materiálu</h1><div class="akce-hlavicky"><a class="zpet" href="stavpodrobnější.html">← ZPĚT</a></div></div>
 <div id="zprava" class="status"></div>
-<section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div></section>
+<section class="panel"><h2>Podrobný stav materiálu</h2><div class="table-wrap" id="stav"></div><div class="content"><form id="formularUpravyCeny" hidden><label for="novaCenaMaterialu">Cena materiálu (Kč):<input id="novaCenaMaterialu" type="number" min="0" max="1000000000" step="0.01" required></label><button type="submit" id="ulozitCenuMaterialu">ULOŽIT CENU</button><button type="button" id="zrusitCenuMaterialu">ZRUŠIT</button><span id="stavCeny" role="status" aria-live="polite"></span></form></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Obsazené průvodky</h2><button type="button" class="zamek-ovladani" data-zamek="pruvodky" aria-expanded="false" aria-label="Odemknout úpravy průvodek" title="Odemknout úpravy průvodek">🔒</button></div><div class="content"><div id="pruvodky"></div><div class="sprava-pruvodek" id="spravaPruvodek" hidden><form id="formularUpravyPruvodky" hidden><input type="hidden" id="upravovanaPruvodkaId"><label for="upravitCisloPruvodky">Průvodka:<input id="upravitCisloPruvodky" maxlength="150" required></label><label for="upravitKusyPruvodky">Kusů:<input id="upravitKusyPruvodky" type="number" min="0" max="1000000" step="1" required></label><button type="submit" id="ulozitUpravuPruvodky">ULOŽIT ZMĚNY</button><button type="button" id="zrusitUpravuPruvodky" class="sekundarni-pruvodka">ZRUŠIT</button></form><button type="button" id="otevritPruvodku" class="tlacitko-pruvodka" aria-expanded="false">+ PŘIDAT PRŮVODKU</button><form id="formularPruvodky" hidden><label for="novaPruvodka">Průvodka:<input id="novaPruvodka" maxlength="150" required autocomplete="off"></label><label for="noveKusy">Kusů:<input id="noveKusy" type="number" min="1" max="1000000" step="1" required></label><button type="submit" id="ulozitPruvodku">PŘIDAT</button><button type="button" id="zrusitPruvodku" class="sekundarni-pruvodka">ZRUŠIT</button></form><div id="stavPruvodky" role="status" aria-live="polite"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie dodacích listů</h2><button type="button" class="zamek-ovladani" data-zamek="dodaci_list" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="dodaci_list" hidden><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie faktur</h2><button type="button" class="zamek-ovladani" data-zamek="faktura" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="faktura" hidden><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></div></section>
@@ -275,6 +280,7 @@ function zobrazStav(){
  let cls=k==="tavba"?"tavba":k==="obsazeno"?"obsazeno":"";
  if(k==="pocet_zbyva"){const n=Number(r[k]);cls=n<=10?"pocet-malo":n<=20?"pocet-stred":"pocet-ok";}
  if(k==="obsazeno"){const matches=rezervace.filter(o=>identita(o)===identita({...r,delka_mm:r.delka_mm??detail.prijem.delka_mm})&&Number(o.obsazeno)>0);return '<td class="obsazeno">'+(matches.length?matches.map(o=>'<div>'+esc(o.pruvodka)+': '+esc(o.obsazeno)+' ks</div>').join(''):'—')+'</td>';}
+ if(k==="hodnota_skladu_kc")return '<td class="cena-bunka">'+esc(format(k,r[k]))+' <button type="button" class="zamek-ovladani" id="zamekCeny" aria-expanded="'+String(!document.getElementById("formularUpravyCeny").hidden)+'" aria-label="Odemknout úpravu ceny" title="Upravit cenu">🔒</button></td>';
  return '<td class="'+cls+'">'+esc(format(k,r[k]))+'</td>';
  }).join('')+'</tr>').join('')+'</tbody></table>';
 }
@@ -571,6 +577,21 @@ formularUpravyPruvodky.addEventListener("submit",async e=>{
   stavPruvodky.textContent=kusu===0?"Průvodka s nulovým počtem kusů byla odstraněna.":"Průvodka byla úspěšně upravena.";
  }catch(chyba){stavPruvodky.textContent="Úprava průvodky selhala: "+chyba.message;}
  finally{tlacitko.disabled=false;}
+});
+const formularUpravyCeny=document.getElementById("formularUpravyCeny");
+stavEl.addEventListener("click",e=>{
+ const btn=e.target.closest("#zamekCeny");if(!btn)return;
+ const otevrit=formularUpravyCeny.hidden;formularUpravyCeny.hidden=!otevrit;
+ btn.textContent=otevrit?"🔓":"🔒";btn.setAttribute("aria-expanded",String(otevrit));
+ if(otevrit){const radek=sklad.find(r=>Number(r.material_id)===id);const cena=Number(radek?.hodnota_skladu_kc);document.getElementById("novaCenaMaterialu").value=Number.isFinite(cena)?cena.toFixed(2):"";document.getElementById("novaCenaMaterialu").focus();}
+});
+document.getElementById("zrusitCenuMaterialu").addEventListener("click",()=>{formularUpravyCeny.hidden=true;const btn=document.getElementById("zamekCeny");if(btn){btn.textContent="🔒";btn.setAttribute("aria-expanded","false");}});
+formularUpravyCeny.addEventListener("submit",async e=>{
+ e.preventDefault();const raw=document.getElementById("novaCenaMaterialu").value;const cena=Number(raw);const stav=document.getElementById("stavCeny");
+ if(!raw||!Number.isFinite(cena)||cena<0||cena>1000000000||!/^\d+(?:\.\d{1,2})?$/.test(raw)){stav.textContent="Zadejte platnou cenu s nejvýše dvěma desetinnými místy.";return;}
+ const btn=document.getElementById("ulozitCenuMaterialu");btn.disabled=true;stav.textContent="Ukládám…";
+ try{const {data:{session}}=await supabaseClient.auth.getSession();if(!session)throw Error("Přihlášení vypršelo.");await pridejPruvodkuBezpecne(session,{p_material_id:id,p_cena_kc:cena},"operace-upravit-cenu");formularUpravyCeny.hidden=true;await obnov();stav.textContent="Cena byla uložena do Supabase.";}
+ catch(chyba){stav.textContent="Uložení ceny selhalo: "+chyba.message;}finally{btn.disabled=false;}
 });
 async function obnov(){
  const d=await rpc("operace_detail_materialu",{p_material_id:id});
