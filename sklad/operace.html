@@ -108,6 +108,8 @@
         #historie.table-wrap table { transform:rotateX(180deg); width:max-content; min-width:2700px; table-layout:auto; font-size:13px; }
         #historie thead th { position:static; padding:13px 12px; font-size:11px; white-space:nowrap; overflow-wrap:normal; }
         #historie tbody td { padding:12px; white-space:nowrap; overflow-wrap:normal; vertical-align:top; }
+        #historie .historie-smazat {border:1px solid #f0b7b7;background:#fff3f3;color:#b91c1c;border-radius:7px;padding:7px 11px;font-weight:800;cursor:pointer;white-space:nowrap;}
+        #historie .historie-smazat:disabled {opacity:.5;cursor:wait;}
         #historie tbody td.operace { font-weight:900; }
         #historie tbody td.prijem { color:#08aa43; }
         #historie tbody td.vydej { color:#ef3737; }
@@ -118,7 +120,7 @@
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie dodacích listů</h2><button type="button" class="zamek-ovladani" data-zamek="dodaci_list" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="dodaci_list" hidden><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie faktur</h2><button type="button" class="zamek-ovladani" data-zamek="faktura" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="faktura" hidden><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie atestů</h2><button type="button" class="zamek-ovladani" data-zamek="atest" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyAtesty">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="atest" hidden><form class="foto-formular" data-typ="atest"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie atestů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavAtest"></div></div></div></section>
-<section class="panel"><h2>Historie materiálu</h2><div class="table-wrap" id="historie"></div></section>
+<section class="panel"><div class="panel-hlavicka-zamek"><h2>Historie materiálu</h2><button type="button" class="zamek-ovladani" id="zamekHistorie" aria-expanded="false" aria-label="Odemknout mazání historie" title="Odemknout mazání historie">🔒</button></div><div class="table-wrap" id="historie"></div><div class="content" id="stavMazaniHistorie" role="status" aria-live="polite"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
         const SUPABASE_KEY = "sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
@@ -507,10 +509,35 @@ document.querySelectorAll("#fotkyDodaku,#fotkyFaktury,#fotkyAtesty").forEach(el=
 function zobrazHistorii(){
  const hs=historiePodrobna.filter(z=>Number(z.material_id)===id).sort((a,b)=>(Date.parse(b.datum_operace)||0)-(Date.parse(a.datum_operace)||0));
  if(!hs.length){histEl.innerHTML='<p class="content muted">Žádná historie tohoto ID.</p>';return;}
- const hlavicka=sloupceHistorie.map(([,nazev])=>'<th scope="col">'+esc(nazev)+'</th>').join('');
- const radky=hs.map(z=>'<tr>'+sloupceHistorie.map(([k])=>{const val=formatHodnota(k,z[k]);let cls=k==='tavba'?'tavba':'';if(k==='operace'){const t=String(z[k]??'').toLocaleUpperCase('cs');cls='operace '+(/PŘID|PŘÍJ/.test(t)?'prijem':/ODEB|VÝDEJ/.test(t)?'vydej':'');}return '<td class="'+cls+'">'+esc(val)+'</td>';}).join('')+'</tr>').join('');
+ const odemceno=document.getElementById('zamekHistorie').getAttribute('aria-expanded')==='true';
+ const hlavicka=sloupceHistorie.map(([,nazev])=>'<th scope="col">'+esc(nazev)+'</th>').join('')+(odemceno?'<th scope="col">SMAZAT</th>':'');
+ const radky=hs.map(z=>'<tr>'+sloupceHistorie.map(([k])=>{const val=formatHodnota(k,z[k]);let cls=k==='tavba'?'tavba':'';if(k==='operace'){const t=String(z[k]??'').toLocaleUpperCase('cs');cls='operace '+(/PŘID|PŘÍJ/.test(t)?'prijem':/ODEB|VÝDEJ/.test(t)?'vydej':'');}return '<td class="'+cls+'">'+esc(val)+'</td>';}).join('')+(odemceno?'<td><button type="button" class="historie-smazat" data-historie-id="'+esc(z.historie_id)+'">SMAZAT</button></td>':'')+'</tr>').join('');
  histEl.innerHTML='<table class="history-table"><thead><tr>'+hlavicka+'</tr></thead><tbody>'+radky+'</tbody></table>';
 }
+const zamekHistorie=document.getElementById("zamekHistorie");
+zamekHistorie.addEventListener("click",()=>{
+ const odemknout=zamekHistorie.getAttribute("aria-expanded")!=="true";
+ zamekHistorie.setAttribute("aria-expanded",String(odemknout));
+ zamekHistorie.textContent=odemknout?"🔓":"🔒";
+ zamekHistorie.setAttribute("aria-label",odemknout?"Zamknout mazání historie":"Odemknout mazání historie");
+ zamekHistorie.title=zamekHistorie.getAttribute("aria-label");
+ zobrazHistorii();
+});
+histEl.addEventListener("click",async e=>{
+ const btn=e.target.closest(".historie-smazat");
+ if(!btn||zamekHistorie.getAttribute("aria-expanded")!=="true")return;
+ const historieId=Number(btn.dataset.historieId);
+ const zaznam=historiePodrobna.find(h=>Number(h.historie_id)===historieId&&Number(h.material_id)===id);
+ if(!Number.isSafeInteger(historieId)||!zaznam)return;
+ if(!confirm("Opravdu SMAZAT historickou operaci "+zaznam.operace+" ("+zaznam.pocet_operace+" ks) pro materiál ID "+id+"?\\n\\nTento krok odstraní záznam z historie, ale NEZMĚNÍ skladové zásoby ani cenu."))return;
+ const stav=document.getElementById("stavMazaniHistorie");btn.disabled=true;stav.textContent="Mažu záznam…";
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session)throw Error("Přihlášení vypršelo.");
+  await pridejPruvodkuBezpecne(session,{p_material_id:id,p_historie_id:historieId},"operace-smazat-historii");
+  await obnov();stav.textContent="";
+ }catch(chyba){stav.textContent="Smazání historie selhalo: "+chyba.message;btn.disabled=false;}
+});
 async function pridejPruvodkuBezpecne(session,parametry,akce="operace-pridat-pruvodku"){
  const {par,verejnyKlic}=await nactiExistujiciKlic();
  const headers={Authorization:"Bearer "+session.access_token,apikey:SUPABASE_KEY,"Content-Type":"application/json"};
