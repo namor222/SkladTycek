@@ -655,7 +655,7 @@ formularUpravyCeny.addEventListener("submit",async e=>{
  const kgRaw=document.getElementById("novaCenaKg").value;
  const dopravaRaw=document.getElementById("novaCenaDopravy").value;
  const cenaKg=Number(kgRaw),doprava=Number(dopravaRaw),stav=document.getElementById("stavCeny");
- const validni=raw=>/^\\d+(?:\\.\\d{1,2})?$/.test(raw);
+ const validni=raw=>/^\d+(?:\.\d{1,2})?$/.test(raw);
  if(!validni(kgRaw)||!validni(dopravaRaw)||!Number.isFinite(cenaKg)||!Number.isFinite(doprava)||cenaKg>100000000||doprava>100000000){
   stav.textContent="Zadejte nezáporné ceny s nejvýše dvěma desetinnými místy.";return;
  }
