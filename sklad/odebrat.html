@@ -483,6 +483,13 @@ body{
                     .toLowerCase();
 
             let filtrovanySklad = ulozenySklad;
+            const qrIdText=new URLSearchParams(location.search).get("id");
+            const qrId=qrIdText && /^[1-9]\d*$/.test(qrIdText)?Number(qrIdText):null;
+            if(qrId!==null){
+                const vybrany=ulozenySklad.find(p=>Number(p.id)===qrId);
+                if(!vybrany){seznam.innerHTML='<p>Materiál ID '+escapeHtml(qrId)+' není aktuálně na skladě nebo není dostupný.</p>';return;}
+                filtrovanySklad=ulozenySklad.filter(p=>String(p.material)===String(vybrany.material)&&String(p.druh)===String(vybrany.druh)&&Number(p.rozmer)===Number(vybrany.rozmer)&&Number(p.delka_mm)===Number(vybrany.delka_mm)&&String(p.tavba)===String(vybrany.tavba));
+            }
 
             if (hledanaTavba !== "") {
 
@@ -788,7 +795,7 @@ body{
                     );
 
                     const automatickyOtevrit =
-                        hledanaTavba !== ""
+                        (qrId!==null || hledanaTavba !== "")
                             ? "open"
                             : "";
 
