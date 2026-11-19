@@ -120,6 +120,7 @@
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie dodacích listů</h2><button type="button" class="zamek-ovladani" data-zamek="dodaci_list" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyDodaku">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="dodaci_list" hidden><form class="foto-formular" data-typ="dodaci_list"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie dodacích listů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavDodaci"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie faktur</h2><button type="button" class="zamek-ovladani" data-zamek="faktura" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyFaktury">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="faktura" hidden><form class="foto-formular" data-typ="faktura"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie faktur"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavFaktura"></div></div></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Fotografie atestů</h2><button type="button" class="zamek-ovladani" data-zamek="atest" aria-expanded="false" aria-label="Odemknout správu fotografií" title="Odemknout správu fotografií">🔒</button></div><div class="content"><div id="fotkyAtesty">Načítám fotografie…</div><div class="sprava-fotek" data-sprava="atest" hidden><form class="foto-formular" data-typ="atest"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" multiple required aria-label="Fotografie atestů"><button type="submit">+ PŘIDAT FOTOGRAFIE</button></form><div class="foto-stav" id="fotoStavAtest"></div></div></div></section>
+<section class="panel"><div class="panel-hlavicka-zamek"><h2>Skladový štítek A4</h2></div><div class="content"><p class="muted">Štítek pro materiál ID <strong id="stitkovyMaterialId"></strong> s SMKV, tavbou a QR kódem pro výdej.</p><button type="button" id="tiskStitkuMaterialu" style="font-size:19px;padding:15px 26px;background:#1688f5;color:#fff;border:0;border-radius:10px;font-weight:900;cursor:pointer">🖨️ VYTISKNOUT ŠTÍTEK</button></div></section>
 <section class="panel"><div class="panel-hlavicka-zamek"><h2>Historie materiálu</h2><button type="button" class="zamek-ovladani" id="zamekHistorie" aria-expanded="false" aria-label="Odemknout mazání historie" title="Odemknout mazání historie">🔒</button></div><div class="table-wrap" id="historie"></div><div class="content" id="stavMazaniHistorie" role="status" aria-live="polite"></div></section>
 </main><script>
         const SUPABASE_URL = "https://gmawlmsizglrnjmjegmx.supabase.co";
@@ -677,6 +678,38 @@ async function obnov(){
  if(sessionData.session){const [stavData,histData]=await Promise.all([nactiPodrobnyStavBezpecne(sessionData.session),nactiPodrobnouHistoriiBezpecne(sessionData.session)]);sklad=stavData.stav;historiePodrobna=histData;}
  zobrazStav();zobrazPruvodky();zobrazHistorii();
 }
+document.getElementById("stitkovyMaterialId").textContent=String(id);
+document.getElementById("tiskStitkuMaterialu").addEventListener("click",()=>{
+ if(!detail?.prijem){alert("Údaje materiálu ještě nejsou načtené.");return;}
+ const prijem=detail.prijem;
+ const stavRadek=sklad.find(r=>Number(r.material_id)===id);
+ const kod=esc(prijem.smkh||stavRadek?.smkh||"NEPŘIŘAZENO");
+ const tavba=esc(prijem.tavba||stavRadek?.tavba||"NEUVEDENO");
+ const odkaz=new URL("odebrat.html",location.href);odkaz.searchParams.set("id",String(id));
+ const okno=window.open("","_blank");
+ if(!okno){alert("Pro tisk štítku povol otevírání nových oken.");return;}
+ okno.document.open();
+ okno.document.write(`<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>Štítek materiálu ${id}</title><style>
+ @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#eaf0f6;font-family:Arial,sans-serif;color:#071a38}
+ .ovladani{text-align:center;padding:15px}.ovladani button{padding:12px 24px;background:#1688f5;color:white;border:0;border-radius:8px;font-size:17px;font-weight:900;cursor:pointer}
+ .list{width:210mm;height:297mm;margin:auto;padding:13mm;background:white;display:flex;flex-direction:column;border:2px solid #14253b}
+ .horni{display:flex;justify-content:space-between;align-items:center;gap:12mm;border-bottom:3px solid #14253b;padding-bottom:12mm}
+ .logo img{display:block;width:100%;max-width:100mm;max-height:34mm;object-fit:contain;object-position:left center}
+ .id{border:2px solid #14253b;border-radius:8px;text-align:center;padding:5mm 8mm;font-size:15pt;font-weight:900}.id strong{display:block;font-size:42pt}
+ .smkv{text-align:center;padding:16mm 0;border-bottom:3px solid #14253b}.smkv b{display:block;font-size:32pt}.smkv strong{display:block;font-size:64pt;overflow-wrap:anywhere}
+ .tavba{margin-top:16mm;border:2px solid #14253b;border-radius:10px;text-align:center}.tavba b{display:block;background:#eaf0f6;font-size:30pt;padding:5mm}.tavba strong{display:block;font-size:54pt;padding:8mm;overflow-wrap:anywhere}
+ .qr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7mm}.qr small{font-weight:900;font-size:15pt}
+ #qrcode img,#qrcode canvas{width:75mm!important;height:75mm!important}
+ @media print{body{background:white}.ovladani{display:none}.list{border:0}}
+ </style></head><body><div class="ovladani"><button onclick="window.print()">VYTISKNOUT ŠTÍTEK A4</button></div>
+ <main class="list"><header class="horni"><div class="logo"><img src="${new URL("logo.png",location.href).href}" alt="KovoHladil"></div><div class="id">ID MATERIÁLU<strong>${id}</strong></div></header>
+ <section class="smkv"><b>SMKV</b><strong>${kod}</strong></section><section class="tavba"><b>TAVBA</b><strong>${tavba}</strong></section>
+ <section class="qr"><div id="qrcode"></div><small>NAČÍST MATERIÁL</small></section></main>
+ <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
+ <script>window.addEventListener("load",function(){if(window.QRCode)new QRCode(document.getElementById("qrcode"),{text:${JSON.stringify(odkaz.href)},width:360,height:360,correctLevel:QRCode.CorrectLevel.M});else document.getElementById("qrcode").textContent="QR kód se nepodařilo načíst."});<\/script>
+ </body></html>`);
+ okno.document.close();
+});
 async function spustit(){
  try{
  if(!Number.isSafeInteger(id)||id<1)throw Error("Neplatné ID materiálu.");
