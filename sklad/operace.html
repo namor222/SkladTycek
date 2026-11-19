@@ -704,7 +704,7 @@ document.getElementById("tiskStitkuMaterialu").addEventListener("click",()=>{
  </style></head><body><div class="ovladani"><button onclick="window.print()">VYTISKNOUT ŠTÍTEK A4</button></div>
  <main class="list"><header class="horni"><div class="logo"><img src="${new URL("logo.png",location.href).href}" alt="KovoHladil"></div><div class="id">ID MATERIÁLU<strong>${id}</strong></div></header>
  <section class="smkv"><b>SMKV</b><strong>${kod}</strong></section><section class="tavba"><b>TAVBA</b><strong>${tavba}</strong></section>
- <section class="qr"><div id="qrcode"></div><small>NAČÍST MATERIÁL</small></section></main>
+ <section class="qr"><div id="qrcode"></div></section></main>
  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
  <script>window.addEventListener("load",function(){if(window.QRCode)new QRCode(document.getElementById("qrcode"),{text:${JSON.stringify(odkaz.href)},width:360,height:360,correctLevel:QRCode.CorrectLevel.M});else document.getElementById("qrcode").textContent="QR kód se nepodařilo načíst."});<\/script>
  </body></html>`);
