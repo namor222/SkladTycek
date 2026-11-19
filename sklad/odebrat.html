@@ -107,7 +107,7 @@ body{
   body{padding:13px 11px 28px}
   .hlavicka{min-height:58px;margin-bottom:12px}
   .hlavicka h1{font-size:24px;letter-spacing:-.3px}
-  .zpet{min-width:84px;height:40px;padding:0 13px;font-size:13px}
+  .zpet{min-width:125px;height:54px;padding:0 16px;font-size:16px}
   .hledani{margin-bottom:13px}
   .hledani input{height:44px;font-size:13px}
   .skupina{margin-bottom:9px}
@@ -134,6 +134,7 @@ body{
 .obsazeno-radek strong{color:#ff7600;white-space:nowrap}
 @media(max-width:700px){.obsazeno-seznam{grid-column:1}}
 
+.akce-hlavicky{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.akce-hlavicky .zpet{min-width:160px;height:60px;font-size:18px}.skener-tlacitko{background:#1688f5;color:#fff;border-color:#1688f5;cursor:pointer}.skener-panel{width:min(1180px,100%);margin:0 auto 18px;padding:16px;background:#fff;border:1px solid var(--line);border-radius:12px}.skener-panel[hidden]{display:none}.skener-panel video{display:block;width:min(100%,520px);max-height:360px;margin:12px auto;border-radius:10px;background:#071a38;object-fit:cover}@media(max-width:700px){.akce-hlavicky{width:100%}.akce-hlavicky .zpet{flex:1;min-width:120px}.hlavicka{flex-wrap:wrap}}
 </style>
 
 </head>
@@ -144,14 +145,12 @@ body{
 
         <h1>Odebrat ze skladu</h1>
 
-        <a class="zpet" href="material.html">
-            ← ZPĚT
-        </a>
+        <div class="akce-hlavicky"><a class="zpet" href="material.html">← ZPĚT</a><button class="zpet skener-tlacitko" type="button" id="otevritSkener">📷 SKENER</button></div>
 
     </div>
 
 
-    <div class="hledani">
+    <section class="skener-panel" id="skenerPanel" hidden><strong>SKENOVÁNÍ ŠTÍTKU</strong><p id="skenerStav">Namiř fotoaparát na QR kód materiálu.</p><video id="skenerVideo" autoplay playsinline muted></video><button type="button" class="zpet" id="zavritSkener">ZAVŘÍT SKENER</button></section><div class="hledani">
 
         <input
             type="text"
@@ -1079,6 +1078,30 @@ body{
 
 
 
+        let skenerStream=null,skenerBezi=false;
+        async function zavriSkener(){skenerBezi=false;if(skenerStream){skenerStream.getTracks().forEach(t=>t.stop());skenerStream=null;}document.getElementById("skenerVideo").srcObject=null;document.getElementById("skenerPanel").hidden=true;}
+        document.getElementById("zavritSkener").addEventListener("click",zavriSkener);
+        document.getElementById("otevritSkener").addEventListener("click",async()=>{
+            const panel=document.getElementById("skenerPanel"),stav=document.getElementById("skenerStav");
+            if(skenerBezi){await zavriSkener();return;}
+            panel.hidden=false;stav.textContent="Spouštím fotoaparát…";
+            if(!("BarcodeDetector" in window)){stav.textContent="Tento prohlížeč nepodporuje skenování QR kódů. Použij fotoaparát telefonu.";return;}
+            try{
+                const detektor=new BarcodeDetector({formats:["qr_code"]});
+                skenerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+                const video=document.getElementById("skenerVideo");video.srcObject=skenerStream;await video.play();skenerBezi=true;stav.textContent="Namiř fotoaparát na QR kód štítku.";
+                const snimek=async()=>{
+                    if(!skenerBezi)return;
+                    try{const kody=await detektor.detect(video);for(const kod of kody){
+                        const url=new URL(kod.rawValue,location.href),id=url.searchParams.get("id");
+                        if(url.origin!==location.origin||!url.pathname.endsWith("/odebrat.html")||!id||!/^[1-9]\\d*$/.test(id))continue;
+                        await zavriSkener();location.href="odebrat.html?id="+encodeURIComponent(id);return;
+                    }}catch(err){console.warn("Skenování QR:",err);}
+                    if(skenerBezi)requestAnimationFrame(snimek);
+                };requestAnimationFrame(snimek);
+            }catch(err){await zavriSkener();panel.hidden=false;stav.textContent="Fotoaparát nelze spustit: "+(err?.message||"zkontroluj oprávnění.");}
+        });
+        window.addEventListener("pagehide",()=>{if(skenerStream)skenerStream.getTracks().forEach(t=>t.stop());});
         zkontrolujPrihlaseni();
 
     </script>
