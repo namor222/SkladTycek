@@ -1144,7 +1144,7 @@ body{
                             let url;
                             try{url=new URL(obsah,location.href);}catch(_){continue;}
                             const id=url.searchParams.get("id");
-                            if(url.origin!==location.origin||!url.pathname.endsWith("/odebrat.html")||!id||!/^[1-9]\\d*$/.test(id))continue;
+                            if(url.origin!==location.origin||!url.pathname.endsWith("/odebrat.html")||!id||!/^[1-9]\d*$/.test(id))continue;
                             await zavriSkener();
                             location.href="odebrat.html?id="+encodeURIComponent(id);
                             return;
