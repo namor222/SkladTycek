@@ -136,7 +136,7 @@
 
         .zaznam {
             display:grid;
-            grid-template-columns: 145px 115px minmax(220px,1fr) 130px 95px 75px 145px 105px;
+            grid-template-columns: 135px 105px minmax(180px,1fr) 115px 85px 65px 110px 75px 92px;
             align-items:center;
             min-height:52px;
             padding:0 18px;
@@ -168,6 +168,8 @@
 
         .material-cell { color:var(--text); font-weight:700; }
         .material-id { color:#334760; font-weight:800; font-size:13px; }
+        .stitky-bunka{display:flex;justify-content:flex-end}
+        .tisk-stitku{border:1px solid #1688f5;background:#edf6ff;color:#0877e8;border-radius:7px;padding:8px 10px;font-weight:900;font-size:12px;cursor:pointer}
         .cislo-tavby { color:#0877e8; font-weight:800; }
         .pocet { font-weight:900; }
         .pocet.pridano { color:var(--green); }
@@ -634,6 +636,7 @@
                         ${pruvodkaHTML || '<div class="pruvodka"></div>'}
 
                         <div class="material-id">${zaznam.id == null ? "—" : escapeHtml(zaznam.id)}</div>
+                        <div class="stitky-bunka">${jePrijem && Number.isSafeInteger(Number(zaznam.id)) && Number(zaznam.id)>0 ? `<button type="button" class="tisk-stitku" data-id="${escapeHtml(zaznam.id)}">ŠTÍTEK</button>` : ""}</div>
                     </div>
                 `;
             });
@@ -643,6 +646,26 @@
         /*
             FORMÁT DATA
         */
+
+        document.getElementById("seznam").addEventListener("click",event=>{
+            const tlacitko=event.target.closest(".tisk-stitku");
+            if(!tlacitko)return;
+            const id=Number(tlacitko.dataset.id);
+            const prijem=historieData.find(z=>z.akce==="PŘIDÁNO" && Number(z.id)===id);
+            if(!prijem)return;
+            const okno=window.open("","_blank");
+            if(!okno){alert("Povol otevírání nových oken pro tisk štítku.");return;}
+            const odkaz=new URL("odebrat.html",location.href);
+            odkaz.searchParams.set("id",String(id));
+            const kod=escapeHtml(prijem.smkh||"NEPŘIŘAZENO");
+            const tavba=escapeHtml(prijem.tavba||"NEUVEDENO");
+            okno.document.open();
+            okno.document.write(`<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>Štítek ${id}</title>
+<style>@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background:#eaf0f6;font-family:Arial;color:#071a38}.ovladani{text-align:center;padding:15px}.ovladani button{padding:12px 24px;background:#1688f5;color:white;border:0;border-radius:8px;font-weight:900;cursor:pointer}.list{width:210mm;height:297mm;margin:auto;padding:13mm;background:#fff;display:flex;flex-direction:column;border:2px solid #14253b}.horni{display:flex;justify-content:space-between;align-items:center;gap:12mm;border-bottom:3px solid #14253b;padding-bottom:12mm}.logo{font-size:26pt;font-weight:900;letter-spacing:-1px}.logo span{color:#777}.logo small{display:block;font-size:8pt;letter-spacing:1px;margin-top:3mm}.id{border:2px solid #14253b;border-radius:8px;text-align:center;padding:5mm 8mm;font-size:15pt;font-weight:900}.id strong{display:block;font-size:42pt}.smkv{text-align:center;padding:16mm 0;border-bottom:3px solid #14253b}.smkv b{display:block;font-size:32pt}.smkv strong{display:block;font-size:64pt;overflow-wrap:anywhere}.tavba{margin-top:16mm;border:2px solid #14253b;border-radius:10px;text-align:center}.tavba b{display:block;background:#eaf0f6;font-size:30pt;padding:5mm}.tavba strong{display:block;font-size:54pt;padding:8mm;overflow-wrap:anywhere}.qr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7mm}.qr small{font-weight:900;font-size:15pt}#qrcode img,#qrcode canvas{width:75mm!important;height:75mm!important}@media print{body{background:white}.ovladani{display:none}.list{border:0}}</style></head>
+<body><div class="ovladani"><button onclick="window.print()">VYTISKNOUT ŠTÍTEK A4</button></div><main class="list"><header class="horni"><div class="logo">KH | Kovo<span>Hladil</span><small>CNC OBRÁBĚNÍ | TECHNOLOGIE | MĚŘENÍ</small></div><div class="id">ID MATERIÁLU<strong>${id}</strong></div></header><section class="smkv"><b>SMKV</b><strong>${kod}</strong></section><section class="tavba"><b>TAVBA</b><strong>${tavba}</strong></section><section class="qr"><div id="qrcode"></div><small>NAČÍST MATERIÁL</small></section></main>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script><script>window.addEventListener("load",function(){if(window.QRCode)new QRCode(document.getElementById("qrcode"),{text:${JSON.stringify(odkaz.href)},width:360,height:360,correctLevel:QRCode.CorrectLevel.M});else document.getElementById("qrcode").textContent="QR kód se nepodařilo načíst."});<\/script></body></html>`);
+            okno.document.close();
+        });
 
         function formatDatum(datum) {
 
