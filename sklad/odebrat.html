@@ -1078,28 +1078,86 @@ body{
 
 
 
-        let skenerStream=null,skenerBezi=false;
-        async function zavriSkener(){skenerBezi=false;if(skenerStream){skenerStream.getTracks().forEach(t=>t.stop());skenerStream=null;}document.getElementById("skenerVideo").srcObject=null;document.getElementById("skenerPanel").hidden=true;}
+        let skenerStream=null,skenerBezi=false,skenerFrame=0;
+        async function zavriSkener(){
+            skenerBezi=false;
+            if(skenerFrame){cancelAnimationFrame(skenerFrame);skenerFrame=0;}
+            if(skenerStream){skenerStream.getTracks().forEach(t=>t.stop());skenerStream=null;}
+            const video=document.getElementById("skenerVideo");
+            video.pause();video.srcObject=null;
+            document.getElementById("skenerPanel").hidden=true;
+        }
+        function nactiKnihovnuQR(){
+            if(typeof window.jsQR==="function")return Promise.resolve();
+            if(window.nacitaniJsQR)return window.nacitaniJsQR;
+            window.nacitaniJsQR=new Promise((resolve,reject)=>{
+                const script=document.createElement("script");
+                script.src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+                script.onload=()=>typeof window.jsQR==="function"?resolve():reject(new Error("Knihovna QR se nenačetla."));
+                script.onerror=()=>reject(new Error("Nepodařilo se načíst QR čtečku. Zkontroluj připojení k internetu."));
+                document.head.appendChild(script);
+            });
+            return window.nacitaniJsQR;
+        }
         document.getElementById("zavritSkener").addEventListener("click",zavriSkener);
         document.getElementById("otevritSkener").addEventListener("click",async()=>{
             const panel=document.getElementById("skenerPanel"),stav=document.getElementById("skenerStav");
             if(skenerBezi){await zavriSkener();return;}
             panel.hidden=false;stav.textContent="Spouštím fotoaparát…";
-            if(!("BarcodeDetector" in window)){stav.textContent="Tento prohlížeč nepodporuje skenování QR kódů. Použij fotoaparát telefonu.";return;}
             try{
-                const detektor=new BarcodeDetector({formats:["qr_code"]});
+                let detektor=null;
+                if("BarcodeDetector" in window){
+                    try{
+                        if(!BarcodeDetector.getSupportedFormats || (await BarcodeDetector.getSupportedFormats()).includes("qr_code")){
+                            detektor=new BarcodeDetector({formats:["qr_code"]});
+                        }
+                    }catch(err){console.warn("Nativní QR skener není dostupný:",err);}
+                }
+                if(!detektor)await nactiKnihovnuQR();
+                if(!navigator.mediaDevices?.getUserMedia)throw new Error("Prohlížeč neumožňuje přístup k fotoaparátu. Otevři stránku přes HTTPS.");
                 skenerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-                const video=document.getElementById("skenerVideo");video.srcObject=skenerStream;await video.play();skenerBezi=true;stav.textContent="Namiř fotoaparát na QR kód štítku.";
+                const video=document.getElementById("skenerVideo");
+                video.srcObject=skenerStream;
+                await video.play();
+                skenerBezi=true;
+                stav.textContent="Namiř fotoaparát na QR kód štítku.";
+                const platno=document.createElement("canvas"),ctx=platno.getContext("2d",{willReadFrequently:true});
+                let posledniSken=0;
                 const snimek=async()=>{
                     if(!skenerBezi)return;
-                    try{const kody=await detektor.detect(video);for(const kod of kody){
-                        const url=new URL(kod.rawValue,location.href),id=url.searchParams.get("id");
-                        if(url.origin!==location.origin||!url.pathname.endsWith("/odebrat.html")||!id||!/^[1-9]\\d*$/.test(id))continue;
-                        await zavriSkener();location.href="odebrat.html?id="+encodeURIComponent(id);return;
-                    }}catch(err){console.warn("Skenování QR:",err);}
-                    if(skenerBezi)requestAnimationFrame(snimek);
-                };requestAnimationFrame(snimek);
-            }catch(err){await zavriSkener();panel.hidden=false;stav.textContent="Fotoaparát nelze spustit: "+(err?.message||"zkontroluj oprávnění.");}
+                    if(performance.now()-posledniSken<160){skenerFrame=requestAnimationFrame(snimek);return;}
+                    posledniSken=performance.now();
+                    try{
+                        let kody=[];
+                        if(detektor){
+                            kody=(await detektor.detect(video)).map(k=>k.rawValue);
+                        }else if(video.videoWidth && video.videoHeight && ctx){
+                            const sirka=Math.min(video.videoWidth,720);
+                            const vyska=Math.round(sirka*video.videoHeight/video.videoWidth);
+                            platno.width=sirka;platno.height=vyska;
+                            ctx.drawImage(video,0,0,sirka,vyska);
+                            const obraz=ctx.getImageData(0,0,sirka,vyska);
+                            const nalez=window.jsQR(obraz.data,sirka,vyska,{inversionAttempts:"attemptBoth"});
+                            if(nalez)kody=[nalez.data];
+                        }
+                        for(const obsah of kody){
+                            let url;
+                            try{url=new URL(obsah,location.href);}catch(_){continue;}
+                            const id=url.searchParams.get("id");
+                            if(url.origin!==location.origin||!url.pathname.endsWith("/odebrat.html")||!id||!/^[1-9]\\d*$/.test(id))continue;
+                            await zavriSkener();
+                            location.href="odebrat.html?id="+encodeURIComponent(id);
+                            return;
+                        }
+                    }catch(err){console.warn("Skenování QR:",err);}
+                    if(skenerBezi)skenerFrame=requestAnimationFrame(snimek);
+                };
+                skenerFrame=requestAnimationFrame(snimek);
+            }catch(err){
+                await zavriSkener();
+                panel.hidden=false;
+                stav.textContent="Fotoaparát nelze spustit: "+(err?.message||"zkontroluj oprávnění prohlížeče.");
+            }
         });
         window.addEventListener("pagehide",()=>{if(skenerStream)skenerStream.getTracks().forEach(t=>t.stop());});
         zkontrolujPrihlaseni();
