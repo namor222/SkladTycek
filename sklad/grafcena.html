@@ -134,7 +134,7 @@ function nakresli(){
 const canvas=$("graf"),rect=canvas.getBoundingClientRect(),w=Math.max(300,rect.width),h=Math.max(240,rect.height),dpr=window.devicePixelRatio||1;
 canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
 const left=70,right=22,top=25,bottom=53,cw=w-left-right,ch=h-top-bottom;
-const platne=vybrane.filter(r=>Number.isFinite(Number(r.cena_za_kg))&&Number(r.cena_za_kg)>=0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
+const platne=vybrane.filter(r=>Number.isFinite(Number(r.cena_za_kg))&&Number(r.cena_za_kg)>0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
 bodyGrafu=[];plochaGrafu={left,top,cw,ch};ctx.font="12px Arial";
 if(!platne.length){ctx.fillStyle="#69809b";ctx.textAlign="center";ctx.fillText("Žádná data pro zvolené filtry",w/2,h/2);return}
 // Průměr za každý kalendářní den. Všechna původní data dodávek zůstávají v tabulce.
@@ -162,7 +162,7 @@ function nakresliDopravu(){
 const canvas=$("grafDoprava"),rect=canvas.getBoundingClientRect(),w=Math.max(300,rect.width),h=Math.max(240,rect.height),dpr=window.devicePixelRatio||1;
 canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const ctx=canvas.getContext("2d");ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
 const left=70,right=22,top=25,bottom=53,cw=w-left-right,ch=h-top-bottom;
-const platne=vybrane.filter(r=>r.cena_za_dopravu!=null&&Number.isFinite(Number(r.cena_za_dopravu))&&Number(r.cena_za_dopravu)>=0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
+const platne=vybrane.filter(r=>r.cena_za_dopravu!=null&&Number.isFinite(Number(r.cena_za_dopravu))&&Number(r.cena_za_dopravu)>0&&Number.isFinite(new Date(r.datum_prijmu).getTime()));
 bodyGrafuDoprava=[];plochaGrafu={left,top,cw,ch};ctx.font="12px Arial";
 if(!platne.length){ctx.fillStyle="#69809b";ctx.textAlign="center";ctx.fillText("Žádná data pro zvolené filtry",w/2,h/2);return}
 // Průměr za každý kalendářní den. Všechna původní data dodávek zůstávají v tabulce.
