@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Technologie | KovoHladil</title>
+<link rel="icon" href="favicon.ico">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f7fb;--line:#dfe7f0;--text:#071a38;--blue:#1688f5;--muted:#6f8097}
+*{box-sizing:border-box}
+body{display:none;margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;padding:24px 28px 38px}
+header{width:min(1450px,100%);min-height:74px;margin:0 auto 18px;padding:0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+header h1{font-size:32px;font-weight:800;margin:0}
+.back{min-height:48px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #d6e0eb;border-radius:10px;background:white;color:var(--text);font-weight:800;font-size:15px;text-decoration:none}
+.back:hover{background:#edf5ff;border-color:#b8d4ef}
+main{width:min(1450px,100%);margin:auto}
+.intro{margin:0 0 23px;color:var(--muted);font-size:15px;line-height:1.6}
+.menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tile{--accent:#1688ef;position:relative;display:grid;grid-template-columns:75px 1fr 34px;align-items:center;min-height:112px;padding:19px 22px 19px 27px;background:rgba(255,255,255,.94);border:1px solid #dce4ec;border-radius:9px;box-shadow:0 7px 22px rgba(24,45,72,.09);overflow:hidden;gap:0}
+.tile:before{content:"";position:absolute;top:0;left:0;width:6px;height:100%;background:var(--accent)}
+.tile .symbol{width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.tile svg{width:46px;height:46px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tile h2{font-size:19px;font-weight:800;margin:0 0 7px}
+.tile p{font-size:14px;color:var(--muted);line-height:1.45;margin:0}
+.tile .arrow{font-size:30px;color:#b7c5d4;justify-self:end}
+.status{display:inline-block;margin-top:9px;font-weight:800;font-size:11px;letter-spacing:.04em;color:#6f8097}
+@media(max-width:900px){body{padding:12px 10px 28px}header{min-height:58px;margin-bottom:12px}header h1{font-size:21px}.back{min-height:40px;padding:0 12px;font-size:13px}}
+@media(max-width:680px){.menu{grid-template-columns:1fr}.tile{grid-template-columns:62px 1fr 22px;padding:16px 15px 16px 20px}.tile .symbol{width:48px;height:48px}.tile svg{width:40px;height:40px}.tile h2{font-size:18px}}
+</style>
+</head>
+<body>
+<header><h1>Technologie</h1><a class="back" href="vyroba.html">← ZPĚT</a></header>
+<main>
+<p class="intro">Vyberte oblast technologické dokumentace. Přístup je zatím určen pouze pro vedení.</p>
+<section class="menu" aria-label="Technologická dokumentace">
+<article class="tile" style="--accent:#1688ef"><div class="symbol"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M15 9h26l9 9v37H15zM41 9v10h9M22 29h21M22 36h21M22 43h15"/></svg></div><div><h2>Výkresy</h2><p>Výrobní a technické výkresy.</p><span class="status">PŘIPRAVUJEME</span></div><span class="arrow" aria-hidden="true">›</span></article>
+<article class="tile" style="--accent:#16a085"><div class="symbol"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="11" width="40" height="42" rx="4"/><path d="M20 22h24M20 32h24M20 42h16"/><circle cx="42" cy="42" r="3"/></svg></div><div><h2>Seřizováky</h2><p>Seřizovací listy a dokumentace.</p><span class="status">PŘIPRAVUJEME</span></div><span class="arrow" aria-hidden="true">›</span></article>
+<article class="tile" style="--accent:#805ad5"><div class="symbol"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="9" width="36" height="46" rx="4"/><path d="M22 20h20M22 30h20M22 40h20M22 47h12"/></svg></div><div><h2>Postupy</h2><p>Technologické a pracovní postupy.</p><span class="status">PŘIPRAVUJEME</span></div><span class="arrow" aria-hidden="true">›</span></article>
+<article class="tile" style="--accent:#ff7900"><div class="symbol"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M15 49l19-19M32 15l17 17M37 10l17 17M12 52l8-2-6-6-2 8zM30 13l7-7 21 21-7 7"/></svg></div><div><h2>Nástroje</h2><p>Přehled obráběcích nástrojů.</p><span class="status">PŘIPRAVUJEME</span></div><span class="arrow" aria-hidden="true">›</span></article>
+</section>
+</main>
+<script>
+const SUPABASE_URL="https://gmawlmsizglrnjmjegmx.supabase.co";
+const SUPABASE_KEY="sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+        function otevriDatabaziProhlizece() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("kovohladil-prohlizec", 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains("klice")) {
+                        db.createObjectStore("klice");
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function nactiExistujiciKlic() {
+            if (!window.isSecureContext || !crypto.subtle || !window.indexedDB) {
+                throw new Error("Prohlížeč nepodporuje bezpečné ověření.");
+            }
+            const db = await otevriDatabaziProhlizece();
+            try {
+                const par = await new Promise((resolve, reject) => {
+                    const tx = db.transaction("klice", "readonly");
+                    const request = tx.objectStore("klice").get("identita");
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+                if (!par?.privateKey || !par?.publicKey) {
+                    throw new Error("V tomto prohlížeči není uložen schválený klíč.");
+                }
+                const jwk = await crypto.subtle.exportKey("jwk", par.publicKey);
+                return {
+                    par,
+                    verejnyKlic: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y }
+                };
+            } finally {
+                db.close();
+            }
+        }
+
+        function kodujBase64url(buffer) {
+            let text = "";
+            for (const byte of new Uint8Array(buffer)) text += String.fromCharCode(byte);
+            return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        async function zavolejSchvalovani(body) {
+            const { data, error } = await supabaseClient.functions.invoke(
+                "schvalovani-prohlizecu", { body }
+            );
+            if (error) throw error;
+            if (data?.chyba) throw new Error(data.chyba);
+            return data;
+        }
+
+        async function overSchvalenyProhlizec() {
+            const { par, verejnyKlic } = await nactiExistujiciKlic();
+            const vyzva = await zavolejSchvalovani({
+                akce: "vyzva",
+                verejny_klic: verejnyKlic
+            });
+            if (typeof vyzva?.vyzva !== "string" || !vyzva?.vyzva_id) {
+                throw new Error("Server nevrátil platnou výzvu.");
+            }
+            const podpis = await crypto.subtle.sign(
+                { name: "ECDSA", hash: "SHA-256" },
+                par.privateKey,
+                new TextEncoder().encode(vyzva.vyzva)
+            );
+            const vysledek = await zavolejSchvalovani({
+                akce: "overit",
+                verejny_klic: verejnyKlic,
+                vyzva_id: vyzva.vyzva_id,
+                podpis: kodujBase64url(podpis)
+            });
+            if (vysledek?.overeno !== true) {
+                throw new Error("Prohlížeč není schválený.");
+            }
+        }
+
+
+
+
+
+
+async function spustit(){
+try{
+const {data:prihlaseni,error:chybaPrihlaseni}=await supabaseClient.auth.getSession();
+if(chybaPrihlaseni||!prihlaseni.session){location.replace("login.html");return;}
+const {data:overeny,error:chybaOvereni}=await supabaseClient.auth.getUser();
+if(chybaOvereni||!overeny?.user||overeny.user.id!==prihlaseni.session.user.id){location.replace("login.html");return;}
+await overSchvalenyProhlizec();
+const {data:uzivatel,error:chybaRole}=await supabaseClient.from("uzivatele").select("role").eq("user_id",prihlaseni.session.user.id).maybeSingle();
+if(chybaRole||uzivatel?.role!=="vedeni"){location.replace("index.html");return;}
+document.body.style.display="block";
+}catch(chyba){console.warn("Přístup do technologie zamítnut:",chyba);location.replace("login.html");}
+}
+spustit();
+</script>
+</body>
+</html>
