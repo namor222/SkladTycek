@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="favicon.ico?v=3">
+<title>Výroba | KOVOHLADIL</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{display:none;margin:0;min-height:100vh;font-family:Arial,Helvetica,sans-serif;color:#101828;background:linear-gradient(#f5f8fb33,#f5f8fb33),url("index-pozadi.png") center/cover fixed}.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(24px,4vw,70px);background:#fffffff0;border-bottom:1px solid #1229411f;box-shadow:0 4px 18px #14283c14}.topbar img{max-width:min(410px,45vw);height:56px;object-fit:contain}.zpet{display:inline-flex;align-items:center;justify-content:center;min-height:45px;padding:0 20px;background:#f8fafc;border:1px solid #d6dde5;border-radius:8px;text-decoration:none;color:#172033;font-size:14px;font-weight:800}.zpet:hover{background:#fff;border-color:#b7c3cf}.content{max-width:1050px;margin:0 auto;padding:clamp(40px,7vh,85px) 22px 70px}.intro{padding:35px 40px;background:#fffffff0;border:1px solid #fff;border-radius:14px;box-shadow:0 12px 35px #14283c1f;text-align:center}.intro h1{margin:0 0 10px;font-size:clamp(30px,4vw,44px)}.intro p{margin:0;color:#667085;font-size:17px;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px}.card{position:relative;min-height:205px;padding:27px 25px;background:#fffffff2;border:1px solid #d0d8e2eb;border-radius:11px;box-shadow:0 8px 24px #1018281a;overflow:hidden}.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#1688ed}.symbol{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin-bottom:20px;border-radius:12px;background:#e8f4ff;color:#0879e8;font-size:27px}.card h2{margin:0 0 8px;font-size:21px}.card p{margin:0;color:#667085;font-size:15px;line-height:1.5}.stav{display:inline-block;margin-top:17px;font-size:12px;font-weight:800;color:#627894;background:#edf2f7;padding:7px 10px;border-radius:7px}@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.topbar{height:78px}.topbar img{height:46px}}@media(max-width:600px){body{background-image:linear-gradient(#f5f8fb33,#f5f8fb33),url("index-pozadi-mobil.png")}.topbar{height:72px;padding:0 15px}.topbar img{max-width:190px;height:39px}.content{padding:35px 16px}.intro{padding:25px 18px}.intro p{font-size:15px}.grid{grid-template-columns:1fr;gap:14px}.card{min-height:0;padding:22px}.symbol{margin-bottom:14px}}
+</style>
+</head>
+<body>
+<header class="topbar"><img src="logo.png" alt="KovoHladil"><a class="zpet" href="index.html">← ZPĚT</a></header>
+<main class="content"><section class="intro"><h1>Výroba</h1><p>Centrální prostor pro plánování a řízení výroby. Jednotlivé části postupně připravujeme.</p></section>
+<section class="grid" aria-label="Připravované oblasti výroby">
+<article class="card"><div class="symbol" aria-hidden="true">⚙</div><h2>Technologie</h2><p>Technologické postupy a výrobní podklady.</p><span class="stav">PŘIPRAVUJEME</span></article>
+<article class="card"><div class="symbol" aria-hidden="true">▦</div><h2>Plánování výroby</h2><p>Plán zakázek, kapacity a termíny výroby.</p><span class="stav">PŘIPRAVUJEME</span></article>
+<article class="card"><div class="symbol" aria-hidden="true">☷</div><h2>Výrobní přehled</h2><p>Informace o průběhu a stavu výroby.</p><span class="stav">PŘIPRAVUJEME</span></article>
+</section></main>
+<script>
+const supabaseClient=window.supabase.createClient("https://gmawlmsizglrnjmjegmx.supabase.co","sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i");
+async function overPristup(){try{const {data:{session},error}=await supabaseClient.auth.getSession();if(error||!session){location.replace("login.html");return}const {data:user,error:ue}=await supabaseClient.auth.getUser();if(ue||user.user?.id!==session.user.id){location.replace("login.html");return}document.body.style.display="block"}catch(e){location.replace("login.html")}}
+overPristup();
+</script>
+</body></html>
