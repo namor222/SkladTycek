@@ -29,7 +29,7 @@ main{width:min(1450px,100%);margin:auto}
 .drawing-link{display:block;text-decoration:none;color:inherit}.drawing-link:hover .tile{background:#edf5ff;border-color:#b8d4ef}.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,180px));gap:18px}.folder{display:flex;flex-direction:column;align-items:center;gap:12px;padding:22px 12px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);font:inherit;cursor:pointer}.folder svg{width:96px;height:80px;filter:drop-shadow(0 3px 3px #0002)}.folder:hover,.folder:focus-visible{background:#e5effb;border-color:#b8d4ef}.folder strong{font-size:17px}#detail{padding-top:8px}button.back{cursor:pointer}@media(max-width:480px){.folders{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}</style>
 </head>
 <body>
-<header><h1>Seřizovací listy</h1><a class="back" href="technologie.html">← ZPĚT</a></header><main><p class="intro">Vyberte složku stroje.</p><section id="folders" class="folders" aria-label="Složky strojů"><button type="button" class="folder" data-folder="0"><svg viewBox="0 0 100 80" aria-hidden="true"><path d="M5 17Q5 11 11 11H36L47 23H89Q95 23 95 29V69H5Z" fill="#d9a334"/><rect x="5" y="28" width="90" height="46" rx="5" fill="#f5cd69"/></svg><strong>JSL 20</strong></button><button type="button" class="folder" data-folder="1"><svg viewBox="0 0 100 80" aria-hidden="true"><path d="M5 17Q5 11 11 11H36L47 23H89Q95 23 95 29V69H5Z" fill="#d9a334"/><rect x="5" y="28" width="90" height="46" rx="5" fill="#f5cd69"/></svg><strong>JSL 32</strong></button><button type="button" class="folder" data-folder="2"><svg viewBox="0 0 100 80" aria-hidden="true"><path d="M5 17Q5 11 11 11H36L47 23H89Q95 23 95 29V69H5Z" fill="#d9a334"/><rect x="5" y="28" width="90" height="46" rx="5" fill="#f5cd69"/></svg><strong>KMX</strong></button></section><section id="detail" hidden><button type="button" class="back" id="return">← Složky</button><h2 id="foldername"></h2><p class="intro">Složka je zatím prázdná.</p></section></main>
+<header><h1>Seřizovací listy</h1><a class="back" href="technologie.html">← ZPĚT</a></header><main><p class="intro">Vyberte složku stroje.</p><section id="folders" class="folders" aria-label="Složky strojů"></section><section id="detail" hidden><button type="button" class="back" id="return">← Složky</button><h2 id="foldername"></h2><p class="intro">Složka je zatím prázdná.</p></section></main>
 <script>
 const SUPABASE_URL="https://gmawlmsizglrnjmjegmx.supabase.co";
 const SUPABASE_KEY="sb_publishable_vR83XyBMZWGM5r7pf8GizA_AWRmgM9i";
@@ -118,7 +118,20 @@ const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 
 
-document.querySelectorAll(".folder").forEach(button=>button.addEventListener("click",()=>{document.getElementById("foldername").textContent=button.querySelector("strong").textContent;document.getElementById("folders").hidden=true;document.getElementById("folders").style.display="none";document.getElementById("detail").hidden=false;}));document.getElementById("return").addEventListener("click",()=>{document.getElementById("detail").hidden=true;document.getElementById("folders").hidden=false;document.getElementById("folders").style.display="";});supabaseClient.auth.onAuthStateChange(event=>{if(event==="SIGNED_OUT"){document.body.style.display="none";location.replace("login.html");}});
+async function nactiSlozky(){
+const {par,verejnyKlic}=await nactiExistujiciKlic();
+const vyzva=await zavolejSchvalovani({akce:"vyzva",verejny_klic:verejnyKlic});
+const prikaz={akce:"seznam",metoda:"POST",cesta:"/functions/v1/technologie-slozky",parametry:{sekce:"serizovaci_listy"}};
+const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(prikaz)));
+const otisk=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+const podpis=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},par.privateKey,new TextEncoder().encode(vyzva.vyzva+":technologie-slozky:v2:"+otisk));
+const {data,error}=await supabaseClient.functions.invoke("technologie-slozky",{body:{...prikaz,verejny_klic:verejnyKlic,vyzva_id:vyzva.vyzva_id,podpis:kodujBase64url(podpis)}});
+if(error||data?.overeno!==true||!Array.isArray(data.data))throw new Error("Nelze načíst složky.");
+const root=document.getElementById("folders");root.replaceChildren();
+for(const row of data.data){const button=document.createElement("button");button.type="button";button.className="folder";button.innerHTML='<svg viewBox="0 0 100 80" aria-hidden="true"><path d="M5 17Q5 11 11 11H36L47 23H89Q95 23 95 29V69H5Z" fill="#d9a334"/><rect x="5" y="28" width="90" height="46" rx="5" fill="#f5cd69"/></svg><strong></strong>';button.querySelector("strong").textContent=row.nazev;button.addEventListener("click",()=>{document.getElementById("foldername").textContent=row.nazev;root.hidden=true;root.style.display="none";document.getElementById("detail").hidden=false;});root.append(button);}
+if(!data.data.length)root.textContent="Žádné složky.";
+}
+document.getElementById("return").addEventListener("click",()=>{document.getElementById("detail").hidden=true;document.getElementById("folders").hidden=false;document.getElementById("folders").style.display="";});supabaseClient.auth.onAuthStateChange(event=>{if(event==="SIGNED_OUT"){document.body.style.display="none";location.replace("login.html");}});
 async function spustit(){
 try{
 const {data:prihlaseni,error:chybaPrihlaseni}=await supabaseClient.auth.getSession();
@@ -128,6 +141,7 @@ if(chybaOvereni||!overeny?.user||overeny.user.id!==prihlaseni.session.user.id){l
 await overSchvalenyProhlizec();
 const {data:uzivatel,error:chybaRole}=await supabaseClient.from("uzivatele").select("role").eq("user_id",prihlaseni.session.user.id).maybeSingle();
 if(chybaRole||uzivatel?.role!=="vedeni"){location.replace("index.html");return;}
+await nactiSlozky();
 document.body.style.display="block";
 }catch(chyba){console.warn("Přístup do seřizovacích listů zamítnut:",chyba);location.replace("login.html");}
 }
